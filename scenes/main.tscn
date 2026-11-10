@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/systems/sol_system.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ships/player_ship.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="5"]
+[ext_resource type="Script" path="res://scripts/targeting/targeting_manager.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/game/game_state_manager.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/docking/docking_manager.gd" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settlement_screen.tscn" id="9"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1")
+starting_ship_stats = ExtResource("4")
+
+[node name="StarSystem" parent="." instance=ExtResource("2")]
+
+[node name="PlayerShip" parent="." instance=ExtResource("3")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Targeting" type="Node" parent="."]
+script = ExtResource("6")
+
+[node name="GameState" type="Node" parent="."]
+script = ExtResource("7")
+
+[node name="Docking" type="Node" parent="."]
+script = ExtResource("8")
+
+[node name="Hud" parent="." instance=ExtResource("5")]
+
+[node name="SettlementScreen" parent="." instance=ExtResource("9")]

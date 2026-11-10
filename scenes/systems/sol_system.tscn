@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/earth.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/locations/mars.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/locations/victory_i.tres" id="6"]
+
+[node name="SolSystem" instance=ExtResource("1")]
+system_name = "Sol"
+
+[node name="Earth" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-700, -250)
+data = ExtResource("4")
+
+[node name="Mars" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(2200, -1400)
+data = ExtResource("5")
+
+[node name="VictoryI" parent="Objects" index="2" instance=ExtResource("3")]
+position = Vector2(600, 350)
+data = ExtResource("6")

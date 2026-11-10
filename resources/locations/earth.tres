@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/terrestrial.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+planet_type = ExtResource("2")
+display_name = "Earth"
+faction_name = "TestFaction_1"
+population = 8500000
+exported_goods = Array[String](["TradeGood_1", "TradeGood_2"])
+imported_goods = Array[String](["TradeGood_3", "TradeGood_4"])
+size = 450.0

@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/objects/inhabited_node.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/objects/space_station.gd" id="2"]
+
+[node name="SpaceStation" instance=ExtResource("1")]
+script = ExtResource("2")

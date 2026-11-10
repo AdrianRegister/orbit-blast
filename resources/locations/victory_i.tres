@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="InhabitedData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Victory I"
+faction_name = "TestFaction_1"
+population = 4500
+exported_goods = Array[String](["TradeGood_5"])
+imported_goods = Array[String](["TradeGood_2", "TradeGood_4"])
+size = 80.0

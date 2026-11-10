@@ -1,0 +1,22 @@
+# Godot generated files
+.godot/
+
+# Godot export configuration
+# Review export_presets.cfg before committing if you want to share export settings.
+export.cfg
+
+# Exported builds
+/builds/
+/exports/
+
+# Runtime logs
+/logs/*
+!/logs/.gitkeep
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings
+.claude/settings.local.json
