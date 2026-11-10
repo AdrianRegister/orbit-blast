@@ -9,3 +9,6 @@ extends Resource
 @export var display_name: String = ""
 ## The sprite used for planets of this type.
 @export var texture: Texture2D
+## Settlement-screen background for inhabited planets of this type. Used when a
+## planet's own data has no `picture` set.
+@export var settlement_picture: Texture2D

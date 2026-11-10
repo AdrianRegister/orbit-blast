@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+thrust = 120.0
+turn_rate = 1.2
+max_speed = 280.0
+cargo_capacity = 2000

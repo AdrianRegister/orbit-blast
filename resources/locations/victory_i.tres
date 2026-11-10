@@ -1,12 +1,18 @@
 [gd_resource type="Resource" script_class="InhabitedData" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/markets/victory_i_market.tres" id="market"]
 
 [resource]
 script = ExtResource("1")
 display_name = "Victory I"
 faction_name = "TestFaction_1"
 population = 4500
-exported_goods = Array[String](["TradeGood_5"])
-imported_goods = Array[String](["TradeGood_2", "TradeGood_4"])
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery")])
 size = 80.0
+market = ExtResource("market")

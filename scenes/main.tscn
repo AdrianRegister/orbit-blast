@@ -9,10 +9,13 @@
 [ext_resource type="Script" path="res://scripts/game/game_state_manager.gd" id="7"]
 [ext_resource type="Script" path="res://scripts/docking/docking_manager.gd" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settlement_screen.tscn" id="9"]
+[ext_resource type="Script" path="res://scripts/economy/economy_manager.gd" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/ui/trading_screen.tscn" id="11"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
 starting_ship_stats = ExtResource("4")
+starting_credits = 500000
 
 [node name="StarSystem" parent="." instance=ExtResource("2")]
 
@@ -26,9 +29,14 @@ script = ExtResource("6")
 [node name="GameState" type="Node" parent="."]
 script = ExtResource("7")
 
+[node name="Economy" type="Node" parent="."]
+script = ExtResource("10")
+
 [node name="Docking" type="Node" parent="."]
 script = ExtResource("8")
 
 [node name="Hud" parent="." instance=ExtResource("5")]
 
 [node name="SettlementScreen" parent="." instance=ExtResource("9")]
+
+[node name="TradingScreen" parent="." instance=ExtResource("11")]

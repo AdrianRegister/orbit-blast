@@ -7,3 +7,4 @@ script = ExtResource("1")
 thrust = 300.0
 turn_rate = 3.0
 max_speed = 500.0
+cargo_capacity = 500

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TrafficConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/traffic_config.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/ship_type.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/ship_types/shuttle.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/ship_types/freighter.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/ship_types/interceptor.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+max_ships = 8
+ship_types = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4"), ExtResource("5")])

@@ -3,12 +3,12 @@ extends CanvasLayer
 ## Heads-up display. Shows information; owns no gameplay state.
 ##
 ## Real data: velocity, read from the tracked ship.
+## Credits: pushed in by Main from the EconomyManager.
 ## Placeholders: everything else, until the matching system exists. Future
 ## systems should call the set_* methods below rather than editing the UI.
 
 # --- Placeholder values (no underlying system exists yet) -------------------
 const PLACEHOLDER_SYSTEM_NAME := "UNKNOWN"
-const PLACEHOLDER_CREDITS := 0
 const PLACEHOLDER_HULL := Vector2(100, 100)    # (current, max)
 const PLACEHOLDER_SHIELD := Vector2(100, 100)
 const PLACEHOLDER_ENERGY := Vector2(100, 100)
@@ -26,6 +26,7 @@ var _target: Targetable
 @onready var _energy_bar: StatBar = %EnergyBar
 @onready var _velocity_value: Label = %VelocityValue
 @onready var _weapon_value: Label = %WeaponValue
+@onready var _cargo_list: CargoList = %CargoList
 @onready var _target_label: Label = %TargetLabel
 @onready var _target_info: VBoxContainer = %TargetInfo
 @onready var _target_name: Label = %NameLabel
@@ -39,11 +40,12 @@ var _message_timer: Timer
 
 func _ready() -> void:
 	set_system_name(PLACEHOLDER_SYSTEM_NAME)
-	set_credits(PLACEHOLDER_CREDITS)
+	set_credits(0)
 	set_hull(PLACEHOLDER_HULL.x, PLACEHOLDER_HULL.y)
 	set_shield(PLACEHOLDER_SHIELD.x, PLACEHOLDER_SHIELD.y)
 	set_energy(PLACEHOLDER_ENERGY.x, PLACEHOLDER_ENERGY.y)
 	set_weapon_name(PLACEHOLDER_WEAPON)
+	set_cargo(0, 0, [])
 	_message_timer = Timer.new()
 	_message_timer.one_shot = true
 	_message_timer.wait_time = 4.0
@@ -126,7 +128,7 @@ func set_system_name(system_name: String) -> void:
 
 
 func set_credits(credits: int) -> void:
-	_credits_value.text = str(credits)
+	_credits_value.text = NumberFormat.with_commas(credits)
 
 
 func set_hull(value: float, max_value: float) -> void:
@@ -139,6 +141,11 @@ func set_shield(value: float, max_value: float) -> void:
 
 func set_energy(value: float, max_value: float) -> void:
 	_energy_bar.set_values(value, max_value)
+
+
+## `lines` is an Array of [display_name, quantity] pairs.
+func set_cargo(used: int, capacity: int, lines: Array) -> void:
+	_cargo_list.set_cargo(used, capacity, lines)
 
 
 func set_weapon_name(weapon_name: String) -> void:

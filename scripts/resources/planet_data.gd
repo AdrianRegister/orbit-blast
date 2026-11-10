@@ -6,6 +6,13 @@ extends InhabitedData
 @export var planet_type: PlanetType
 
 
+## The planet's own picture if set, otherwise its type's settlement picture.
+func get_picture() -> Texture2D:
+	if picture != null:
+		return picture
+	return planet_type.settlement_picture if planet_type != null else null
+
+
 func validate() -> Array[String]:
 	var problems: Array[String] = super()
 	if planet_type == null:

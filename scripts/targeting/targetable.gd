@@ -11,14 +11,24 @@ extends Area2D
 
 ## Emitted when anything the HUD displays (other than distance) changes.
 signal info_changed
+## Emitted when this target can no longer be selected (disabled, e.g. an NPC
+## that has docked). The TargetingManager clears the selection when it fires.
+signal became_unavailable
 
 ## Physics layer used only for click detection.
 const COLLISION_LAYER := 2
 ## Every Targetable joins this group, so the manager can list them all.
 const GROUP := &"targetable"
+## Cycle groups: Tab cycles locations, T cycles ships. A Targetable joins the
+## one named by `cycle_group`, so adding a new cycle needs only a new group.
+const LOCATION_GROUP := &"targetable_location"
+const SHIP_GROUP := &"targetable_ship"
 const SELECTION_MARGIN := 14.0
 const SELECTION_COLOR := Color(1.0, 0.85, 0.3, 0.85)
 const SELECTION_LINE_WIDTH := 2.0
+
+## Which cycle this target belongs to (see LOCATION_GROUP / SHIP_GROUP).
+@export var cycle_group: StringName = LOCATION_GROUP
 
 var target_name: String = ""
 var target_type: String = ""
@@ -31,12 +41,14 @@ var dock_range: float = 0.0
 var _bounds_size: Vector2 = Vector2(64, 64)
 var _is_round: bool = false
 var _selected: bool = false
+var _enabled: bool = true
 
 @onready var _shape: CollisionShape2D = $CollisionShape2D
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
+	add_to_group(cycle_group)
 
 
 ## Sets everything in one go. `bounds_size` is the visual size of the object
@@ -56,6 +68,22 @@ func configure(name_text: String, type_text: String, bounds_size: Vector2,
 	_update_shape()
 	queue_redraw()
 	info_changed.emit()
+
+
+## A disabled target cannot be clicked or cycled to, and loses any selection.
+func set_enabled(enabled: bool) -> void:
+	if enabled == _enabled:
+		return
+	_enabled = enabled
+	_shape.set_deferred("disabled", not enabled)
+	if not enabled:
+		_selected = false
+		queue_redraw()
+		became_unavailable.emit()
+
+
+func is_enabled() -> bool:
+	return _enabled
 
 
 func set_selected(selected: bool) -> void:

@@ -72,7 +72,9 @@ inhabited_node.tscn         Node2D  [inhabited_node.gd]  + Targetable child
 ```
 star_system.tscn            Node2D [star_system.gd]
         │                     ├── Background (NearStars, DistantStars parallax)
-        │                     └── Objects   ← planets/stations go here
+        │                     ├── Objects   ← planets/stations go here
+        │                     ├── Ships     ← NPC ships (added at runtime)
+        │                     └── Traffic   ← TrafficManager; see npc-traffic.md
         └── sol_system.tscn      inherits star_system.tscn, adds Earth, Mars, Victory I
 ```
 
@@ -160,10 +162,10 @@ Static data is stored in custom `Resource` classes that also form a hierarchy:
 Resource
  ├── TargetDetails           get_rows(), is_dockable()   (what the HUD shows)
  │    └── InhabitedData      display_name, faction_name, population,
- │         │                 exported_goods, imported_goods, picture,
- │         │                 size, docking_range, validate()
+ │         │                 exported_goods, imported_goods, market, picture,
+ │         │                 size, docking_range, get_picture(), validate()
  │         └── PlanetData    + planet_type
- ├── PlanetType              display_name, texture
+ ├── PlanetType              display_name, texture, settlement_picture
  ├── ShipStats               thrust, turn_rate, max_speed
  └── PlayerData              runtime player state
 ```
@@ -172,16 +174,17 @@ Key points:
 
 - `InhabitedData` extends `TargetDetails`, so the object's data resource **is** what the HUD reads. `Targetable` calls `get_rows()` and never needs to know the concrete type.
 - `PlanetData` extends `InhabitedData`; a planet has everything a station has, plus a `planet_type`.
-- `PlanetType` is a separate resource shared by many planets. Choosing the type picks the sprite. Later it can also hold shared trade modifiers.
+- `PlanetType` is a separate resource shared by many planets. Choosing the type picks the sprite *and* the default settlement-screen background (`settlement_picture`). Later it can also hold shared trade modifiers.
 - Setters on `InhabitedData` fields call `emit_changed()`, which makes the HUD refresh if data changes at runtime.
-- Faction and trade goods are currently **plain strings** (e.g. `"TradeGood_1"`) until those systems exist. An item must not appear in both `exported_goods` and `imported_goods`.
+- `faction_name` is currently a plain string until factions exist. `exported_goods` and `imported_goods` are arrays of `Commodity` resources (see [economy.md](economy.md)). A commodity must not appear in both.
+- `market` is an optional `MarketData`. Without one, the location has no trading floor.
 
 ### Data files
 
 ```
 resources/
   locations/       earth.tres (PlanetData), mars.tres (PlanetData), victory_i.tres (InhabitedData)
-  planet_types/    terrestrial.tres, rocky.tres  (PlanetType)
+  planet_types/    terrestrial, rocky, desert, moon, arctic, ocean, resort  (PlanetType .tres)
   ships/           shuttle_stats.tres            (ShipStats)
 ```
 
@@ -196,7 +199,7 @@ resources/
    - `Planet` applies its sprite and scale.
 3. The `Targetable` joins the `targetable` group. `TargetingManager` finds clickable ones via a physics point query on layer 2 and cycles through the group with the `cycle_target` action.
 4. Selecting a target sends it to the HUD (`target_changed` signal). The HUD shows `name`, `type`, distance and `details.get_rows()`.
-5. Pressing the `dock` action calls `DockingManager.try_dock()`, which checks that the target `is_dockable()`, that the ship is within `dock_range`, and that it is slower than `max_dock_speed`. On success the `SettlementScreen` opens, showing the data's name, rows and `picture`.
+5. Pressing the `dock` action calls `DockingManager.try_dock()`, which checks that the target `is_dockable()`, that the ship is within `dock_range`, and that it is slower than `max_dock_speed`. On success the `SettlementScreen` opens, showing the data's name, rows and background picture (see [section 7.1](#71-settlement-pictures)).
 
 None of this needs editing when you add content. If it is wired through `Targetable` and `InhabitedData`, it just works.
 
@@ -218,11 +221,12 @@ Example: add **Venus** to the Sol system.
 | `display_name` | `Venus` | **Required** |
 | `faction_name` | `TestFaction_1` | free text for now |
 | `population` | `250000` | |
-| `exported_goods` | `["TradeGood_2"]` | must not overlap imports |
-| `imported_goods` | `["TradeGood_5"]` | |
+| `exported_goods` | `[electronics.tres]` | `Commodity` resources; must not overlap imports |
+| `imported_goods` | `[fuel.tres]` | |
+| `market` | `resources/markets/venus_market.tres` | optional; see [economy.md](economy.md). No market = Trading Floor button disabled |
 | `size` | `380` | planet diameter in world pixels |
 | `docking_range` | `0` | `0` = automatic (edge of selection box) |
-| `picture` | *(optional)* | settlement screen image; empty uses the default |
+| `picture` | *(optional)* | settlement screen image for this planet only; empty uses the planet type's `settlement_picture` |
 
 Or write the file by hand, following the existing format:
 
@@ -231,6 +235,10 @@ Or write the file by hand, following the existing format:
 
 [ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/planet_types/terrestrial.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/markets/venus_market.tres" id="market"]
 
 [resource]
 script = ExtResource("1")
@@ -238,8 +246,9 @@ planet_type = ExtResource("2")
 display_name = "Venus"
 faction_name = "TestFaction_1"
 population = 250000
-exported_goods = Array[String](["TradeGood_2"])
-imported_goods = Array[String](["TradeGood_5"])
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])
+market = ExtResource("market")
 size = 380.0
 ```
 
@@ -276,7 +285,7 @@ Example: an **Ice** planet.
 
 1. Add the sprite to `assets/sprites/planets/Ice.png` (square image works best; the width is scaled to the planet's `size`).
 2. Create `resources/planet_types/ice.tres`: right-click → **New Resource…** → **PlanetType**.
-3. Set `display_name = "Ice"` and assign `texture`.
+3. Set `display_name = "Ice"`, assign `texture`, and assign `settlement_picture` (see the table in [7.1](#71-settlement-pictures)).
 4. In any `PlanetData`, set `planet_type` to `ice.tres`.
 
 ```ini
@@ -284,14 +293,36 @@ Example: an **Ice** planet.
 
 [ext_resource type="Script" path="res://scripts/resources/planet_type.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/planets/Ice.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/settlements/arctic_city.png" id="3"]
 
 [resource]
 script = ExtResource("1")
 display_name = "Ice"
 texture = ExtResource("2")
+settlement_picture = ExtResource("3")
 ```
 
 No scene or script changes are needed. The HUD label automatically becomes `Planet (Ice)`.
+
+### 7.1 Settlement pictures
+
+The background shown on the settlement screen when docked is chosen in this order:
+
+1. The planet's own `PlanetData.picture`, if set (a one-off background for that planet).
+2. Its type's `PlanetType.settlement_picture`.
+3. The settlement screen's `default_picture` (`inhabited_city.png`), used for stations and anything with no picture.
+
+This is done by `InhabitedData.get_picture()`, which `PlanetData` overrides to add the planet-type fallback; `SettlementScreen.open()` just calls it.
+
+Current type → background mapping:
+
+| Planet type | `settlement_picture` |
+|-------------|----------------------|
+| Terrestrial | `inhabited_city.png` |
+| Rocky, Desert, Moon | `desert_city.png` |
+| Arctic, Ocean, Resort | `arctic_city.png` |
+
+Jungle and the gas giants have sprites in `assets/sprites/planets/` but no `PlanetType` yet. To add one, follow the recipe above.
 
 ---
 
@@ -337,6 +368,8 @@ system_name = "Alpha Centauri"
 ### Step 2: Add objects
 
 Follow [section 6](#6-recipe-add-a-planet-to-an-existing-system) and [section 8](#8-recipe-add-a-space-station): create data resources, then instance `planet.tscn` / `space_station.tscn` under the inherited **Objects** node, set positions, and assign data.
+
+Every system inherits ambient NPC traffic from `star_system.tscn` (the `Ships` and `Traffic` nodes). New planets and stations placed under `Objects` automatically become destinations for it. See [npc-traffic.md](npc-traffic.md) to tune or override a system's traffic.
 
 Keep these in mind when laying out a system:
 
@@ -453,7 +486,7 @@ Run the project, or check the scripts without opening the editor:
 
 **New station:** `InhabitedData .tres` → instance `space_station.tscn` under `Objects` → set `position` and `data`.
 
-**New planet type:** sprite in `assets/sprites/planets/` → `PlanetType .tres` → reference it from `PlanetData`.
+**New planet type:** sprite in `assets/sprites/planets/` → `PlanetType .tres` (with `texture` and `settlement_picture`) → reference it from `PlanetData`.
 
 **New system:** *New Inherited Scene* from `star_system.tscn` → set `system_name` → add objects under `Objects` → optionally tweak star fields → point `main.tscn` at it.
 

@@ -1,126 +1,138 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://di8go7li0w2uq"]
 
-[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1"]
+[ext_resource type="Script" uid="uid://d1atgxtqum4s1" path="res://scripts/ui/hud.gd" id="1"]
 [ext_resource type="Theme" path="res://resources/ui/hud_theme.tres" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/stat_bar.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/info_row.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/cargo_list.tscn" id="5"]
 
-[node name="Hud" type="CanvasLayer"]
+[node name="Hud" type="CanvasLayer" unique_id=273135714]
 script = ExtResource("1")
 
-[node name="Panel" type="PanelContainer" parent="."]
-layout_mode = 3
+[node name="Panel" type="PanelContainer" parent="." unique_id=111193089]
 anchors_preset = -1
 anchor_left = 0.8
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 0
 theme = ExtResource("2")
 
-[node name="Layout" type="VBoxContainer" parent="Panel"]
+[node name="Layout" type="VBoxContainer" parent="Panel" unique_id=1868827001]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="SystemRow" type="HBoxContainer" parent="Panel/Layout"]
+[node name="SystemRow" type="HBoxContainer" parent="Panel/Layout" unique_id=1865354670]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Panel/Layout/SystemRow"]
+[node name="Caption" type="Label" parent="Panel/Layout/SystemRow" unique_id=114231303]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "SYSTEM"
 
-[node name="SystemValue" type="Label" parent="Panel/Layout/SystemRow"]
+[node name="SystemValue" type="Label" parent="Panel/Layout/SystemRow" unique_id=1501983004]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_alignment = 2
 
-[node name="CreditsRow" type="HBoxContainer" parent="Panel/Layout"]
+[node name="CreditsRow" type="HBoxContainer" parent="Panel/Layout" unique_id=932122600]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Panel/Layout/CreditsRow"]
+[node name="Caption" type="Label" parent="Panel/Layout/CreditsRow" unique_id=1677158237]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "CREDITS"
 
-[node name="CreditsValue" type="Label" parent="Panel/Layout/CreditsRow"]
+[node name="CreditsValue" type="Label" parent="Panel/Layout/CreditsRow" unique_id=2123020540]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_alignment = 2
 
-[node name="Separator1" type="HSeparator" parent="Panel/Layout"]
+[node name="Separator1" type="HSeparator" parent="Panel/Layout" unique_id=863726472]
 layout_mode = 2
 
-[node name="HullBar" parent="Panel/Layout" instance=ExtResource("3")]
-unique_name_in_owner = true
-layout_mode = 2
-caption = "HULL"
-fill_color = Color(0.6, 0.65, 0.71, 1)
-
-[node name="ShieldBar" parent="Panel/Layout" instance=ExtResource("3")]
+[node name="ShieldBar" parent="Panel/Layout" unique_id=31344969 instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
 caption = "SHIELD"
 fill_color = Color(0.3, 0.5, 0.75, 1)
 
-[node name="EnergyBar" parent="Panel/Layout" instance=ExtResource("3")]
+[node name="HullBar" parent="Panel/Layout" unique_id=650162376 instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+caption = "HULL"
+fill_color = Color(0.9, 0.16, 0.2, 1)
+
+[node name="EnergyBar" parent="Panel/Layout" unique_id=1461179576 instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
 caption = "ENERGY"
 fill_color = Color(0.72, 0.77, 0.83, 1)
 
-[node name="Separator2" type="HSeparator" parent="Panel/Layout"]
+[node name="Separator2" type="HSeparator" parent="Panel/Layout" unique_id=1371569256]
 layout_mode = 2
 
-[node name="VelocityRow" type="HBoxContainer" parent="Panel/Layout"]
+[node name="VelocityRow" type="HBoxContainer" parent="Panel/Layout" unique_id=1458947824]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Panel/Layout/VelocityRow"]
+[node name="Caption" type="Label" parent="Panel/Layout/VelocityRow" unique_id=813155083]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "VELOCITY"
 
-[node name="VelocityValue" type="Label" parent="Panel/Layout/VelocityRow"]
+[node name="VelocityValue" type="Label" parent="Panel/Layout/VelocityRow" unique_id=249784940]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-horizontal_alignment = 2
 text = "0"
+horizontal_alignment = 2
 
-[node name="WeaponRow" type="HBoxContainer" parent="Panel/Layout"]
+[node name="WeaponRow" type="HBoxContainer" parent="Panel/Layout" unique_id=623259740]
 layout_mode = 2
 
-[node name="Caption" type="Label" parent="Panel/Layout/WeaponRow"]
+[node name="Caption" type="Label" parent="Panel/Layout/WeaponRow" unique_id=2094184343]
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
 text = "WEAPON"
 
-[node name="WeaponValue" type="Label" parent="Panel/Layout/WeaponRow"]
+[node name="WeaponValue" type="Label" parent="Panel/Layout/WeaponRow" unique_id=655768343]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_alignment = 2
 
-[node name="Separator3" type="HSeparator" parent="Panel/Layout"]
+[node name="Separator3" type="HSeparator" parent="Panel/Layout" unique_id=1336754609]
 layout_mode = 2
 
-[node name="TargetHeader" type="Label" parent="Panel/Layout"]
+[node name="CargoHeader" type="Label" parent="Panel/Layout" unique_id=1006738791]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "CARGO"
+
+[node name="CargoPanel" type="PanelContainer" parent="Panel/Layout" unique_id=1645311291]
+layout_mode = 2
+theme_type_variation = &"InsetPanel"
+
+[node name="CargoList" parent="Panel/Layout/CargoPanel" unique_id=1731247866 instance=ExtResource("5")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Separator4" type="HSeparator" parent="Panel/Layout" unique_id=1478377553]
+layout_mode = 2
+
+[node name="TargetHeader" type="Label" parent="Panel/Layout" unique_id=222359395]
 layout_mode = 2
 theme_type_variation = &"HeaderLabel"
 text = "TARGET"
 
-[node name="TargetPanel" type="PanelContainer" parent="Panel/Layout"]
+[node name="TargetPanel" type="PanelContainer" parent="Panel/Layout" unique_id=1368681706]
 custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 size_flags_vertical = 3
 theme_type_variation = &"InsetPanel"
 
-[node name="TargetLabel" type="Label" parent="Panel/Layout/TargetPanel"]
+[node name="TargetLabel" type="Label" parent="Panel/Layout/TargetPanel" unique_id=1428731087]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"CaptionLabel"
@@ -128,38 +140,38 @@ text = "NO TARGET"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TargetInfo" type="VBoxContainer" parent="Panel/Layout/TargetPanel"]
+[node name="TargetInfo" type="VBoxContainer" parent="Panel/Layout/TargetPanel" unique_id=1290472389]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="Panel/Layout/TargetPanel/TargetInfo"]
+[node name="NameLabel" type="Label" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=132959567]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.93, 0.97, 1)
 theme_override_font_sizes/font_size = 18
 autowrap_mode = 3
 
-[node name="TypeRow" parent="Panel/Layout/TargetPanel/TargetInfo" instance=ExtResource("4")]
+[node name="TypeRow" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=887479713 instance=ExtResource("4")]
 unique_name_in_owner = true
 layout_mode = 2
 caption = "TYPE"
 
-[node name="DistanceRow" parent="Panel/Layout/TargetPanel/TargetInfo" instance=ExtResource("4")]
+[node name="DistanceRow" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=2089344427 instance=ExtResource("4")]
 unique_name_in_owner = true
 layout_mode = 2
 caption = "DISTANCE"
 
-[node name="Separator" type="HSeparator" parent="Panel/Layout/TargetPanel/TargetInfo"]
+[node name="Separator" type="HSeparator" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=1475719035]
 layout_mode = 2
 
-[node name="DetailRows" type="VBoxContainer" parent="Panel/Layout/TargetPanel/TargetInfo"]
+[node name="DetailRows" type="VBoxContainer" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=216175471]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="MessageLabel" type="Label" parent="Panel/Layout/TargetPanel/TargetInfo"]
+[node name="MessageLabel" type="Label" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=565021628]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2

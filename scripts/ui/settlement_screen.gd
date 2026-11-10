@@ -6,6 +6,8 @@ extends CanvasLayer
 
 ## The player pressed Depart.
 signal depart_requested
+## The player pressed Trading Floor.
+signal trading_requested
 
 const INFO_ROW_SCENE := preload("res://scenes/ui/info_row.tscn")
 
@@ -15,19 +17,22 @@ const INFO_ROW_SCENE := preload("res://scenes/ui/info_row.tscn")
 @onready var _picture: TextureRect = %Picture
 @onready var _name_label: Label = %NameLabel
 @onready var _detail_rows: VBoxContainer = %DetailRows
+@onready var _trading_button: Button = %TradingButton
 @onready var _depart_button: Button = %DepartButton
 
 
 func _ready() -> void:
 	_depart_button.pressed.connect(depart_requested.emit)
+	_trading_button.pressed.connect(trading_requested.emit)
 
 
 ## Fills the screen from a dockable target and shows it.
 func open(target: Targetable) -> void:
 	_name_label.text = target.target_name
 	var inhabited := target.details as InhabitedData
-	_picture.texture = inhabited.picture if inhabited != null and inhabited.picture != null \
-			else default_picture
+	var picture: Texture2D = inhabited.get_picture() if inhabited != null else null
+	_picture.texture = picture if picture != null else default_picture
+	_trading_button.disabled = inhabited == null or inhabited.market == null
 
 	for row in _detail_rows.get_children():
 		_detail_rows.remove_child(row)

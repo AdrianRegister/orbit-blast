@@ -12,7 +12,10 @@ var current_target: Targetable
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("cycle_target"):
-		select_next()
+		select_next(Targetable.LOCATION_GROUP)
+		return
+	if event.is_action_pressed("cycle_ship_target"):
+		select_next(Targetable.SHIP_GROUP)
 		return
 	var click := event as InputEventMouseButton
 	if click == null or click.button_index != MOUSE_BUTTON_LEFT or not click.pressed:
@@ -29,17 +32,21 @@ func select(target: Targetable) -> void:
 	if current_target != null:
 		current_target.set_selected(false)
 		current_target.tree_exiting.disconnect(_on_target_exiting)
+		current_target.became_unavailable.disconnect(_on_target_exiting)
 	current_target = target
 	if current_target != null:
 		current_target.set_selected(true)
 		current_target.tree_exiting.connect(_on_target_exiting)
+		current_target.became_unavailable.connect(_on_target_exiting)
 	target_changed.emit(current_target)
 
 
-## Selects the next Targetable in scene order, wrapping around at the end.
-## With nothing selected, selects the first one.
-func select_next() -> void:
-	var all: Array[Node] = get_tree().get_nodes_in_group(Targetable.GROUP)
+## Selects the next enabled Targetable of `group` in scene order, wrapping
+## around at the end. With nothing (or something of another group) selected,
+## selects the first one.
+func select_next(group: StringName = Targetable.LOCATION_GROUP) -> void:
+	var all: Array[Node] = get_tree().get_nodes_in_group(group).filter(
+			func(node: Node) -> bool: return (node as Targetable).is_enabled())
 	if all.is_empty():
 		return
 	var index: int = all.find(current_target)

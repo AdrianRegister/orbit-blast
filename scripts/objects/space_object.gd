@@ -18,6 +18,11 @@ func get_object_name() -> String:
 	return _get_object_name()
 
 
+## How close (world pixels) a ship must be to dock here. Valid once ready.
+func get_dock_range() -> float:
+	return _targetable.dock_range
+
+
 func get_object_type() -> ObjectType:
 	return _get_object_type()
 

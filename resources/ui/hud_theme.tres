@@ -1,50 +1,4 @@
-[gd_resource type="Theme" format=3]
-
-[sub_resource type="SystemFont" id="font"]
-font_names = PackedStringArray("Consolas", "Courier New", "Monospace")
-antialiasing = 0
-hinting = 2
-subpixel_positioning = 0
-
-[sub_resource type="StyleBoxFlat" id="panel"]
-content_margin_left = 8.0
-content_margin_top = 8.0
-content_margin_right = 8.0
-content_margin_bottom = 8.0
-bg_color = Color(0.043, 0.059, 0.086, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.23, 0.29, 0.37, 1)
-
-[sub_resource type="StyleBoxFlat" id="inset"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.027, 0.039, 0.059, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.17, 0.22, 0.29, 1)
-
-[sub_resource type="StyleBoxFlat" id="bar_bg"]
-bg_color = Color(0.02, 0.03, 0.05, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.17, 0.22, 0.29, 1)
-
-[sub_resource type="StyleBoxFlat" id="bar_fill"]
-bg_color = Color(0.6, 0.65, 0.71, 1)
-
-[sub_resource type="StyleBoxFlat" id="separator"]
-bg_color = Color(0.17, 0.22, 0.29, 1)
-content_margin_top = 1.0
-content_margin_bottom = 1.0
+[gd_resource type="Theme" format=3 uid="uid://bygdv0cthbxof"]
 
 [sub_resource type="StyleBoxFlat" id="button_normal"]
 content_margin_left = 10.0
@@ -57,6 +11,14 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.23, 0.29, 0.37, 1)
+
+[sub_resource type="StyleBoxFlat" id="button_focus"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.44, 0.54, 0.66, 1)
 
 [sub_resource type="StyleBoxFlat" id="button_hover"]
 content_margin_left = 10.0
@@ -82,34 +44,91 @@ border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.6, 0.7, 0.82, 1)
 
-[sub_resource type="StyleBoxFlat" id="button_focus"]
-draw_center = false
+[sub_resource type="StyleBoxFlat" id="separator"]
+content_margin_top = 1.0
+content_margin_bottom = 1.0
+bg_color = Color(0.17, 0.22, 0.29, 1)
+
+[sub_resource type="StyleBoxFlat" id="inset"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.027, 0.039, 0.059, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.44, 0.54, 0.66, 1)
+border_color = Color(0.17, 0.22, 0.29, 1)
+
+[sub_resource type="StyleBoxFlat" id="panel"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.043, 0.059, 0.086, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.23, 0.29, 0.37, 1)
+
+[sub_resource type="StyleBoxFlat" id="bar_bg"]
+bg_color = Color(0.02, 0.03, 0.05, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.17, 0.22, 0.29, 1)
+
+[sub_resource type="StyleBoxFlat" id="bar_fill"]
+bg_color = Color(0.6, 0.65, 0.71, 1)
+
+[sub_resource type="SystemFont" id="font"]
+font_names = PackedStringArray("Consolas", "Courier New", "Monospace")
+antialiasing = 0
+hinting = 2
+subpixel_positioning = 0
 
 [resource]
 default_font = SubResource("font")
+default_font_size = 14
 Button/colors/font_color = Color(0.72, 0.77, 0.83, 1)
+Button/colors/font_disabled_color = Color(0.35, 0.4, 0.45, 1)
 Button/colors/font_hover_color = Color(0.9, 0.93, 0.97, 1)
 Button/colors/font_pressed_color = Color(0.9, 0.93, 0.97, 1)
+Button/styles/disabled = SubResource("button_normal")
 Button/styles/focus = SubResource("button_focus")
 Button/styles/hover = SubResource("button_hover")
 Button/styles/normal = SubResource("button_normal")
 Button/styles/pressed = SubResource("button_pressed")
-default_font_size = 14
 CaptionLabel/base_type = &"Label"
 CaptionLabel/colors/font_color = Color(0.44, 0.54, 0.66, 1)
+HSeparator/constants/separation = 4
+HSeparator/styles/separator = SubResource("separator")
 HeaderLabel/base_type = &"Label"
 HeaderLabel/colors/font_color = Color(0.44, 0.54, 0.66, 1)
 HeaderLabel/font_sizes/font_size = 12
-HSeparator/constants/separation = 4
-HSeparator/styles/separator = SubResource("separator")
 InsetPanel/base_type = &"PanelContainer"
 InsetPanel/styles/panel = SubResource("inset")
 Label/colors/font_color = Color(0.72, 0.77, 0.83, 1)
+LineEdit/colors/font_color = Color(0.9, 0.93, 0.97, 1)
+LineEdit/styles/focus = SubResource("button_focus")
+LineEdit/styles/normal = SubResource("inset")
+LineEdit/styles/read_only = SubResource("inset")
 PanelContainer/styles/panel = SubResource("panel")
 ProgressBar/styles/background = SubResource("bar_bg")
 ProgressBar/styles/fill = SubResource("bar_fill")
+Tree/colors/font_color = Color(0.72, 0.77, 0.83, 1)
+Tree/colors/font_selected_color = Color(0.9, 0.93, 0.97, 1)
+Tree/colors/title_button_color = Color(0.44, 0.54, 0.66, 1)
+Tree/constants/v_separation = 6
+Tree/styles/cursor = SubResource("button_focus")
+Tree/styles/cursor_unfocused = SubResource("button_focus")
+Tree/styles/focus = SubResource("button_focus")
+Tree/styles/panel = SubResource("inset")
+Tree/styles/selected = SubResource("button_pressed")
+Tree/styles/selected_focus = SubResource("button_pressed")
+Tree/styles/title_button_hover = SubResource("inset")
+Tree/styles/title_button_normal = SubResource("inset")
+Tree/styles/title_button_pressed = SubResource("inset")
