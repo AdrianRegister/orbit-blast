@@ -35,8 +35,8 @@ func _init() -> void:
 	var shuttle: ShipType = by_name["Shuttle"]
 	var freighter: ShipType = by_name["Freighter"]
 	var interceptor: ShipType = by_name["Interceptor"]
-	_check(is_equal_approx(shuttle.get_size().x, 75.0), "shuttle is 75 px wide (%s)" % shuttle.get_size().x)
-	_check(is_equal_approx(freighter.get_size().x, 200.0), "freighter is 200 px wide (%s)" % freighter.get_size().x)
+	for type in [shuttle, freighter, interceptor]:
+		_check(type.stats.display_width > 0.0 and is_equal_approx(type.get_size().x, type.stats.display_width), "%s is drawn at its display_width (%s px)" % [type.display_name, type.get_size().x])
 	_check(is_equal_approx(interceptor.get_size().x, shuttle.get_size().x * 0.8), "interceptor is 80%% of the shuttle (%s px)" % interceptor.get_size().x)
 	var npc_scene: Node = load("res://scenes/ships/npc_ship.tscn").instantiate()
 	_check(is_equal_approx(npc_scene.get_node("Visual/Sprite2D").rotation, PI / 2.0), "NPC sprite is turned +90 degrees (art points up)")

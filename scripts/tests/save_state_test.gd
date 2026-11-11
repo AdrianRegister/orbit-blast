@@ -60,7 +60,7 @@ func _init() -> void:
 	var active: Array[Contract] = other["contracts"].get_active()
 	_check(active.size() == 1 and active[0].status == Contract.Status.ACCEPTED, "active contract restored")
 	_check(other["contracts"].get_completed().size() == 1, "completed contract restored")
-	_check(other["contracts"].get_available(earth).size() == 5, "taken offers do not reappear")
+	_check(other["contracts"].get_available(earth).size() == 2, "taken offers do not reappear")
 
 	# --- Loading twice changes nothing, delivery pays once.
 	_load(other, parsed)
@@ -133,7 +133,11 @@ func _new_game() -> Dictionary:
 	var economy := EconomyManager.new()
 	economy.setup(player)
 	var contracts := ContractManager.new()
-	contracts.setup(economy)
+	var context := ContractContext.new()
+	context.galaxy = load("res://resources/universe/galaxy.tres")
+	context.registry = _registry
+	contracts.setup(economy, context)
+	contracts.set_source(FixedContractSource.new())
 	contracts.set_system_lookup(func(_location: InhabitedData) -> String: return "Sol")
 	return {"player": player, "economy": economy, "contracts": contracts}
 

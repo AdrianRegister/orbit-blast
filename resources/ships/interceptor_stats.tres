@@ -7,10 +7,10 @@
 script = ExtResource("1")
 id = &"interceptor"
 display_name = "Interceptor"
-description = "Fast and nimble, with barely room for a lunch box. Built to get somewhere first."
+description = "Fast and nimble, with barely enough room for a lunch box. Built to get somewhere first."
 price = 90000
 texture = ExtResource("2")
-sprite_scale = 0.12
+display_width = 60
 thrust = 450.0
 turn_rate = 4.5
 max_speed = 700.0

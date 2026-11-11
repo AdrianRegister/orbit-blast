@@ -126,7 +126,7 @@ How it is done:
 
 1. Put the sprite in `assets/sprites/ships/` (all ship art must point **up**; the sprite node is rotated +90° so up becomes the heading).
 2. Create flight stats if needed: `resources/ships/<name>_stats.tres` (**ShipStats**: `thrust`, `turn_rate`, `max_speed`; `cargo_capacity` is ignored by NPCs). Existing ones can be reused.
-3. Create `resources/ship_types/<name>.tres` (**ShipType**) and set `display_name`, `texture`, `sprite_scale` (see below), `stats`, `category` and `spawn_weight`. On-screen width is the texture width times `sprite_scale`: all ship art is 500 px wide.
+3. Create `resources/ship_types/<name>.tres` (**ShipType**) and set `display_name`, `texture`, `stats`, `category` and `spawn_weight`. How big the ship looks is `display_width` in the ship's stats file: its on-screen width in pixels, whatever size the sprite is. (`sprite_scale`, a plain multiplier of the texture size, is used only when `display_width` is 0.)
 4. Add it to the `ship_types` array of a `TrafficConfig` (for example `resources/traffic/default_traffic.tres`).
 
 ```ini
@@ -140,13 +140,12 @@ How it is done:
 script = ExtResource("1")
 display_name = "Shuttle"
 texture = ExtResource("2")
-sprite_scale = 0.15
 stats = ExtResource("3")
 category = 0
 spawn_weight = 3.0
 ```
 
-No code changes are needed. Current types and sizes: Shuttle (civilian, scale 0.15, 75 px), Freighter (civilian, scale 0.4, 200 px, slow), Interceptor (military, scale 0.12, 60 px, which is 80% of the shuttle, fast).
+No code changes are needed. Current types and sizes: Shuttle (civilian, 75 px wide), Freighter (civilian, 200 px, slow), Interceptor (military, 60 px, which is 80% of the shuttle, fast).
 
 ---
 

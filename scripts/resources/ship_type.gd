@@ -25,7 +25,7 @@ var texture: Texture2D:
 		return stats.texture if stats != null else null
 var sprite_scale: float:
 	get:
-		return stats.sprite_scale if stats != null else 0.15
+		return stats.get_scale() if stats != null else 0.15
 
 
 ## Visual size in world pixels, used for the click area and selection brackets.

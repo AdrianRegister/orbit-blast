@@ -13,6 +13,8 @@ extends Node
 @export var delivery_flavour: FlavourPool
 ## Flavour text shown when an exploration contract completes.
 @export var exploration_flavour: FlavourPool
+## Flavour text shown when a ferry (passenger) contract completes.
+@export var ferry_flavour: FlavourPool
 ## The galaxy: which systems exist, where they are and how they connect.
 @export var galaxy: Galaxy
 
@@ -90,7 +92,9 @@ func _ready() -> void:
 	contract_context.travel = _travel
 	contract_context.rewards = load("res://resources/contracts/reward_rules.tres")
 	contract_context.current_system = func() -> StringName: return _system.system_id
-	contract_context.max_cargo = ContentRegistry.new().max_cargo_capacity()
+	var content := ContentRegistry.new()
+	contract_context.registry = content
+	contract_context.max_cargo = content.max_cargo_capacity()
 	_contracts.setup(_economy, contract_context)
 	_contracts.set_system_lookup(_get_system_name_of)
 	_missions.setup(_contracts, _economy)
@@ -492,10 +496,12 @@ func _on_contract_completed(contract: Contract) -> void:
 		_on_exploration_completed(contract as ExplorationContract)
 		return
 	var place: String = contract.destination.display_name
-	var flavour: String = delivery_flavour.pick({"destination": place}) if delivery_flavour != null else ""
-	_popup.show_event("DELIVERY COMPLETE", flavour, [
+	var ferry := contract is FerryContract
+	var pool := ferry_flavour if ferry and ferry_flavour != null else delivery_flavour
+	var flavour: String = pool.pick({"destination": place}) if pool != null else ""
+	_popup.show_event("PASSENGERS DELIVERED" if ferry else "DELIVERY COMPLETE", flavour, [
 		["CONTRACT", contract.title],
-		["CARGO DELIVERED", contract.get_requirement_text()],
+		["PASSENGERS" if ferry else "CARGO DELIVERED", contract.get_requirement_text()],
 		["DELIVERED TO", contract.get_destination_text()],
 		["REWARD", "+%s CR" % NumberFormat.with_commas(contract.reward)],
 	])

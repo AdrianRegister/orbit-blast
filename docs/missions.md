@@ -27,11 +27,10 @@ Each inhabited location can offer cargo delivery contracts. While docked there, 
 
 | Piece | File | Role |
 |---|---|---|
-| `ContractOffer` | `scripts/resources/contract_offer.gd`, `resources/contracts/*.tres` | Static data: title, description, destination, commodity, quantity, reward |
 | `Contract` | `scripts/missions/contract.gd` | Runtime base class: id, title, description, origin, destination, reward, status |
 | `CargoDeliveryContract` | `scripts/missions/cargo_delivery_contract.gd` | The cargo delivery type: commodity and quantity |
-| `ContractSource` | `scripts/missions/contract_source.gd` | Interface: `generate(location) -> Array[Contract]` |
-| `OfferContractSource` | `scripts/missions/offer_contract_source.gd` | Turns a location's `contract_offers` into contracts |
+| `ContractSource` | `scripts/missions/contract_source.gd` | Interface: `generate(location, context, wanted, existing)` and `get_target_offers()` |
+| `ProceduralContractSource` | `scripts/missions/procedural_contract_source.gd` | Invents contracts from the galaxy, see section 13 |
 | `ContractManager` | `scripts/missions/contract_manager.gd` | Owns available, active and completed contracts; accepts and completes them |
 | `MissionComputerScreen` | `scenes/ui/mission_computer_screen.tscn`, `scripts/ui/mission_computer_screen.gd` | The interface |
 
@@ -63,7 +62,7 @@ Two contracts for the same commodity are two lots and are delivered independentl
 
 ## 5. Where contracts come from
 
-`ContractManager.get_available(location)` asks its `ContractSource` the first time a location is used and keeps the result, so offers are stable between visits, one-time (an accepted contract leaves the list) and have unique ids. The only source today is `OfferContractSource`, which reads fixed offers from the location's `contract_offers`. A procedural generator would be another `ContractSource` passed to `ContractManager.set_source()`; the manager and screen need no changes.
+`ContractManager` asks its `ContractSource` for contracts the first time a location is used and tops the location up again every time the player docks there (section 13). The game uses the `ProceduralContractSource`; there are no hand-written contracts. Another source can be passed to `ContractManager.set_source()`; tests use `scripts/tests/support/fixed_contract_source.gd` for fixed, repeatable offers.
 
 ---
 
@@ -75,19 +74,16 @@ The button on the settlement screen is enabled when the location has offers or c
 
 ---
 
-## 7. Recipe: add a contract to a location
+## 7. Changing what is generated
 
-1. Create `resources/contracts/<name>.tres` (**ContractOffer**): `title`, `description`, `commodity`, `quantity`, `reward`, and `destination_path`, the location file to deliver to (for example `res://resources/locations/mars.tres`).
-2. Add it to the issuing location's **Contract Offers** (`resources/locations/<place>.tres`).
-
-`destination_path` is a path, not a direct reference, because locations offer contracts to each other and Godot cannot load resources that reference each other in a loop. Problems (no destination, destination equal to the issuer, zero quantity, negative reward) are reported by `InhabitedData.validate()` and invalid offers are skipped with an error.
+Edit `resources/contracts/generation_rules.tres` (counts, mix, quantities, jump limits, wording) and `resources/contracts/reward_rules.tres` (payment). No code change is needed. See section 13.
 
 ---
 
 ## 8. Recipe: add a mission type or a generator
 
 - **New mission type:** extend `Contract`, override `get_requirement_text()` and `get_progress_text()`, and make a source that creates it. The screen only uses the base class. Accept and completion in `ContractManager` currently handle `CargoDeliveryContract` explicitly; add the equivalent steps for the new type there (or move them into overridable methods when a second type exists).
-- **Generator:** extend `ContractSource`, return new `AVAILABLE` contracts from `generate(location)`, and call `set_source()` before the first visit.
+- **Generator:** extend `ContractSource`, return new `AVAILABLE` contracts from `generate(location, context, wanted, existing)`, and call `set_source()` before the first visit.
 
 ---
 
@@ -105,7 +101,7 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 
 ## 10. Current limits
 
-No deadlines, failure or abandoning, no saving, no refreshing or procedural offers, and no rewards other than credits. The mission screen is only reachable while docked.
+No deadlines, failure or abandoning, no reputation (the issuing authority is stored for it), and no rewards other than credits. The mission screen is only reachable while docked.
 
 ## 11. Saving
 
@@ -117,7 +113,7 @@ Every contract (available, active, completed and failed) is saved in full with i
 
 **Exploration.** Scout a star system: enter it and come within docking range of **every** body (planets, moons, gas giants, stations). `TravelManager` tracks the bodies reached per system (`scouted`) and announces `system_scouted`; the manager marks every accepted exploration contract for that system as `explored`. The reward is **not** paid in flight: it is paid, once, with the completion popup, when the player next lands at the issuing location (like a delivery). The map stops marking the system, and the contract's progress text says to return to the issuer. Viewing or selecting a system on the map never completes anything. Cases: an already-discovered target can still be accepted (progress already made counts); a target that is fully scouted is not offered, and a stale offer is refused ("already explored"); several contracts for one system complete together; contracts for different systems are independent; completed contracts are never considered again.
 
-**Offers.** A location lists `contract_offers` (cargo, `ContractOffer`) and `exploration_offers` (`ExplorationOffer`: title, description, target system id). `reward = 0` means "work it out" with `ContractRewards` (`resources/contracts/reward_rules.tres`): cargo value x factor plus per-jump and per-fuel amounts, or an exploration base plus per-jump and per-fuel, times the offer's `reward_multiplier`. Offers are checked when generated: valid destination or target, a jump route exists, the target is not the issuer's own system, the quantity fits in some ship (largest hold), no duplicate titles, not already scouted. Invalid offers are skipped with an error. Offers may name a destination in another system, so a delivery can need several jumps. Current content: eleven new cargo offers over Sol and the neighbouring systems (same system, one, two, three and four jumps) and one exploration offer, **"Chart the Wolf 359 system" at Daedalus** (Barnard's Star).
+**Offers.** Contracts are generated (section 13); the old hand-written offers no longer exist.
 
 **Towards generation.** `ContractSource.generate(location, context)` is the only seam: a procedural source would be another subclass using the context's galaxy, discovery state and reward rules (with per-location profiles of allowed types, commodity pools and distance ranges). The manager, screens, save format and rewards would not change.
 
@@ -126,3 +122,27 @@ Every contract (available, active, completed and failed) is saved in full with i
 **Saving.** Exploration contracts save with `type: "exploration"` and `target_system`; a contract with no destination saves `destination` as "". The `galaxy` section stores `scouted_nodes`. Exploration contracts also save `explored`. A save where an accepted exploration contract's target is already scouted but which is not marked `explored` is refused as damaged, so loading can never pay out. Old saves load unchanged.
 
 **Tests.** `exploration_test.gd` (generation, accepting, map markers, completion only by scouting, the already-discovered and multiple-contract cases, rewards once, saving, a cross-system delivery end to end) and `scouting_test.gd`.
+
+---
+
+## 13. Procedural contracts (Phase 2.5)
+
+**Source.** `ProceduralContractSource` fills every inhabited location (dockable, with people) from the galaxy as it is. The numbers and wording are in `resources/contracts/generation_rules.tres` (`ContractGenerationRules`); payment is in `reward_rules.tres`. A seed makes it reproducible (`seed_rng()`, used by tests).
+
+**Always something to take.** A mission computer is topped up to its target (4 offers) the first time it is used and **every time the player docks**; landing happens before the Mission Computer button is set, so it is enabled at every inhabited location. Accepting offers empties the list until the next landing. If the random mix yields nothing the generator falls back ferry, cargo, exploration, and a test proves every inhabited location always gets a contract. The player may still be unable to take a job (not enough cargo space); that is fine.
+
+| Type | Rule |
+|---|---|
+| Cargo delivery | Goods the issuer exports (any trade good if it exports nothing) to another inhabited location owned by the **same faction** (system and location), at most 4 jumps away, usually 10-100 units; 15% are **bulk** (200-600 units of cheap goods). Destinations that import the goods are preferred. Quantity never exceeds the biggest hold of any ship. |
+| Ferry passengers (`FerryContract`, type `ferry`) | 1-3 passengers (a contract lot of the non-market *Passengers* commodity, so they use cargo space but can never be sold) to any inhabited location within **3 jumps**, in the same system or another, any faction. Small, quick, early game work. |
+| Exploration | Scout an uninhabited system that is not fully scouted, within 3 jumps. None are offered when there is nothing left to scout. Paid on landing at the issuer. |
+
+The same type, destination (or target) and commodity are never offered twice at one location.
+
+**Issuing authority.** Every contract has `authority`: `CIVILIAN` or `MILITARY` (saved as `issuing_authority`; missing in older saves = civilian) and `get_issuing_faction()` (the issuer's faction). Generated contracts are all civilian today. A reputation system can use the pair: a faction that only cares about military gain ignores civilian completions. The mission computer shows an AUTHORITY row.
+
+**Rewards.** All in `reward_rules.tres`. Cargo has hard ceilings so the limits hold whatever the commodity: a cargo delivery under 200 units pays at most **20,000**, a bulk one (200+ units) at most **45,000**; a typical 50 unit, 4 jump run pays roughly 6,000 to 15,000. Ferries pay roughly 450 to 2,500, exploration roughly 9,000 to 13,000.
+
+**Old saves.** Contracts already in a save stay exactly as saved (including old, larger rewards). Locations whose lists the save stored are topped up the next time the player lands there.
+
+**Tests.** `procedural_contract_test.gd`: every inhabited location always gets a mission; the faction, distance and size rules (using a duplicated galaxy where Procyon belongs to a rival faction); reward ceilings; authority and saving; topping up on landing; old saves; the real game's buttons.

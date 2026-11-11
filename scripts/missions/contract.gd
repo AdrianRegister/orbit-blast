@@ -10,6 +10,10 @@ extends RefCounted
 ## the ContractFactory.
 
 enum Status { AVAILABLE, ACCEPTED, COMPLETED, FAILED }
+## Who is behind the contract. Factions will only care about the completions
+## that serve them: a civilian job earns no standing with a faction that wants
+## military results (reputation itself does not exist yet).
+enum Authority { CIVILIAN, MILITARY }
 
 ## Unique within the session. Assigned by the ContractManager.
 var id: StringName = &""
@@ -23,9 +27,19 @@ var destination: InhabitedData
 ## Credits paid on completion.
 var reward: int = 0
 var status: Status = Status.AVAILABLE
+var authority: Authority = Authority.CIVILIAN
 ## What the contract can ask the world about (routes, scouting). Set by the
 ## ContractManager when the contract is created or loaded.
 var context: ContractContext
+
+
+## The faction behind the contract: the faction of the issuing location.
+func get_issuing_faction() -> String:
+	return origin.faction_name if origin != null else ""
+
+
+func get_authority_text() -> String:
+	return Authority.keys()[authority].capitalize()
 
 
 ## Short name of the contract type for lists, e.g. "CARGO".
@@ -107,6 +121,7 @@ func to_dict() -> Dictionary:
 		"destination": str(destination.id) if destination != null else "",
 		"reward": reward,
 		"status": get_status_text(),
+		"issuing_authority": Authority.keys()[authority],
 	}
 
 
@@ -129,6 +144,8 @@ func validate_dict(data: Dictionary, registry: ContentRegistry) -> Array[String]
 		problems.append("contract reward is not a non-negative whole number")
 	if not data.get("status") is String or not Status.has(data["status"]):
 		problems.append("contract status is not valid")
+	if data.has("issuing_authority") and (not data["issuing_authority"] is String or not Authority.has(data["issuing_authority"])):
+		problems.append("contract issuing_authority is not valid")
 	return problems
 
 
@@ -142,3 +159,4 @@ func load_dict(data: Dictionary, registry: ContentRegistry) -> void:
 	destination = registry.location(StringName(destination_id)) if destination_id != "" else null
 	reward = int(data["reward"])
 	status = Status[data["status"]]
+	authority = Authority[data.get("issuing_authority", "CIVILIAN")]

@@ -301,6 +301,10 @@ Credits, cargo (including contract lots) and the stock of every visited market a
 
 Ship and upgrade purchases use `EconomyManager.try_spend(amount)` (checks the balance, then deducts and emits `credits_changed`), so there is one wallet. The hold's capacity is set from the active ship with `EconomyManager.set_cargo_capacity()`. See [ships-and-upgrades.md](ships-and-upgrades.md).
 
+## Passengers (Phase 2.5)
+
+`passengers` is a commodity only so that ferry contracts can carry people as contract cargo. It has no price, is in no market and cannot be traded.
+
 ## New commodities (Phase 2.4)
 
 Medical Supplies, Luxury Goods, Industrial Chemicals, Rare Isotopes and Water were added (`resources/commodities/`), traded at Earth, Mars and Victory I (their export and import lists and market listings were extended) and used by the new delivery contracts. See [missions.md](missions.md).

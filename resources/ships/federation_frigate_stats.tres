@@ -7,11 +7,11 @@
 script = ExtResource("1")
 id = &"federation_frigate"
 display_name = "Federation Frigate"
-description = "The backbone of the Federation fleet: a well-armoured escort with a respectable turn of speed."
+description = "The backbone of the Federation fleet: a well-armoured escort with respectable agility and firepower."
 faction_name = "TestFaction_1"
 price = 350000
 texture = ExtResource("2")
-sprite_scale = 0.3
+display_width = 150
 thrust = 380.0
 turn_rate = 3.4
 max_speed = 600.0

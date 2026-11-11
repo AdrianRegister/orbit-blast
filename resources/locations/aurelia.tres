@@ -9,10 +9,6 @@
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
 
-[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="cos"]
-
-[ext_resource type="Resource" path="res://resources/contracts/aurelia_isotopes_to_mars.tres" id="o_aurelia_isotopes_to_mars"]
-
 [resource]
 script = ExtResource("1")
 id = &"aurelia"
@@ -24,4 +20,3 @@ exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])
 size = 480.0
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_manoeuvre_1"), ExtResource("up_manoeuvre_2")])
-contract_offers = Array[ExtResource("cos")]([ExtResource("o_aurelia_isotopes_to_mars")])

@@ -102,7 +102,7 @@ On a **new game** the starting shuttle is named first; the game waits (and autos
 
 ## 9. Recipes
 
-**Add a ship model**: create `resources/ships/<name>_stats.tres` (ShipStats) with a unique `id`, name, description, price, `texture`, `sprite_scale` and base numbers. To sell it, add it to a location's `shipyard_ships`. To let NPCs fly it, make a `resources/ship_types/<name>.tres` pointing at it and add that to a traffic config.
+**Add a ship model**: create `resources/ships/<name>_stats.tres` (ShipStats) with a unique `id`, name, description, price, `texture`, `display_width` (its on-screen width in pixels, independent of the sprite's size) and base numbers. To sell it, add it to a location's `shipyard_ships`. To let NPCs fly it, make a `resources/ship_types/<name>.tres` pointing at it and add that to a traffic config.
 
 **Add an upgrade**: create `resources/upgrades/<name>.tres` (UpgradeDefinition) with a unique `id`, category, tier, price and bonuses, and add it to locations' `outfitter_upgrades`. The registry finds it by `id` automatically.
 

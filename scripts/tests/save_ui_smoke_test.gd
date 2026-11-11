@@ -40,6 +40,7 @@ func _init() -> void:
 	var earth: InhabitedData = load("res://resources/locations/earth.tres")
 	var economy: EconomyManager = main.get_node("Economy")
 	var contracts: ContractManager = main.get_node("Contracts")
+	contracts.set_source(FixedContractSource.new())
 	economy.set_cargo_capacity(500)  # the starting shuttle is too small for the test contract
 	contracts.accept(contracts.get_available(earth)[0], earth)
 	await process_frame

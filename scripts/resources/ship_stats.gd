@@ -20,8 +20,13 @@ extends Resource
 ## Purchase price in credits. Also what the model is worth as a trade-in.
 @export var price: int = 0
 
-## Sprite. Ship art must point up. A 500 px sprite at 0.15 is 75 px wide.
+## Sprite. Ship art must point up.
 @export var texture: Texture2D
+## How wide the ship is on screen, in world pixels, whatever size the texture
+## is. 0 = use `sprite_scale` instead.
+@export var display_width: float = 0.0
+## Fallback used only when display_width is 0: a plain multiplier of the
+## texture's size (a 500 px sprite at 0.15 is 75 px wide).
 @export var sprite_scale: float = 0.15
 
 ## Base acceleration while thrusting, in pixels per second squared.
@@ -34,11 +39,19 @@ extends Resource
 @export var cargo_capacity: int = 500
 
 
+## The scale to draw the sprite at: display_width spread over the texture's
+## width, or `sprite_scale` when no display width is set.
+func get_scale() -> float:
+	if display_width > 0.0 and texture != null and texture.get_width() > 0:
+		return display_width / float(texture.get_width())
+	return sprite_scale
+
+
 ## Visual size in world pixels, used for the click area and selection brackets.
 func get_size() -> Vector2:
 	if texture == null:
 		return Vector2(64, 64)
-	return texture.get_size() * sprite_scale
+	return texture.get_size() * get_scale()
 
 
 func validate() -> Array[String]:
@@ -51,6 +64,8 @@ func validate() -> Array[String]:
 		problems.append("texture is not set")
 	if price < 0:
 		problems.append("price is negative")
+	if display_width < 0.0:
+		problems.append("display_width is negative")
 	if thrust <= 0.0 or turn_rate <= 0.0 or max_speed <= 0.0:
 		problems.append("thrust, turn_rate and max_speed must be above zero")
 	if cargo_capacity < 0:

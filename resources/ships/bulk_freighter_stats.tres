@@ -7,11 +7,11 @@
 script = ExtResource("1")
 id = &"bulk_freighter"
 display_name = "Bulk Freighter"
-description = "A cargo hauler built around a vast hold. Slow to start, slower to stop, and priced like a small moon."
+description = "A lumbering cargo hauler built around a vast hold. Slow to start, slower to stop, and priced like a small moon."
 price = 600000
 texture = ExtResource("2")
-sprite_scale = 0.55
+display_width = 275
 thrust = 90.0
 turn_rate = 0.9
 max_speed = 240.0
-cargo_capacity = 5000
+cargo_capacity = 650

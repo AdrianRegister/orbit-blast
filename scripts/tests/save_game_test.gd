@@ -28,6 +28,7 @@ func _init() -> void:
 	_saves = _main.get_save_manager()
 	_economy = _main.get_node("Economy")
 	_contracts = _main.get_node("Contracts")
+	_contracts.set_source(FixedContractSource.new())
 	_docking = _main.get_node("Docking")
 	_targeting = _main.get_node("Targeting")
 	_ship = _main.get_player_ship()

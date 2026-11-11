@@ -7,13 +7,6 @@
 [ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
 [ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
 
-[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="cos"]
-
-[ext_resource type="Resource" path="res://resources/contracts/daedalus_chemicals_to_elysium.tres" id="o_daedalus_chemicals_to_elysium"]
-
-[ext_resource type="Script" path="res://scripts/resources/exploration_offer.gd" id="eos"]
-[ext_resource type="Resource" path="res://resources/contracts/explore_wolf_359.tres" id="x_explore_wolf_359"]
-
 [resource]
 script = ExtResource("1")
 id = &"daedalus"
@@ -24,5 +17,3 @@ planet_type = ExtResource("2")
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_food")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_machinery")])
 size = 170.0
-contract_offers = Array[ExtResource("cos")]([ExtResource("o_daedalus_chemicals_to_elysium")])
-exploration_offers = Array[ExtResource("eos")]([ExtResource("x_explore_wolf_359")])

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="FlavourPool" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/flavour_pool.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+entries = Array[String](["Once your postflight checks are complete, you go and kick open your ship's cargo hatch and gesture towards the passengers, implying that they should leave. You wonder how long it will take to get the smell out.", "Your passengers shuffle down the ramp at {destination}, still clutching the tickets you never asked to see. One of them leaves a tip on the seat. It turns out to be a half-eaten sandwich.", "A harried official at {destination} counts your passengers twice, frowns at the total, then counts them again. You decide not to ask which number was wrong and quietly undock."])

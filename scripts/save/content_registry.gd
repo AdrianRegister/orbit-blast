@@ -45,6 +45,26 @@ func location(id: StringName) -> InhabitedData:
 	return _locations.get(id)
 
 
+## Every location, sorted by id (so anything built from them is reproducible).
+func locations() -> Array[InhabitedData]:
+	var result: Array[InhabitedData] = []
+	var ids := _locations.keys()
+	ids.sort()
+	for id in ids:
+		result.append(_locations[id])
+	return result
+
+
+## Every commodity, sorted by id.
+func commodities() -> Array[Commodity]:
+	var result: Array[Commodity] = []
+	var ids := _commodities.keys()
+	ids.sort()
+	for id in ids:
+		result.append(_commodities[id])
+	return result
+
+
 func ship_stats(id: StringName) -> ShipStats:
 	return _ship_stats.get(id)
 

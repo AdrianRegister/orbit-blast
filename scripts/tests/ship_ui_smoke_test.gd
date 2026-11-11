@@ -97,7 +97,7 @@ func _init() -> void:
 	prompt.get_node("%OkButton").pressed.emit()
 	await process_frame
 	_check(player.fleet.get_active().ship_name == "Big Mama" and not prompt.visible, "the ship is named")
-	_check(player.cargo.capacity == 2000, "hold follows the freighter")
+	_check(player.cargo.capacity == load("res://resources/ships/freighter_stats.tres").cargo_capacity, "hold follows the freighter (%d)" % player.cargo.capacity)
 
 	# --- Trade the freighter in for a shuttle: price floor of 10,000.
 	var shuttle_row := ships_table.get_root().get_child(0)

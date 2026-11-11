@@ -144,6 +144,7 @@ func _show_detail() -> void:
 	_title_label.text = _selected.title.to_upper()
 	_description_label.text = _selected.description
 	_add_row("TYPE", _selected.get_type_label())
+	_add_row("AUTHORITY", _selected.get_authority_text())
 	_add_row("STATUS", _selected.get_status_text())
 	_add_row("ISSUED AT", _selected.get_origin_text())
 	_add_row("TARGET" if _selected.destination == null else "TO", _selected.get_destination_text())

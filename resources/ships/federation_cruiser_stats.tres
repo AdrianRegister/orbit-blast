@@ -7,12 +7,12 @@
 script = ExtResource("1")
 id = &"federation_cruiser"
 display_name = "Federation Cruiser"
-description = "A heavy warship that keeps order on the Federation trade lanes. Slow to turn, hard to stop."
+description = "A heavy warship that keeps order on the Federation trade lanes. Designed to punch large holes into enemy battle lines."
 faction_name = "TestFaction_1"
 price = 900000
 texture = ExtResource("2")
-sprite_scale = 0.5
+display_width = 300
 thrust = 240.0
 turn_rate = 2.0
 max_speed = 450.0
-cargo_capacity = 300
+cargo_capacity = 150

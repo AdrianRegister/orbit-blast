@@ -80,7 +80,7 @@ Nothing in the save file refers to scenes, nodes or Resources. It holds plain da
 ```
 
 - `mode` is `"space"` or `"docked"`; `docked_at` exists only when docked.
-- A contract is stored in full, whatever generated it: `{"type": "cargo_delivery", "id", "title", "description", "origin", "destination", "reward", "status", "commodity", "quantity", "quantity_in_hold"}`. Origin and destination are location ids; `status` is the status name.
+- A contract is stored in full, whatever generated it: `{"type": "cargo_delivery", "id", "title", "description", "origin", "destination", "reward", "status", "commodity", "quantity", "quantity_in_hold", "issuing_authority"}`. Origin and destination are location ids; a `ferry` contract has the same fields as a cargo delivery; `issuing_authority` is `CIVILIAN` or `MILITARY` and optional on load (civilian); `status` is the status name.
 - `generated_locations` records which locations have already created their offers, so an offer taken or delivered does not come back.
 - `saved_at` is the Unix time of the save, shown on the main menu.
 

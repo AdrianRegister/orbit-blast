@@ -9,6 +9,8 @@ static func create(type: StringName) -> Contract:
 	match type:
 		&"cargo_delivery":
 			return CargoDeliveryContract.new()
+		&"ferry":
+			return FerryContract.new()
 		&"exploration":
 			return ExplorationContract.new()
 	return null

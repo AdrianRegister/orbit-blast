@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/galaxy_map_screen.tscn" id="24"]
 [ext_resource type="PackedScene" path="res://scenes/ui/jump_flash.tscn" id="25"]
 [ext_resource type="Resource" path="res://resources/flavour/exploration_complete.tres" id="26"]
+[ext_resource type="Resource" path="res://resources/flavour/ferry_complete.tres" id="27"]
 [ext_resource type="Resource" path="res://resources/universe/galaxy.tres" id="23"]
 
 [node name="Main" type="Node"]
@@ -34,6 +35,7 @@ starting_credits = 500000
 delivery_flavour = ExtResource("15")
 galaxy = ExtResource("23")
 exploration_flavour = ExtResource("26")
+ferry_flavour = ExtResource("27")
 
 [node name="StarSystem" parent="." instance=ExtResource("2")]
 

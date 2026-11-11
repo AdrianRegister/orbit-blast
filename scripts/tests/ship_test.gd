@@ -153,6 +153,14 @@ func _init() -> void:
 	var in_traffic := {}
 	for type in (load("res://resources/traffic/default_traffic.tres") as TrafficConfig).ship_types:
 		in_traffic[type.stats.id] = type
+	# display_width sets the on-screen width whatever the sprite's size.
+	var small: ShipStats = load("res://resources/ships/federation_fighter_stats.tres")
+	var big: ShipStats = load("res://resources/ships/federation_frigate_stats.tres")
+	_check(small.texture.get_width() != big.texture.get_width() and is_equal_approx(small.get_size().x, 60.0) and is_equal_approx(big.get_size().x, 150.0), "display_width gives the same on-screen size for sprites of different sizes (%s, %s)" % [small.get_size().x, big.get_size().x])
+	var fallback := small.duplicate() as ShipStats
+	fallback.display_width = 0.0
+	fallback.sprite_scale = 0.5
+	_check(is_equal_approx(fallback.get_size().x, small.texture.get_width() * 0.5), "with no display_width, sprite_scale is used")
 	_check(in_traffic.has(&"federation_frigate") and in_traffic.has(&"federation_capital_ship") and in_traffic.has(&"bulk_freighter"), "the new ships spawn as NPC traffic")
 	var galaxy := load("res://resources/universe/galaxy.tres") as Galaxy
 	var sold_anywhere := false

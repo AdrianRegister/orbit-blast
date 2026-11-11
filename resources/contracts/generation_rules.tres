@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ContractGenerationRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/missions/contract_generation_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+cargo_titles = Array[String](["{commodity} for {place}", "{commodity} run to {place}", "Deliver {commodity} to {place}", "{origin} {commodity} shipment", "Urgent: {commodity} for {place}"])
+cargo_descriptions = Array[String](["{origin} has a load of {commodity} that {place} is waiting for.", "A routine {commodity} haul from {origin} to {place}. The cargo is supplied.", "Buyers at {place} want {commodity} and {origin} has it. Someone has to move it.", "Load {commodity} at {origin} and see it safely to {place}."])
+bulk_titles = Array[String](["Bulk {commodity} for {place}", "{commodity} convoy to {place}", "Heavy haul: {commodity} to {place}"])
+bulk_descriptions = Array[String](["A very large shipment of {commodity} bound for {place}. Needs plenty of free cargo space.", "{origin} is clearing its warehouses of {commodity}, all of it headed to {place}. Bring a big hold.", "A convoy-sized load of {commodity} for {place}. The pay is better for those with the space."])
+ferry_titles = Array[String](["Passage to {place}", "Ferry to {place}", "Passengers for {place}", "A lift to {place}"])
+ferry_descriptions = Array[String](["{passengers} need to get from {origin} to {place}. Quick work, modest pay.", "Travellers at {origin} are heading for {place} and will share the cost of the trip.", "{passengers} waiting at {origin}, bound for {place}. They travel light."])
+exploration_titles = Array[String](["Chart the {system} system", "Survey {system}", "Scout {system}"])
+exploration_descriptions = Array[String](["Nobody has properly looked at the {system} system. Fly close to every body in it and report back to {origin}.", "{origin} will pay for a survey of {system}: go there, get close to everything in it, and come back.", "A survey contract for the {system} system. Every body must be visited before the data is complete."])

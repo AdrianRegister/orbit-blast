@@ -8,6 +8,8 @@ extends RefCounted
 
 var galaxy: Galaxy
 var travel: TravelManager
+## The game's content (all locations and commodities), for generating contracts.
+var registry: ContentRegistry
 var rewards: ContractRewards = ContractRewards.new()
 ## The biggest cargo hold any ship model has; offers asking for more than this
 ## are not achievable and are skipped. 0 = do not check.

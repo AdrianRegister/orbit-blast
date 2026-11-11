@@ -7,4 +7,4 @@
 script = ExtResource("1")
 stats = ExtResource("3")
 category = 0
-spawn_weight = 2.0
+spawn_weight = 0.8

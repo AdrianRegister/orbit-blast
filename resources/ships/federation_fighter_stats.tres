@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/federation_fighter.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"federation_fighter"
+display_name = "Federation Fighter"
+description = "A light single-seat interceptor flown by Federation patrols: quick, agile and not much else."
+faction_name = "TestFaction_1"
+price = 200000
+texture = ExtResource("2")
+display_width = 60
+thrust = 480.0
+turn_rate = 4.8
+max_speed = 750.0
+cargo_capacity = 5

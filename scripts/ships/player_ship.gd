@@ -30,7 +30,7 @@ func _ready() -> void:
 func apply_ship(ship: OwnedShip) -> void:
 	stats = ship.get_specs()
 	_sprite.texture = ship.model.texture
-	_sprite.scale = Vector2(ship.model.sprite_scale, ship.model.sprite_scale)
+	_sprite.scale = Vector2.ONE * ship.model.get_scale()
 
 
 func set_flight_enabled(enabled: bool) -> void:

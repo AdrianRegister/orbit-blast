@@ -10,10 +10,6 @@
 [ext_resource type="Resource" path="res://resources/commodities/rare_isotopes.tres" id="c_rare_isotopes"]
 [ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
 [ext_resource type="Resource" path="res://resources/markets/earth_market.tres" id="market"]
-[ext_resource type="Resource" path="res://resources/contracts/earth_food_to_mars.tres" id="co_0"]
-[ext_resource type="Resource" path="res://resources/contracts/earth_electronics_to_victory.tres" id="co_1"]
-[ext_resource type="Resource" path="res://resources/contracts/earth_bulk_food_to_mars.tres" id="co_2"]
-[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="cos"]
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
 [ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
 [ext_resource type="Resource" path="res://resources/ships/freighter_stats.tres" id="sy_freighter"]
@@ -23,11 +19,6 @@
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_2.tres" id="up_engine_2"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
-
-[ext_resource type="Resource" path="res://resources/contracts/earth_medical_to_victory.tres" id="o_earth_medical_to_victory"]
-[ext_resource type="Resource" path="res://resources/contracts/earth_medical_to_hera.tres" id="o_earth_medical_to_hera"]
-[ext_resource type="Resource" path="res://resources/contracts/earth_luxury_to_talos.tres" id="o_earth_luxury_to_talos"]
-[ext_resource type="Resource" path="res://resources/contracts/earth_water_to_elysium.tres" id="o_earth_water_to_elysium"]
 
 [resource]
 script = ExtResource("1")
@@ -40,6 +31,5 @@ exported_goods = Array[ExtResource("cs")]([ExtResource("c_food"), ExtResource("c
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_machinery"), ExtResource("c_rare_isotopes")])
 size = 450.0
 market = ExtResource("market")
-contract_offers = Array[ExtResource("cos")]([ExtResource("co_0"), ExtResource("co_1"), ExtResource("co_2"), ExtResource("o_earth_medical_to_victory"), ExtResource("o_earth_medical_to_hera"), ExtResource("o_earth_luxury_to_talos"), ExtResource("o_earth_water_to_elysium")])
 shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_shuttle"), ExtResource("sy_freighter"), ExtResource("sy_bulk_freighter")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1"), ExtResource("up_engine_2"), ExtResource("up_manoeuvre_1")])

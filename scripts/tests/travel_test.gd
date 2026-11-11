@@ -22,6 +22,7 @@ func _init() -> void:
 	var travel: TravelManager = main.get_node("Travel")
 	var economy: EconomyManager = main.get_node("Economy")
 	var contracts: ContractManager = main.get_node("Contracts")
+	contracts.set_source(FixedContractSource.new())
 	var ships: ShipManager = main.get_node("Ships")
 	var saves: SaveManager = main.get_save_manager()
 	var ship := main.get_player_ship()

@@ -42,12 +42,6 @@ extends TargetDetails
 ## Prices and stock are derived from this and the goods lists above.
 @export var market: MarketData
 
-## Cargo delivery contracts this location offers at its mission computer.
-@export var contract_offers: Array[ContractOffer] = []
-
-## Exploration contracts (scout a star system) this location offers.
-@export var exploration_offers: Array[ExplorationOffer] = []
-
 ## Ship models this location's shipyard sells. Empty = no shipyard.
 @export var shipyard_ships: Array[ShipStats] = []
 
@@ -110,18 +104,6 @@ func validate() -> Array[String]:
 	for upgrade in outfitter_upgrades:
 		if upgrade == null:
 			problems.append("outfitter_upgrades has an empty entry")
-	for offer in exploration_offers:
-		if offer == null:
-			problems.append("exploration_offers has an empty entry")
-		else:
-			for problem in offer.validate():
-				problems.append("exploration contract '%s': %s" % [offer.title, problem])
-	for offer in contract_offers:
-		if offer == null:
-			problems.append("contract_offers has an empty entry")
-		else:
-			for problem in offer.validate(self):
-				problems.append("contract '%s': %s" % [offer.title, problem])
 	return problems
 
 

@@ -15,6 +15,7 @@ func _init() -> void:
 	root.add_child(main)
 	await process_frame
 	await process_frame
+	main.get_node("Contracts").set_source(FixedContractSource.new())
 
 	var ship: PlayerShip = main.get_node("PlayerShip")
 	var targeting: TargetingManager = main.get_node("Targeting")
@@ -49,7 +50,7 @@ func _init() -> void:
 	var root_item := table.get_root()
 	_check(root_item.get_child_count() == 3, "three sections: available, active, completed")
 	var available := root_item.get_first_child()
-	_check(available.get_child_count() == 7, "seven contracts offered at Earth (three cargo runs in Sol, four new ones, none of them exploration)")
+	_check(available.get_child_count() == 4, "four contracts offered at Earth")
 
 	# Select the first contract and accept it with the button.
 	var accept: Button = missions.get_node("%AcceptButton")
@@ -73,7 +74,9 @@ func _init() -> void:
 	_check(shown.to_lower().contains("food (contract, mars in the sol system)"), "HUD cargo list shows contract cargo and destination (%s)" % shown)
 
 	# The oversized contract is refused with a message.
-	var bulk: TreeItem = table.get_root().get_first_child().get_child(1)
+	var bulk: TreeItem = table.get_root().get_first_child().get_first_child()
+	while bulk != null and bulk.get_text(MissionComputerScreen.Column.TITLE) != "Bulk food convoy":
+		bulk = bulk.get_next()
 	bulk.select(MissionComputerScreen.Column.TITLE)
 	table.item_selected.emit()
 	await process_frame

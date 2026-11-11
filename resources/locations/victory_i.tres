@@ -9,9 +9,6 @@
 [ext_resource type="Resource" path="res://resources/commodities/luxury_goods.tres" id="c_luxury_goods"]
 [ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
 [ext_resource type="Resource" path="res://resources/markets/victory_i_market.tres" id="market"]
-[ext_resource type="Resource" path="res://resources/contracts/victory_i_fuel_to_earth.tres" id="co_0"]
-[ext_resource type="Resource" path="res://resources/contracts/victory_i_fuel_to_mars.tres" id="co_1"]
-[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="cos"]
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
 [ext_resource type="Resource" path="res://resources/ships/interceptor_stats.tres" id="sy_interceptor"]
 [ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
@@ -20,8 +17,6 @@
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
-
-[ext_resource type="Resource" path="res://resources/contracts/victory_chemicals_to_persephone.tres" id="o_victory_chemicals_to_persephone"]
 
 [resource]
 script = ExtResource("1")
@@ -33,6 +28,5 @@ exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel"), ExtResource("c
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery"), ExtResource("c_water"), ExtResource("c_luxury_goods")])
 size = 180.0
 market = ExtResource("market")
-contract_offers = Array[ExtResource("cos")]([ExtResource("co_0"), ExtResource("co_1"), ExtResource("o_victory_chemicals_to_persephone")])
 shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_interceptor"), ExtResource("sy_shuttle"), ExtResource("sy_light_frigate")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_manoeuvre_1"), ExtResource("up_manoeuvre_2"), ExtResource("up_cargo_bay")])

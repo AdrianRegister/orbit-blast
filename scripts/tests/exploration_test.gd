@@ -13,8 +13,16 @@ var _failures: int = 0
 class TwoTargetSource:
 	extends ContractSource
 	## A test source: two exploration contracts for Wolf 359 and one for Sirius.
-	func generate(location: InhabitedData, _context: ContractContext) -> Array[Contract]:
+	var _made := false
+
+	func get_target_offers() -> int:
+		return 99
+
+	func generate(location: InhabitedData, _context: ContractContext, _wanted: int, _existing: Array[Contract]) -> Array[Contract]:
 		var contracts: Array[Contract] = []
+		if _made:
+			return contracts
+		_made = true
 		for target in [&"wolf_359", &"wolf_359", &"sirius"]:
 			var contract := ExplorationContract.new()
 			contract.title = "Scout %s" % target
@@ -59,6 +67,8 @@ func _scenario_real_game() -> void:
 	var daedalus := registry.location(&"daedalus")
 	var player := main.get_player_data()
 
+	contracts.set_source(FixedContractSource.new())
+
 	# --- Generation.
 	var offered := contracts.get_available(daedalus)
 	var exploration: ExplorationContract = null
@@ -66,7 +76,7 @@ func _scenario_real_game() -> void:
 		if contract is ExplorationContract:
 			exploration = contract
 	_check(exploration != null and exploration.target_system == &"wolf_359", "Daedalus offers one exploration contract, for Wolf 359")
-	_check(offered.size() == 2, "...alongside its cargo delivery (%d offers)" % offered.size())
+	_check(offered.size() == 1, "...and nothing else (%d offers)" % offered.size())
 	var expected_reward: int = main.get_node("Contracts").get_context().rewards.exploration_reward(
 			galaxy.find_route(&"barnards_star", &"wolf_359").size() - 1, galaxy.get_jump_cost(&"barnards_star", &"wolf_359"))
 	_check(exploration.reward == expected_reward and exploration.reward > 0, "its reward comes from the reward rules (%d)" % exploration.reward)
@@ -158,7 +168,7 @@ func _scenario_real_game() -> void:
 	await process_frame
 	await process_frame
 	_check(player.credits == credits + exploration.reward, "scouting again pays nothing more")
-	_check(contracts.get_available(daedalus).size() == 1, "the offer is not made again")
+	_check(contracts.get_available(daedalus).is_empty(), "the offer is not made again")
 	popup._dismiss()
 
 	# --- Persistence: completed stays completed; loading the halfway save does not pay twice.
@@ -273,6 +283,7 @@ func _scenario_manager_cases() -> void:
 	travel.setup(galaxy, func() -> StringName: return current[0])
 	var context := ContractContext.new()
 	context.galaxy = galaxy
+	context.registry = registry
 	context.travel = travel
 	context.current_system = func() -> StringName: return current[0]
 	var contracts := ContractManager.new()
@@ -314,13 +325,19 @@ func _scenario_manager_cases() -> void:
 	travel.system_scouted.emit(&"wolf_359")
 	_check(player.credits == 31000 and completed.size() == 3, "a repeated announcement pays nothing: completed contracts are ignored")
 
-	# A target scouted before an offer was made is not offered; one scouted after listing is refused.
-	var second := ContractManager.new()
-	root.add_child(second)
-	second.setup(economy, context)
-	second.set_source(OfferContractSource.new())
+	# A target scouted before an offer was made is never offered; one scouted after
+	# listing is refused. (Many generations, because the generator is random.)
 	var daedalus := registry.location(&"daedalus")
-	_check(second.get_available(daedalus).any(func(c: Contract) -> bool: return c is ExplorationContract) == false, "an exploration target that is already scouted is not offered")
+	var rules: ContractGenerationRules = load("res://resources/contracts/generation_rules.tres").duplicate()
+	rules.exploration_weight = 100.0
+	var generator := ProceduralContractSource.new(rules)
+	generator.seed_rng(7)
+	var scouted_offers := 0
+	for _try in 40:
+		for contract in generator.generate(daedalus, context, 4, []):
+			if contract is ExplorationContract:
+				scouted_offers += 1
+	_check(scouted_offers == 0, "an exploration target that is already scouted is never offered")
 	var third := ContractManager.new()
 	root.add_child(third)
 	var empty_travel := TravelManager.new()
@@ -328,38 +345,24 @@ func _scenario_manager_cases() -> void:
 	empty_travel.setup(galaxy, func() -> StringName: return &"barnards_star")
 	var context2 := ContractContext.new()
 	context2.galaxy = galaxy
+	context2.registry = registry
 	context2.travel = empty_travel
 	context2.current_system = func() -> StringName: return &"barnards_star"
 	third.setup(economy, context2)
-	third.set_source(OfferContractSource.new())
+	var generator2 := ProceduralContractSource.new(rules)
+	generator2.seed_rng(7)
+	third.set_source(generator2)
 	var listed: ExplorationContract = null
 	for contract in third.get_available(daedalus):
 		if contract is ExplorationContract:
 			listed = contract
-	_check(listed != null, "an unscouted target is offered")
+	_check(listed != null and listed.target_system == &"wolf_359", "an unscouted target is offered")
 	empty_travel.discover(&"wolf_359")
 	_scout(empty_travel, galaxy, &"wolf_359")
 	_check(third.accept(listed, daedalus) == ContractManager.AcceptResult.ALREADY_EXPLORED, "a stale offer whose target has since been scouted is refused")
 	_check(third.get_available(daedalus).all(func(c: Contract) -> bool: return not c is ExplorationContract), "...and it disappears from the list")
 
-	# --- Offer validation.
-	var offer := ExplorationOffer.new()
-	offer.title = "Chart Atlantis"
-	offer.target_system = &"atlantis"
-	_check(not offer.validate(earth, context).is_empty(), "an exploration offer for an unknown system is invalid")
-	offer.target_system = &"sol"
-	_check(not offer.validate(earth, context).is_empty(), "...and so is one targeting the issuer's own system")
-	offer.target_system = &"wolf_359"
-	_check(offer.validate(earth, context).is_empty(), "a valid one passes")
-	var cargo_offer: ContractOffer = load("res://resources/contracts/earth_luxury_to_talos.tres").duplicate()
-	cargo_offer.quantity = 999999
-	context.max_cargo = registry.max_cargo_capacity()
-	_check(not cargo_offer.validate(earth, context).is_empty(), "a delivery bigger than any ship can carry is invalid when a limit is known")
-	context.max_cargo = registry.max_cargo_capacity()
-	cargo_offer.quantity = 25
-	_check(cargo_offer.validate(earth, context).is_empty() and context.max_cargo >= 5000, "a normal delivery is valid (largest hold %d)" % context.max_cargo)
-
-	for node in [contracts, second, third, travel, empty_travel, economy]:
+	for node in [contracts, third, travel, empty_travel, economy]:
 		node.queue_free()
 	await process_frame
 

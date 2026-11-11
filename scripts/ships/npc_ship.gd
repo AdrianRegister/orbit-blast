@@ -107,7 +107,7 @@ func can_jump() -> bool:
 
 func _ready() -> void:
 	_sprite.texture = ship_type.texture
-	_sprite.scale = Vector2(ship_type.sprite_scale, ship_type.sprite_scale)
+	_sprite.scale = Vector2.ONE * ship_type.sprite_scale
 	details = NpcShipDetails.new()
 	details.ship_type_name = ship_type.display_name
 	details.faction_name = faction_name

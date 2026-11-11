@@ -14,7 +14,7 @@ var _economy: EconomyManager
 ## Returns the name of the star system a location is in ("" if unknown). Set by
 ## Main; replace it when there is more than one system.
 var _system_name_of: Callable = func(_location: InhabitedData) -> String: return ""
-var _source: ContractSource = OfferContractSource.new()
+var _source: ContractSource = ProceduralContractSource.new()
 ## What contracts can ask the world: the galaxy, discovery and scouting, the
 ## player's position and the reward rules. Empty until Main provides one.
 var _context: ContractContext = ContractContext.new()
@@ -56,17 +56,36 @@ func get_available(location: InhabitedData) -> Array[Contract]:
 	if location == null:
 		return []
 	if not _available.has(location):
-		var contracts := _source.generate(location, _context)
-		for contract in contracts:
-			contract.id = StringName("contract_%d" % _next_id)
-			contract.context = _context
-			_next_id += 1
-		_available[location] = contracts
+		_available[location] = []
+		_top_up(location)
+	return _open_offers(location)
+
+
+func _open_offers(location: InhabitedData) -> Array[Contract]:
 	var open: Array[Contract] = []
-	for contract in _available[location]:
+	for contract in _available.get(location, []):
 		if not _is_pointless(contract):
 			open.append(contract)
 	return open
+
+
+## Asks the source for enough new contracts to bring the location back to the
+## number it should offer. Contracts the player has accepted from here count as
+## taken so the same job is not offered again straight away.
+func _top_up(location: InhabitedData) -> void:
+	var open := _open_offers(location)
+	var wanted := _source.get_target_offers() - open.size()
+	if wanted <= 0:
+		return
+	var existing: Array[Contract] = open.duplicate()
+	for contract in _active:
+		if contract.origin == location:
+			existing.append(contract)
+	for contract in _source.generate(location, _context, wanted, existing):
+		contract.id = StringName("contract_%d" % _next_id)
+		contract.context = _context
+		_next_id += 1
+		_available[location].append(contract)
 
 
 ## An exploration contract whose target has since been fully scouted has nothing
@@ -157,6 +176,12 @@ func on_docked(target: Targetable) -> void:
 				_finish(exploration)
 		elif contract.destination == location:
 			_try_complete(contract)
+	# Landing refreshes the mission computer: new offers fill it back up.
+	if _available.has(location):
+		var before: int = _available[location].size()
+		_top_up(location)
+		if _available[location].size() != before:
+			contracts_changed.emit()
 
 
 ## What the cargo list says after the commodity name, e.g.
@@ -296,30 +321,7 @@ func load_state(data: Dictionary, registry: ContentRegistry) -> void:
 	_load_list(data.get("active", []), _active, registry)
 	_load_list(data.get("completed", []), _completed, registry)
 	_load_list(data.get("failed", []), _failed, registry)
-	_add_new_offers()
 	contracts_changed.emit()
-
-
-## A save remembers which locations have already generated their offers, so
-## offers added to the game since it was made would never appear. Any offer the
-## source now makes that the save knows nothing about (no contract with the same
-## issuer and title, in any list) is added to its location.
-func _add_new_offers() -> void:
-	var known := {}
-	for list in [_active, _completed, _failed]:
-		for contract in list:
-			known[[contract.origin, contract.title]] = true
-	for location in _available:
-		for contract in _available[location]:
-			known[[contract.origin, contract.title]] = true
-	for location in _available.keys():
-		for contract in _source.generate(location, _context):
-			if known.has([location, contract.title]):
-				continue
-			contract.id = StringName("contract_%d" % _next_id)
-			contract.context = _context
-			_next_id += 1
-			_available[location].append(contract)
 
 
 func _load_list(entries: Array, into: Array[Contract], registry: ContentRegistry) -> void:
