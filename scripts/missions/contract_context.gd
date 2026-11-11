@@ -12,6 +12,8 @@ var travel: TravelManager
 var registry: ContentRegistry
 ## Who owns each settlement now (and so which faction a contract serves).
 var territory: TerritoryManager
+## The player's reputation with each faction (for contracts that need some).
+var reputation: ReputationManager
 var rewards: ContractRewards = ContractRewards.new()
 ## The biggest cargo hold any ship model has; offers asking for more than this
 ## are not achievable and are skipped. 0 = do not check.

@@ -13,6 +13,26 @@ func _init() -> void:
 	for faction in registry.factions():
 		_check(faction.validate().is_empty(), "%s is valid" % faction.id)
 
+	# Identity: colours, texts, strength and relations are data.
+	_check(is_equal_approx(federation.secondary_colour.r, 1.0) and federation.secondary_colour.g == 1.0 and federation.secondary_colour.b == 1.0, "the Federation's secondary colour is white")
+	var sprite := Image.load_from_file("res://assets/sprites/ships/federation_cruiser.png")
+	var yellow_hue := federation.primary_colour.h
+	_check(federation.primary_colour.s > 0.5 and yellow_hue > 0.08 and yellow_hue < 0.18 and federation.primary_colour.v < 0.9, "its primary colour is a dark yellow (taken from its ships)")
+	_check(sprite != null and not federation.description.is_empty() and not federation.political_identity.is_empty() and not federation.background.is_empty(), "it has a description, a political identity and a background")
+	_check(federation.military_strength > 0, "it has a military strength (%d)" % federation.military_strength)
+	_check(federation.relations.is_empty() and federation.get_relation(&"faction_2") == null, "with one faction there are no relations")
+	var other := Faction.new()
+	other.id = &"faction_x"
+	other.display_name = "X"
+	var relation := FactionRelation.new()
+	relation.other_faction_id = &"faction_1"
+	relation.attitude = -40
+	relation.at_war = true
+	other.relations = [relation]
+	_check(other.validate().is_empty() and other.get_relation(&"faction_1").at_war, "relations between factions are data (and not reputation)")
+	relation.other_faction_id = &"faction_x"
+	_check(not other.validate().is_empty(), "a faction cannot have a relation to itself")
+
 	# Nothing refers to a faction by text any more.
 	var leftovers: Array[String] = []
 	for dir in ["res://resources/locations", "res://resources/ships", "res://resources/universe", "res://scenes/systems", "res://scripts"]:

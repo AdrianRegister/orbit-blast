@@ -244,3 +244,8 @@ Version 2 added the `fleet` section (see [ships-and-upgrades.md](ships-and-upgra
 ## Galaxy section
 
 The optional `galaxy` section stores the discovered system ids (`{"discovered": [...]}`). It is applied after the player so the current system is known, and a save without it defaults to Sol plus the current system. See [galaxy.md](galaxy.md).
+
+
+## Reputation section
+
+The optional `reputation` section is `{"values": {faction id: int}}` (only non-neutral factions), provided by `ReputationManager`; older saves load neutral. Contracts additionally save `reputation_change`, `reputation_applied` and `required_reputation` (optional). See [factions.md](factions.md).

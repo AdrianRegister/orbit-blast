@@ -49,7 +49,7 @@ func _init() -> void:
 			worst_link = maxf(worst_link, galaxy.get_map_position(StringName(row["id"])).distance_to(galaxy.get_map_position(StringName(other))))
 	_check(links_ok, "every system is listed with the name the table gives it")
 	_check(worst_link < 1200.0, "no link is absurdly long (longest %d map units)" % int(worst_link))
-	_check(galaxy.get_claim(&"sol").display_name == "Federation" and galaxy.get_claim(&"koria") == null, "the Federation core is Federation territory, Koria is unclaimed")
+	_check(galaxy.get_claim(&"sol").display_name == "Federation" and galaxy.get_claim(&"koria").display_name == "Federation", "every system, Koria included, is Federation territory")
 
 	var registry := ContentRegistry.new()
 	_check(registry.problems.is_empty(), "the content registry finds everything without problems: %s" % [registry.problems.slice(0, 3)])

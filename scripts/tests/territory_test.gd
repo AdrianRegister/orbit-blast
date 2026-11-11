@@ -21,7 +21,7 @@ func _init() -> void:
 	_rival = Faction.new()
 	_rival.id = &"faction_2"
 	_rival.display_name = "Rival"
-	_rival.colour = Color(1.0, 0.4, 0.3)
+	_rival.primary_colour = Color(1.0, 0.4, 0.3)
 
 	_check_derivation()
 	_check_signals()
@@ -52,7 +52,7 @@ func _check_derivation() -> void:
 	_check(territory.owner_of(earth) == _federation and territory.owner_id_of(mars) == &"faction_1" and territory.owner_name_of(victory) == "Federation", "its settlements start with their own owners")
 	var wolf := territory.get_control(&"wolf_359")
 	_check(wolf.status == SystemControl.Status.CONTROLLED and wolf.controller == _galaxy.get_claim(&"wolf_359"), "a system with no settlements goes to whoever claims it on the map")
-	_check(territory.get_control(&"koria").status == SystemControl.Status.UNCLAIMED and territory.get_control(&"koria").get_text() == "None", "an unclaimed system with independent settlements is unclaimed")
+	_check(territory.get_control(&"koria").is_controlled_by(_federation), "Koria is Federation territory like the rest")
 	_check(territory.get_control(&"nowhere").status == SystemControl.Status.UNCLAIMED, "an unknown system is simply unclaimed")
 
 	# One settlement of another faction: Sol is contested, with no owner.
@@ -74,6 +74,10 @@ func _check_derivation() -> void:
 	territory.transfer_settlement(earth, _rival)
 	territory.transfer_settlement(victory, _rival)
 	_check(territory.get_control(&"sol").is_controlled_by(_rival), "when one faction owns every settlement it controls the system")
+	territory.transfer_settlement(mars, null)
+	territory.transfer_settlement(earth, null)
+	territory.transfer_settlement(victory, null)
+	_check(territory.get_control(&"sol").status == SystemControl.Status.UNCLAIMED and territory.get_control(&"sol").get_text() == "None", "when every settlement is independent the system is unclaimed")
 	territory.reset_state()
 	_check(territory.get_control(&"sol").is_controlled_by(_federation) and territory.owner_of(mars) == _federation, "resetting gives every settlement its starting owner back")
 
@@ -181,7 +185,7 @@ func _check_game() -> void:
 	var second := Faction.new()
 	second.id = &"faction_2"
 	second.display_name = "Rival"
-	second.colour = Color(1.0, 0.4, 0.3)
+	second.primary_colour = Color(1.0, 0.4, 0.3)
 	territory.transfer_settlement(mars, second)
 	_check(_owned_by(targetable) == "Rival", "the HUD follows: Mars is owned by the Rival")
 	_check(offer.get_issuing_faction() == second, "the contract now serves the Rival")

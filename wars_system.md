@@ -275,3 +275,7 @@ One particularly important decision: avoid making system ownership an inseparabl
 ### Status (foundation in place)
 
 Settlement ownership is authoritative and system control is derived from it (`TerritoryManager`, `SystemControl`), with a contested status and the signals `settlement_owner_changed`, `system_control_changed` and `system_became_contested`. Ownership changes are saved in the optional `territory` save section. Not built yet: military value, strength, wars, operations, news. See `docs/galaxy.md` section 15.
+
+### Status (faction identity and reputation in place)
+
+Factions carry colours, texts, `military_strength` (arbitrary for now) and `relations` that are separate from the player's reputation; reputation is tracked per faction with a central interface (`ReputationManager.meets`, standings), military contracts can award it, and hostile acts have an integration point. See `docs/factions.md`.

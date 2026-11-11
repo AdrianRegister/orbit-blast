@@ -305,7 +305,7 @@ func _draw_contested_ring(at: Vector2, control: SystemControl) -> void:
 	var count := control.factions.size()
 	for i in count:
 		var start := TAU * i / count - PI / 2.0
-		draw_arc(at, MARKER_RADIUS + 5.0, start, start + TAU / count - 0.15, 12, control.factions[i].colour, 3.0, true)
+		draw_arc(at, MARKER_RADIUS + 5.0, start, start + TAU / count - 0.15, 12, control.factions[i].primary_colour, 3.0, true)
 
 
 func _draw_brackets(at: Vector2, half: float) -> void:

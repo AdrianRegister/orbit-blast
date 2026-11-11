@@ -543,6 +543,7 @@ script = ExtResource("gs")
 scene = ExtResource("sc_koria")
 map_position = Vector2(577, -774)
 start_discovered = false
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_sanddown"]
 script = ExtResource("gs")

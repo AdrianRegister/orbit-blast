@@ -146,3 +146,8 @@ The same type, destination (or target) and commodity are never offered twice at 
 **Old saves.** Contracts already in a save stay exactly as saved (including old, larger rewards). Locations whose lists the save stored are topped up the next time the player lands there.
 
 **Tests.** `procedural_contract_test.gd`: every inhabited location always gets a mission; the faction, distance and size rules (using a duplicated galaxy where Procyon belongs to a rival faction); reward ceilings; authority and saving; topping up on landing; old saves; the real game's buttons.
+
+
+## 14. Reputation (Phase 2.8)
+
+A contract can carry `reputation_change`, `reputation_applied` and `required_reputation` (see [factions.md](factions.md)). Only a **military** contract changes the issuing faction's reputation when it completes, once; civilian contracts (everything generated today) never do. A contract may require a reputation to accept (`REPUTATION_TOO_LOW`); the default is no requirement.

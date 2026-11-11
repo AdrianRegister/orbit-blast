@@ -8,7 +8,7 @@ extends Node
 signal contracts_changed
 signal contract_completed(contract: Contract)
 
-enum AcceptResult { OK, NOT_AVAILABLE, WRONG_LOCATION, INSUFFICIENT_CARGO_SPACE, ALREADY_EXPLORED }
+enum AcceptResult { OK, NOT_AVAILABLE, WRONG_LOCATION, INSUFFICIENT_CARGO_SPACE, ALREADY_EXPLORED, REPUTATION_TOO_LOW }
 
 var _economy: EconomyManager
 ## Returns the name of the star system a location is in ("" if unknown). Set by
@@ -138,10 +138,21 @@ func check_accept(contract: Contract, location: InhabitedData) -> AcceptResult:
 		return AcceptResult.WRONG_LOCATION
 	if _is_pointless(contract):
 		return AcceptResult.ALREADY_EXPLORED
+	if not _meets_reputation(contract):
+		return AcceptResult.REPUTATION_TOO_LOW
 	var delivery := contract as CargoDeliveryContract
 	if delivery != null and not _economy.get_cargo().can_add(delivery.quantity):
 		return AcceptResult.INSUFFICIENT_CARGO_SPACE
 	return AcceptResult.OK
+
+
+## Whether the player has the reputation with the issuing faction that a contract
+## asks for. Contracts ask for nothing by default, so this never refuses today.
+func _meets_reputation(contract: Contract) -> bool:
+	if contract.required_reputation <= -100 or _context.reputation == null:
+		return true
+	var faction := contract.get_issuing_faction()
+	return faction == null or _context.reputation.meets(faction, contract.required_reputation)
 
 
 ## Accepts a contract offered at `location` (where the player is docked). The
@@ -203,6 +214,8 @@ static func get_result_message(result: AcceptResult) -> String:
 			return "NOT ENOUGH FREE CARGO SPACE"
 		AcceptResult.ALREADY_EXPLORED:
 			return "THIS SYSTEM HAS ALREADY BEEN EXPLORED"
+		AcceptResult.REPUTATION_TOO_LOW:
+			return "YOUR REPUTATION WITH THIS FACTION IS TOO LOW"
 	return ""
 
 

@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="ReputationStandings" format=3]
+
+[ext_resource type="Script" path="res://scripts/reputation/reputation_standings.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/reputation/reputation_level.gd" id="2"]
+
+[sub_resource type="Resource" id="level_0"]
+script = ExtResource("2")
+lower_bound = -100
+display_name = "Hated"
+
+[sub_resource type="Resource" id="level_1"]
+script = ExtResource("2")
+lower_bound = -80
+display_name = "Hostile"
+
+[sub_resource type="Resource" id="level_2"]
+script = ExtResource("2")
+lower_bound = -60
+display_name = "Unfriendly"
+
+[sub_resource type="Resource" id="level_3"]
+script = ExtResource("2")
+lower_bound = -40
+display_name = "Wary"
+
+[sub_resource type="Resource" id="level_4"]
+script = ExtResource("2")
+lower_bound = -20
+display_name = "Neutral"
+
+[sub_resource type="Resource" id="level_5"]
+script = ExtResource("2")
+lower_bound = 20
+display_name = "Favourable"
+
+[sub_resource type="Resource" id="level_6"]
+script = ExtResource("2")
+lower_bound = 40
+display_name = "Friendly"
+
+[sub_resource type="Resource" id="level_7"]
+script = ExtResource("2")
+lower_bound = 60
+display_name = "Trusted"
+
+[sub_resource type="Resource" id="level_8"]
+script = ExtResource("2")
+lower_bound = 80
+display_name = "Honoured"
+
+[resource]
+script = ExtResource("1")
+minimum = -100
+maximum = 100
+start = 0
+levels = Array[ExtResource("2")]([SubResource("level_0"), SubResource("level_1"), SubResource("level_2"), SubResource("level_3"), SubResource("level_4"), SubResource("level_5"), SubResource("level_6"), SubResource("level_7"), SubResource("level_8")])

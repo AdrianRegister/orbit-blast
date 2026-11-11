@@ -41,13 +41,9 @@ trading and combat game inspired by Escape Velocity.
 - Test changes using Godot.
 - Resolve parser errors before considering a feature complete.
 
-## Current Development Phase
+## Wars
 
-Phase 1: Foundation.
-
-Initial feature:
-Escape Velocity-style spaceship movement,
-with directional thrust, rotation and inertia.
+Galactic war between factions is a major end goal of this project. Refer to wars_system.md before implementing a game system. This will ensure its implementation with the end goal in mind.
 
 ## Collaboration
 

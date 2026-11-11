@@ -45,6 +45,9 @@ var _naming_first_ship: bool = false
 @onready var _ships: ShipManager = $Ships
 @onready var _travel: TravelManager = $Travel
 @onready var _territory: TerritoryManager = $Territory
+@onready var _reputation: ReputationManager = $Reputation
+@onready var _top_bar: TopBar = $TopBar
+@onready var _factions_screen: FactionScreen = $FactionScreen
 @onready var _contracts: ContractManager = $Contracts
 @onready var _trading: TradingScreen = $TradingScreen
 @onready var _missions: MissionComputerScreen = $MissionComputerScreen
@@ -78,6 +81,7 @@ func _ready() -> void:
 	var content := ContentRegistry.new()
 	_travel.setup(galaxy, func() -> StringName: return _system.system_id)
 	_territory.setup(galaxy, content)
+	_reputation.setup(_territory)
 	_system.set_owner_lookup(_territory.owner_name_of)
 	_ships.set_territory(_territory)
 	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems, _territory)
@@ -96,6 +100,7 @@ func _ready() -> void:
 	contract_context.galaxy = galaxy
 	contract_context.travel = _travel
 	contract_context.territory = _territory
+	contract_context.reputation = _reputation
 	contract_context.rewards = load("res://resources/contracts/reward_rules.tres")
 	contract_context.current_system = func() -> StringName: return _system.system_id
 	contract_context.registry = content
@@ -131,6 +136,12 @@ func _ready() -> void:
 	_saves.register_section(&"galaxy", _travel, false)  # after the player: it needs the current system
 	_saves.register_section(&"territory", _territory, false)  # who owns each settlement; absent in older saves
 	_territory.territory_changed.connect(_saves.request_autosave)
+	_saves.register_section(&"reputation", _reputation, false)  # the player's standing with each faction; absent in older saves
+	_reputation.reputation_changed.connect(func(_faction: StringName, _old: int, _new: int) -> void: _saves.request_autosave())
+	_contracts.contract_completed.connect(_reputation.apply_contract)
+	_factions_screen.setup(content.factions(), galaxy, _travel, _territory, _reputation, content)
+	_factions_screen.closed.connect(func() -> void: get_tree().paused = false)
+	_top_bar.factions_requested.connect(_on_factions_requested)
 	_travel.discovery_changed.connect(_saves.request_autosave)
 	_contracts.contracts_changed.connect(_saves.request_autosave)
 	_ships.fleet_changed.connect(_saves.request_autosave)
@@ -366,6 +377,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		try_jump()
 		get_viewport().set_input_as_handled()
 		return
+	if event.is_action_pressed("factions") and _can_open_map():
+		_open_factions()
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("galaxy_map") and _can_open_map():
 		_open_map()
 		get_viewport().set_input_as_handled()
@@ -379,10 +394,22 @@ func _unhandled_input(event: InputEvent) -> void:
 func _can_open_map() -> bool:
 	if _ship.warping:
 		return false
-	for screen: CanvasLayer in [_pause, _trading, _missions, _shipyard, _outfitters, _name_prompt, _popup, _map]:
+	for screen: CanvasLayer in [_pause, _trading, _missions, _shipyard, _outfitters, _name_prompt, _popup, _map, _factions_screen]:
 		if screen.visible:
 			return false
 	return true
+
+
+## The Factions screen opens from the top bar button or F, in flight and when
+## nothing else is on screen (the same rule as the map).
+func _on_factions_requested() -> void:
+	if _can_open_map():
+		_open_factions()
+
+
+func _open_factions() -> void:
+	get_tree().paused = true
+	_factions_screen.open()
 
 
 ## Freezes the game and shows the galaxy map; closing it resumes.
@@ -436,6 +463,7 @@ func _on_game_state_changed(new_state: GameStateManager.State, _previous: GameSt
 	var flying: bool = new_state == GameStateManager.State.FLYING
 	_ship.set_flight_enabled(flying)
 	_hud.visible = flying
+	_top_bar.visible = flying
 	_targeting.set_process_unhandled_input(flying)
 
 

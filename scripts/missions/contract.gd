@@ -28,6 +28,15 @@ var destination: InhabitedData
 var reward: int = 0
 var status: Status = Status.AVAILABLE
 var authority: Authority = Authority.CIVILIAN
+## Reputation with the issuing faction awarded (or, if negative, taken) on
+## completion. Only a MILITARY contract changes reputation; civilian contracts
+## ignore this. Set by whatever creates the contract.
+var reputation_change: int = 0
+## Set once the reputation has been applied, so it can never be applied twice.
+var reputation_applied: bool = false
+## The reputation with the issuing faction needed to accept the contract. The
+## bottom of the scale (-100) means no requirement.
+var required_reputation: int = -100
 ## What the contract can ask the world about (routes, scouting). Set by the
 ## ContractManager when the contract is created or loaded.
 var context: ContractContext
@@ -124,6 +133,9 @@ func to_dict() -> Dictionary:
 		"reward": reward,
 		"status": get_status_text(),
 		"issuing_authority": Authority.keys()[authority],
+		"reputation_change": reputation_change,
+		"reputation_applied": reputation_applied,
+		"required_reputation": required_reputation,
 	}
 
 
@@ -148,6 +160,11 @@ func validate_dict(data: Dictionary, registry: ContentRegistry) -> Array[String]
 		problems.append("contract status is not valid")
 	if data.has("issuing_authority") and (not data["issuing_authority"] is String or not Authority.has(data["issuing_authority"])):
 		problems.append("contract issuing_authority is not valid")
+	for key in ["reputation_change", "required_reputation"]:
+		if data.has(key) and not SaveData.is_int(data[key]):
+			problems.append("contract %s is not a whole number" % key)
+	if data.has("reputation_applied") and not data["reputation_applied"] is bool:
+		problems.append("contract reputation_applied is not true or false")
 	return problems
 
 
@@ -162,3 +179,6 @@ func load_dict(data: Dictionary, registry: ContentRegistry) -> void:
 	reward = int(data["reward"])
 	status = Status[data["status"]]
 	authority = Authority[data.get("issuing_authority", "CIVILIAN")]
+	reputation_change = int(data.get("reputation_change", 0))
+	reputation_applied = data.get("reputation_applied", false)
+	required_reputation = int(data.get("required_reputation", -100))
