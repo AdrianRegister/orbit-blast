@@ -11,6 +11,8 @@ extends Node
 @export var starting_credits: int = 500000
 ## Flavour text shown when a cargo delivery completes.
 @export var delivery_flavour: FlavourPool
+## Flavour text shown when an exploration contract completes.
+@export var exploration_flavour: FlavourPool
 ## The galaxy: which systems exist, where they are and how they connect.
 @export var galaxy: Galaxy
 
@@ -71,7 +73,8 @@ func _ready() -> void:
 	_economy.setup(player_data)
 	_ships.setup(_economy, player_data, _get_docked_location)
 	_travel.setup(galaxy, func() -> StringName: return _system.system_id)
-	_map.setup(galaxy, _travel, get_jump_check)
+	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems)
+	_contracts.contracts_changed.connect(_map.get_map().queue_redraw)
 	_map.destination_selected.connect(_on_map_destination_selected)
 	_warp_timer = Timer.new()
 	_warp_timer.one_shot = true
@@ -82,7 +85,13 @@ func _ready() -> void:
 	_ships.active_ship_changed.connect(_ship.apply_ship)
 	_ships.start_new_game(starting_ship_stats)
 	_update_cargo_hud()
-	_contracts.setup(_economy)
+	var contract_context := ContractContext.new()
+	contract_context.galaxy = galaxy
+	contract_context.travel = _travel
+	contract_context.rewards = load("res://resources/contracts/reward_rules.tres")
+	contract_context.current_system = func() -> StringName: return _system.system_id
+	contract_context.max_cargo = ContentRegistry.new().max_cargo_capacity()
+	_contracts.setup(_economy, contract_context)
 	_contracts.set_system_lookup(_get_system_name_of)
 	_missions.setup(_contracts, _economy)
 	_contracts.contract_completed.connect(_on_contract_completed)
@@ -479,12 +488,26 @@ func _get_system_name_of(location: InhabitedData) -> String:
 ## Tells the player about a finished contract in a popup, with a random line of
 ## flavour text. The reward has already been paid.
 func _on_contract_completed(contract: Contract) -> void:
+	if contract is ExplorationContract:
+		_on_exploration_completed(contract as ExplorationContract)
+		return
 	var place: String = contract.destination.display_name
 	var flavour: String = delivery_flavour.pick({"destination": place}) if delivery_flavour != null else ""
 	_popup.show_event("DELIVERY COMPLETE", flavour, [
 		["CONTRACT", contract.title],
 		["CARGO DELIVERED", contract.get_requirement_text()],
-		["DELIVERED TO", place],
+		["DELIVERED TO", contract.get_destination_text()],
+		["REWARD", "+%s CR" % NumberFormat.with_commas(contract.reward)],
+	])
+
+
+## Tells the player about a finished exploration contract. The reward has been paid.
+func _on_exploration_completed(contract: ExplorationContract) -> void:
+	var system_name: String = galaxy.get_summary(contract.target_system).system_name
+	var flavour: String = exploration_flavour.pick({"system": system_name}) if exploration_flavour != null else ""
+	_popup.show_event("EXPLORATION COMPLETE", flavour, [
+		["CONTRACT", contract.title],
+		["SYSTEM SCOUTED", system_name],
 		["REWARD", "+%s CR" % NumberFormat.with_commas(contract.reward)],
 	])
 
@@ -514,6 +537,8 @@ func _on_undocked(_target: Targetable) -> void:
 
 func _process(_delta: float) -> void:
 	_update_navigation()
+	if not _ship.warping and is_instance_valid(_system):
+		_travel.update_scouting(_system, _ship.global_position)
 	_camera.global_position = _ship.global_position
 	# The HUD covers the right edge of the window. Shift the view right by half
 	# the panel width so the ship sits in the middle of the remaining play area.

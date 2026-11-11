@@ -17,11 +17,64 @@ var title: String = ""
 var description: String = ""
 ## The location that issues the contract.
 var origin: InhabitedData
-## Where it must be completed.
+## Where it must be completed. Null for contracts that are not about a
+## place to go to (exploration).
 var destination: InhabitedData
 ## Credits paid on completion.
 var reward: int = 0
 var status: Status = Status.AVAILABLE
+## What the contract can ask the world about (routes, scouting). Set by the
+## ContractManager when the contract is created or loaded.
+var context: ContractContext
+
+
+## Short name of the contract type for lists, e.g. "CARGO".
+func get_type_label() -> String:
+	return ""
+
+
+## Whether this type always has a destination location (and saves one).
+func requires_destination() -> bool:
+	return true
+
+
+## Where the contract is issued: "Earth, Sol".
+func get_origin_text() -> String:
+	return _place_text(origin)
+
+
+## Where to go: "Mars, Sol" (a location and its system), or the target system.
+func get_destination_text() -> String:
+	return _place_text(destination)
+
+
+## What the journey involves from where the player stands (or, before accepting,
+## from the issuer): "Sol > Sirius: 1 jump, 21 fuel".
+func get_journey_text() -> String:
+	return ""
+
+
+## The system the player should travel to, or &"" if the contract has none.
+## The galaxy map marks it.
+func get_target_system() -> StringName:
+	return context.system_of(destination) if context != null and destination != null else &""
+
+
+## The system the journey is measured from: where the issuer is while the
+## contract is on offer, where the player is once it has been accepted.
+func _journey_start() -> StringName:
+	if status == Status.AVAILABLE or context == null:
+		return context.system_of(origin) if context != null else &""
+	return context.current_system.call()
+
+
+func _place_text(location: InhabitedData) -> String:
+	if location == null:
+		return ""
+	if context == null:
+		return location.display_name
+	var system_name := context.system_name(context.system_of(location))
+	return "%s, %s" % [location.display_name, system_name] if not system_name.is_empty() else location.display_name
 
 
 ## What the contract asks for, e.g. "50 Food".
@@ -51,7 +104,7 @@ func to_dict() -> Dictionary:
 		"title": title,
 		"description": description,
 		"origin": str(origin.id),
-		"destination": str(destination.id),
+		"destination": str(destination.id) if destination != null else "",
 		"reward": reward,
 		"status": get_status_text(),
 	}
@@ -66,9 +119,12 @@ func validate_dict(data: Dictionary, registry: ContentRegistry) -> Array[String]
 		problems.append("contract title is not text")
 	if not data.get("description") is String:
 		problems.append("contract description is not text")
-	for key in ["origin", "destination"]:
-		if not SaveData.is_id(data.get(key)) or registry.location(StringName(data[key])) == null:
-			problems.append("contract %s is not a known location" % key)
+	if not SaveData.is_id(data.get("origin")) or registry.location(StringName(data["origin"])) == null:
+		problems.append("contract origin is not a known location")
+	var destination_id = data.get("destination", "")
+	if requires_destination() or destination_id != "":
+		if not SaveData.is_id(destination_id) or registry.location(StringName(destination_id)) == null:
+			problems.append("contract destination is not a known location")
 	if not SaveData.is_int(data.get("reward")) or data["reward"] < 0:
 		problems.append("contract reward is not a non-negative whole number")
 	if not data.get("status") is String or not Status.has(data["status"]):
@@ -82,6 +138,7 @@ func load_dict(data: Dictionary, registry: ContentRegistry) -> void:
 	title = data["title"]
 	description = data["description"]
 	origin = registry.location(StringName(data["origin"]))
-	destination = registry.location(StringName(data["destination"]))
+	var destination_id: String = data.get("destination", "")
+	destination = registry.location(StringName(destination_id)) if destination_id != "" else null
 	reward = int(data["reward"])
 	status = Status[data["status"]]

@@ -15,6 +15,11 @@ signal system_discovered(system_id: StringName)
 signal discovery_changed
 ## The selected jump destination changed (or was cleared).
 signal destination_changed
+## The player has been within docking range of every body in a system for the
+## first time: it is now scouted. Not emitted when a save is loaded.
+signal system_scouted(system_id: StringName)
+## The set of scouted bodies changed (a new body reached, or a load).
+signal scouting_changed
 
 var _galaxy: Galaxy
 ## Returns the id of the system the player is in.
@@ -23,6 +28,10 @@ var _discovered: Dictionary = {}  # StringName -> true
 ## The system chosen on the galaxy map as the next jump, or &"" for none. The
 ## navicomputer works towards it; J jumps to it.
 var _destination: StringName = &""
+## system id -> {location id: true}: the bodies (planets, moons, gas giants,
+## stations) the player has been within docking range of. A system is scouted
+## when it has all of them.
+var _scouted_nodes: Dictionary = {}
 
 
 func setup(galaxy: Galaxy, current_provider: Callable) -> void:
@@ -59,6 +68,45 @@ func discover(system_id: StringName) -> bool:
 	system_discovered.emit(system_id)
 	discovery_changed.emit()
 	return true
+
+
+# ----------------------------------------------------------------- scouting
+
+## (bodies reached, bodies in the system) for a system.
+func get_scouting_progress(system_id: StringName) -> Vector2i:
+	var summary := _galaxy.get_summary(system_id)
+	if summary == null:
+		return Vector2i.ZERO
+	return Vector2i(_scouted_nodes.get(system_id, {}).size(), summary.location_ids.size())
+
+
+## True once every body of the system has been reached.
+func is_scouted(system_id: StringName) -> bool:
+	var progress := get_scouting_progress(system_id)
+	return progress.y > 0 and progress.x >= progress.y
+
+
+## Records the bodies of the loaded `system` that `position` is within docking
+## range of. Only a discovered system can be scouted. Called every frame by Main
+## while the ship is flying; announces `system_scouted` when the last body is
+## reached.
+func update_scouting(system: StarSystem, position: Vector2) -> void:
+	var system_id := system.system_id
+	if not is_discovered(system_id) or is_scouted(system_id):
+		return
+	var found := false
+	for node in system.get_inhabited_nodes():
+		if node.data == null:
+			continue
+		var reached: Dictionary = _scouted_nodes.get_or_add(system_id, {})
+		if not reached.has(node.data.id) and position.distance_to(node.global_position) <= node.get_dock_range():
+			reached[node.data.id] = true
+			found = true
+	if not found:
+		return
+	scouting_changed.emit()
+	if is_scouted(system_id):
+		system_scouted.emit(system_id)
 
 
 # -------------------------------------------------------------- destination
@@ -136,7 +184,14 @@ func save_state() -> Dictionary:
 	for id in _discovered:
 		ids.append(str(id))
 	ids.sort()
-	return {"discovered": ids, "destination": str(_destination)}
+	var scouted := {}
+	for system_id in _scouted_nodes:
+		var nodes: Array = []
+		for location_id in _scouted_nodes[system_id]:
+			nodes.append(str(location_id))
+		nodes.sort()
+		scouted[str(system_id)] = nodes
+	return {"discovered": ids, "destination": str(_destination), "scouted_nodes": scouted}
 
 
 func validate_state(data: Variant, registry: ContentRegistry, _document: Dictionary = {}) -> Array[String]:
@@ -149,6 +204,20 @@ func validate_state(data: Variant, registry: ContentRegistry, _document: Diction
 	var destination = data.get("destination", "")
 	if not destination is String or (destination != "" and not registry.has_system(StringName(destination))):
 		problems.append("the selected destination does not exist")
+	var scouted = data.get("scouted_nodes", {})
+	if not scouted is Dictionary:
+		problems.append("scouted_nodes is not an object")
+	else:
+		for system_id in scouted:
+			var summary := _galaxy.get_summary(StringName(system_id))
+			if summary == null:
+				problems.append("scouted system '%s' does not exist" % system_id)
+			elif not scouted[system_id] is Array:
+				problems.append("scouted bodies of '%s' are not a list" % system_id)
+			else:
+				for location_id in scouted[system_id]:
+					if not SaveData.is_id(location_id) or not summary.location_ids.has(StringName(location_id)):
+						problems.append("'%s' is not a body of system '%s'" % [location_id, system_id])
 	return problems
 
 
@@ -161,8 +230,15 @@ func load_state(data: Dictionary, _registry: ContentRegistry) -> void:
 	_discovered[get_current_id()] = true
 	_destination = &""
 	set_destination(StringName(data.get("destination", "")))  # dropped if not linked to where we are
+	_scouted_nodes.clear()
+	for system_id in data.get("scouted_nodes", {}):
+		var reached := {}
+		for location_id in data["scouted_nodes"][system_id]:
+			reached[StringName(location_id)] = true
+		_scouted_nodes[StringName(system_id)] = reached
 	discovery_changed.emit()
 	destination_changed.emit()
+	scouting_changed.emit()
 
 
 ## Used when a save has no galaxy section (saves from before the map existed):
@@ -176,5 +252,7 @@ func reset_state() -> void:
 	if current != &"":
 		_discovered[current] = true
 	_destination = &""
+	_scouted_nodes.clear()
 	discovery_changed.emit()
 	destination_changed.emit()
+	scouting_changed.emit()

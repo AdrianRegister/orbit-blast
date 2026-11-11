@@ -60,7 +60,7 @@ func _init() -> void:
 	var active: Array[Contract] = other["contracts"].get_active()
 	_check(active.size() == 1 and active[0].status == Contract.Status.ACCEPTED, "active contract restored")
 	_check(other["contracts"].get_completed().size() == 1, "completed contract restored")
-	_check(other["contracts"].get_available(earth).size() == 1, "taken offers do not reappear")
+	_check(other["contracts"].get_available(earth).size() == 5, "taken offers do not reappear")
 
 	# --- Loading twice changes nothing, delivery pays once.
 	_load(other, parsed)

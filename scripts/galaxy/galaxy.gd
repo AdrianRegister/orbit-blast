@@ -75,7 +75,54 @@ func system_of_location(location_id: StringName) -> StringName:
 	return _location_system.get(location_id, &"")
 
 
+## Whether people live in the system (see SystemSummary.inhabited).
+func is_inhabited(id: StringName) -> bool:
+	var summary := get_summary(id)
+	return summary != null and summary.inhabited
+
+
 # -------------------------------------------------------------------- links
+
+## The cheapest chain of systems from `a` to `b` along the links, both ends
+## included ([a] if they are the same system), or an empty array if there is no
+## way. Cost is the links' jump costs, so a short fuel route beats a short hop count.
+func find_route(a: StringName, b: StringName) -> Array[StringName]:
+	var route: Array[StringName] = []
+	if not has_system(a) or not has_system(b):
+		return route
+	var best := {a: 0}
+	var came_from := {}
+	var open: Array[StringName] = [a]
+	while not open.is_empty():
+		var current: StringName = open[0]
+		for candidate in open:
+			if best[candidate] < best[current]:
+				current = candidate
+		open.erase(current)
+		if current == b:
+			break
+		for neighbour in get_neighbours(current):
+			var cost: int = best[current] + get_jump_cost(current, neighbour)
+			if not best.has(neighbour) or cost < best[neighbour]:
+				best[neighbour] = cost
+				came_from[neighbour] = current
+				open.append(neighbour)
+	if not best.has(b):
+		return route
+	var step: StringName = b
+	route.append(step)
+	while step != a:
+		step = came_from[step]
+		route.push_front(step)
+	return route
+
+
+## Total jump cost along a route from find_route() (0 for none or a single system).
+func get_route_cost(route: Array[StringName]) -> int:
+	var total := 0
+	for i in range(1, route.size()):
+		total += get_jump_cost(route[i - 1], route[i])
+	return total
 
 func are_connected(a: StringName, b: StringName) -> bool:
 	return _find_link(a, b) != null

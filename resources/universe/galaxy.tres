@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/galaxy/galaxy.gd" id="g"]
 [ext_resource type="Script" path="res://scripts/galaxy/galaxy_system.gd" id="gs"]
 [ext_resource type="Script" path="res://scripts/galaxy/system_link.gd" id="sl"]
+[ext_resource type="PackedScene" path="res://scenes/systems/wolf_359_system.tscn" id="sc_wolf_359"]
 [ext_resource type="PackedScene" path="res://scenes/systems/sol_system.tscn" id="sc_sol"]
 [ext_resource type="PackedScene" path="res://scenes/systems/alpha_centauri_system.tscn" id="sc_alpha_centauri"]
 [ext_resource type="PackedScene" path="res://scenes/systems/barnards_star_system.tscn" id="sc_barnards_star"]
@@ -60,6 +61,18 @@ map_position = Vector2(340, -310)
 start_discovered = false
 faction_name = "TestFaction_1"
 
+[sub_resource type="Resource" id="sys_wolf_359"]
+script = ExtResource("gs")
+scene = ExtResource("sc_wolf_359")
+map_position = Vector2(-500, -480)
+start_discovered = false
+faction_name = ""
+
+[sub_resource type="Resource" id="link_barnards_star_wolf_359"]
+script = ExtResource("sl")
+a = &"barnards_star"
+b = &"wolf_359"
+
 [sub_resource type="Resource" id="link_sol_alpha_centauri"]
 script = ExtResource("sl")
 a = &"sol"
@@ -92,6 +105,6 @@ b = &"epsilon_eridani"
 
 [resource]
 script = ExtResource("g")
-systems = Array[ExtResource("gs")]([SubResource("sys_sol"), SubResource("sys_alpha_centauri"), SubResource("sys_barnards_star"), SubResource("sys_sirius"), SubResource("sys_tau_ceti"), SubResource("sys_procyon"), SubResource("sys_epsilon_eridani")])
-links = Array[ExtResource("sl")]([SubResource("link_sol_alpha_centauri"), SubResource("link_sol_sirius"), SubResource("link_sol_procyon"), SubResource("link_alpha_centauri_barnards_star"), SubResource("link_sirius_tau_ceti"), SubResource("link_procyon_epsilon_eridani")])
+systems = Array[ExtResource("gs")]([SubResource("sys_sol"), SubResource("sys_alpha_centauri"), SubResource("sys_barnards_star"), SubResource("sys_sirius"), SubResource("sys_tau_ceti"), SubResource("sys_procyon"), SubResource("sys_epsilon_eridani"), SubResource("sys_wolf_359")])
+links = Array[ExtResource("sl")]([SubResource("link_sol_alpha_centauri"), SubResource("link_sol_sirius"), SubResource("link_sol_procyon"), SubResource("link_alpha_centauri_barnards_star"), SubResource("link_sirius_tau_ceti"), SubResource("link_procyon_epsilon_eridani"), SubResource("link_barnards_star_wolf_359")])
 fuel_per_unit = 0.1

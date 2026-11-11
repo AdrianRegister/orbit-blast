@@ -21,15 +21,26 @@ func _init() -> void:
 
 	# The real network: Sol with three neighbours, each with one more system.
 	var ids := real.get_system_ids()
-	_check(ids.size() == 7, "the galaxy has Sol and six more systems (%d)" % ids.size())
+	_check(ids.size() == 8, "the galaxy has Sol, six more systems and Wolf 359 (%d)" % ids.size())
 	_check(real.get_neighbours(&"sol").size() == 3, "Sol has three connections")
 	var outer := 0
 	for neighbour in real.get_neighbours(&"sol"):
 		var onward := real.get_neighbours(neighbour).filter(func(id: StringName) -> bool: return id != &"sol")
-		_check(onward.size() == 1 and real.get_neighbours(onward[0]).size() == 1, "%s leads on to exactly one dead-end system" % neighbour)
+		_check(onward.size() == 1, "%s leads on to exactly one further system" % neighbour)
 		outer += onward.size()
-	_check(outer == 3 and real.links.size() == 6, "six links make up the network")
+	_check(outer == 3 and real.links.size() == 7, "seven links make up the network")
+	_check(real.get_neighbours(&"wolf_359") == [&"barnards_star"], "Wolf 359 is one jump out from Barnard's Star, and a dead end")
 	_check(real.is_start_discovered(&"sol") and not real.is_start_discovered(&"sirius"), "only Sol starts discovered")
+	_check(real.is_inhabited(&"sol") and real.is_inhabited(&"sirius"), "inhabited systems are recognised")
+	_check(not real.is_inhabited(&"wolf_359") and not real.is_inhabited(&"nonsense"), "Wolf 359 is uninhabited (derived from its locations)")
+	var route := real.find_route(&"sol", &"wolf_359")
+	_check(route == [&"sol", &"alpha_centauri", &"barnards_star", &"wolf_359"], "route Sol to Wolf 359: %s" % [route])
+	_check(real.find_route(&"epsilon_eridani", &"barnards_star").size() == 5, "Epsilon Eridani to Barnard's Star is four jumps")
+	_check(real.find_route(&"sol", &"sol") == [&"sol"] and real.get_route_cost([&"sol"] as Array[StringName]) == 0, "a route to the same system is just that system")
+	var direct := real.get_jump_cost(&"sol", &"alpha_centauri")
+	_check(real.get_route_cost(real.find_route(&"sol", &"alpha_centauri")) == direct, "route cost of one jump is that jump's cost")
+	_check(real.get_route_cost(route) == real.get_jump_cost(&"sol", &"alpha_centauri") + real.get_jump_cost(&"alpha_centauri", &"barnards_star") + real.get_jump_cost(&"barnards_star", &"wolf_359"), "route cost adds up the jumps")
+	_check(real.find_route(&"sol", &"andromeda").is_empty(), "no route to an unknown system")
 	var all_locations := {}
 	for id in ids:
 		var summary := real.get_summary(id)
@@ -85,6 +96,7 @@ func _init() -> void:
 	_check(galaxy.get_jump_cost(&"a", &"b") == 10, "derived cost: 100 units x 0.1 = %d" % galaxy.get_jump_cost(&"a", &"b"))
 	_check(galaxy.get_jump_cost(&"b", &"c") == 7, "a link's own cost overrides the derived one")
 	_check(galaxy.get_jump_cost(&"a", &"d") == -1, "no cost between unconnected systems")
+	_check(galaxy.find_route(&"a", &"c") == [&"a", &"b", &"c"] and galaxy.find_route(&"a", &"d").is_empty(), "routes follow links; none to an unlinked system")
 	galaxy.fuel_per_unit = 0.001
 	_check(galaxy.get_jump_cost(&"a", &"b") == 1, "cost is at least 1")
 	var text := "\n".join(galaxy.validate())

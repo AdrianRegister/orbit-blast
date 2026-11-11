@@ -15,8 +15,11 @@ extends Resource
 ## The cargo, supplied by the issuer when the contract is accepted.
 @export var commodity: Commodity
 @export var quantity: int = 10
-## Credits paid on delivery.
+## Credits paid on delivery. 0 = work it out from the cargo and the distance
+## with the reward rules (ContractRewards).
 @export var reward: int = 1000
+## Scales a calculated reward (more or less than the standard rate).
+@export var reward_multiplier: float = 1.0
 
 
 ## The destination location, loaded on demand. Null if the path is invalid.
@@ -27,7 +30,9 @@ func get_destination() -> InhabitedData:
 
 
 ## Human-readable problems with this offer; `origin` is the listing location.
-func validate(origin: InhabitedData = null) -> Array[String]:
+## With a `context` that knows the galaxy it also checks that the destination
+## can be reached by jumping and that the cargo fits in some ship.
+func validate(origin: InhabitedData = null, context: ContractContext = null) -> Array[String]:
 	var problems: Array[String] = []
 	if title.is_empty():
 		problems.append("title is empty")
@@ -42,4 +47,17 @@ func validate(origin: InhabitedData = null) -> Array[String]:
 		problems.append("quantity must be above 0")
 	if reward < 0:
 		problems.append("reward is negative")
+	if reward_multiplier <= 0.0:
+		problems.append("reward_multiplier must be above 0")
+	if context != null and context.galaxy != null and destination != null and origin != null:
+		var from_system := context.system_of(origin)
+		var to_system := context.system_of(destination)
+		if to_system == &"":
+			problems.append("the destination is not in any star system")
+		elif from_system != &"" and context.journey(from_system, to_system) == Vector2i(-1, -1):
+			problems.append("there is no jump route to the destination")
+		if context.max_cargo > 0 and quantity > context.max_cargo:
+			problems.append("quantity %d is more than any ship can carry (%d)" % [quantity, context.max_cargo])
+		if reward == 0 and context.rewards == null:
+			problems.append("reward is 0 but there are no reward rules")
 	return problems

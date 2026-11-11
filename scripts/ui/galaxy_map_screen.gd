@@ -37,12 +37,13 @@ func _ready() -> void:
 	_map.system_selected.connect(_show_system)
 
 
-func setup(galaxy: Galaxy, travel: TravelManager, check_jump: Callable) -> void:
+func setup(galaxy: Galaxy, travel: TravelManager, check_jump: Callable, objectives: Callable = Callable()) -> void:
 	_galaxy = galaxy
 	_travel = travel
 	_check_jump = check_jump
-	_map.setup(galaxy, travel)
+	_map.setup(galaxy, travel, objectives)
 	_travel.discovery_changed.connect(_refresh)
+	_travel.scouting_changed.connect(_refresh)
 	_travel.destination_changed.connect(_refresh)
 
 
@@ -96,7 +97,16 @@ func _show_system(id: StringName) -> void:
 	for row in _rows.get_children():
 		_rows.remove_child(row)
 		row.queue_free()
-	_add_row("FACTION", _galaxy.get_faction(id) if discovered else "Unknown")
+	_add_row("FACTION", (_galaxy.get_faction(id) if not _galaxy.get_faction(id).is_empty() else "None") if discovered else "Unknown")
+	var scouted := _travel.is_scouted(id)
+	var progress := _travel.get_scouting_progress(id)
+	_add_row("SCOUTED", "Yes" if scouted else ("%d of %d bodies" % [progress.x, progress.y] if discovered else "No"))
+	if scouted:
+		_add_row("INHABITED", "Yes" if _galaxy.is_inhabited(id) else "No")
+	else:
+		_add_row("INHABITED", "Yes" if discovered and _galaxy.is_inhabited(id) else "Unknown")
+	for contract in _map.get_objectives(id):
+		_add_row("OBJECTIVE", "%s: %s" % [contract.get_type_label().capitalize(), contract.title])
 	if id == current:
 		_add_row("ROUTE", "You are here")
 	elif check.reachable:

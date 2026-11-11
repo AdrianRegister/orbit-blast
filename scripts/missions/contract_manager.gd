@@ -8,13 +8,16 @@ extends Node
 signal contracts_changed
 signal contract_completed(contract: Contract)
 
-enum AcceptResult { OK, NOT_AVAILABLE, WRONG_LOCATION, INSUFFICIENT_CARGO_SPACE }
+enum AcceptResult { OK, NOT_AVAILABLE, WRONG_LOCATION, INSUFFICIENT_CARGO_SPACE, ALREADY_EXPLORED }
 
 var _economy: EconomyManager
 ## Returns the name of the star system a location is in ("" if unknown). Set by
 ## Main; replace it when there is more than one system.
 var _system_name_of: Callable = func(_location: InhabitedData) -> String: return ""
 var _source: ContractSource = OfferContractSource.new()
+## What contracts can ask the world: the galaxy, discovery and scouting, the
+## player's position and the reward rules. Empty until Main provides one.
+var _context: ContractContext = ContractContext.new()
 var _available: Dictionary = {}  # InhabitedData -> Array[Contract]
 var _active: Array[Contract] = []
 var _completed: Array[Contract] = []
@@ -23,8 +26,17 @@ var _failed: Array[Contract] = []
 var _next_id: int = 1
 
 
-func setup(economy: EconomyManager) -> void:
+func setup(economy: EconomyManager, context: ContractContext = null) -> void:
 	_economy = economy
+	if context != null:
+		_context = context
+		if _context.travel != null:
+			_context.travel.system_scouted.connect(_on_system_scouted)
+			_context.travel.scouting_changed.connect(contracts_changed.emit)
+
+
+func get_context() -> ContractContext:
+	return _context
 
 
 ## Tells the manager how to find the system a location is in, so cargo lists
@@ -44,14 +56,38 @@ func get_available(location: InhabitedData) -> Array[Contract]:
 	if location == null:
 		return []
 	if not _available.has(location):
-		var contracts := _source.generate(location)
+		var contracts := _source.generate(location, _context)
 		for contract in contracts:
 			contract.id = StringName("contract_%d" % _next_id)
+			contract.context = _context
 			_next_id += 1
 		_available[location] = contracts
 	var open: Array[Contract] = []
-	open.assign(_available[location])
+	for contract in _available[location]:
+		if not _is_pointless(contract):
+			open.append(contract)
 	return open
+
+
+## An exploration contract whose target has since been fully scouted has nothing
+## left to do, so it is no longer offered.
+func _is_pointless(contract: Contract) -> bool:
+	var exploration := contract as ExplorationContract
+	return exploration != null and _context.travel != null and _context.travel.is_scouted(exploration.target_system)
+
+
+## The systems the player's accepted contracts are about, for the galaxy map:
+## system id -> Array of the accepted contracts that point there (an exploration
+## target, or the system a delivery is bound for).
+func get_objective_systems() -> Dictionary:
+	var result := {}
+	for contract in _active:
+		var system := contract.get_target_system()
+		if system != &"":
+			if not result.has(system):
+				result[system] = []
+			result[system].append(contract)
+	return result
 
 
 func get_active() -> Array[Contract]:
@@ -77,10 +113,12 @@ func has_contracts_for(location: InhabitedData) -> bool:
 
 
 func check_accept(contract: Contract, location: InhabitedData) -> AcceptResult:
-	if contract.status != Contract.Status.AVAILABLE or not get_available(location).has(contract):
+	if contract.status != Contract.Status.AVAILABLE or not _available.get(location, []).has(contract):
 		return AcceptResult.NOT_AVAILABLE
 	if contract.origin != location:
 		return AcceptResult.WRONG_LOCATION
+	if _is_pointless(contract):
+		return AcceptResult.ALREADY_EXPLORED
 	var delivery := contract as CargoDeliveryContract
 	if delivery != null and not _economy.get_cargo().can_add(delivery.quantity):
 		return AcceptResult.INSUFFICIENT_CARGO_SPACE
@@ -113,7 +151,11 @@ func on_docked(target: Targetable) -> void:
 	if location == null:
 		return
 	for contract in _active.duplicate():
-		if contract.destination == location:
+		var exploration := contract as ExplorationContract
+		if exploration != null:
+			if exploration.explored and exploration.origin == location:
+				_finish(exploration)
+		elif contract.destination == location:
 			_try_complete(contract)
 
 
@@ -134,7 +176,19 @@ static func get_result_message(result: AcceptResult) -> String:
 			return "ACCEPT THIS CONTRACT AT ITS ISSUER"
 		AcceptResult.INSUFFICIENT_CARGO_SPACE:
 			return "NOT ENOUGH FREE CARGO SPACE"
+		AcceptResult.ALREADY_EXPLORED:
+			return "THIS SYSTEM HAS ALREADY BEEN EXPLORED"
 	return ""
+
+
+## A system was scouted: every accepted exploration contract for it is now
+## done, but each is only paid (once) when the player returns to its issuer.
+func _on_system_scouted(system_id: StringName) -> void:
+	for contract in _active:
+		var exploration := contract as ExplorationContract
+		if exploration != null and exploration.target_system == system_id:
+			exploration.explored = true
+	contracts_changed.emit()
 
 
 func _try_complete(contract: Contract) -> void:
@@ -145,6 +199,14 @@ func _try_complete(contract: Contract) -> void:
 			return
 		_economy.unload_contract_cargo(delivery.id)
 		delivery.quantity_in_hold = 0
+	_finish(contract)
+
+
+## Completes an accepted contract and pays it. The status changes first and a
+## contract that is not accepted is ignored, so a reward is paid at most once.
+func _finish(contract: Contract) -> void:
+	if contract.status != Contract.Status.ACCEPTED or not _active.has(contract):
+		return
 	_economy.award_credits(contract.reward)
 	contract.status = Contract.Status.COMPLETED
 	_active.erase(contract)
@@ -213,6 +275,8 @@ func validate_state(data: Variant, registry: ContentRegistry, document: Dictiona
 				problems.append("available contract '%s' is from a location that was never visited" % entry["id"])
 	if problems.is_empty() and document.has("economy"):
 		problems.append_array(_check_against_cargo(data, document["economy"]))
+	if problems.is_empty():
+		problems.append_array(_check_exploration(data, document, registry))
 	return problems
 
 
@@ -227,16 +291,42 @@ func load_state(data: Dictionary, registry: ContentRegistry) -> void:
 		_available[registry.location(StringName(id))] = []
 	for entry in data["available"]:
 		var contract := ContractFactory.from_dict(entry, registry)
+		contract.context = _context
 		_available[contract.origin].append(contract)
 	_load_list(data.get("active", []), _active, registry)
 	_load_list(data.get("completed", []), _completed, registry)
 	_load_list(data.get("failed", []), _failed, registry)
+	_add_new_offers()
 	contracts_changed.emit()
+
+
+## A save remembers which locations have already generated their offers, so
+## offers added to the game since it was made would never appear. Any offer the
+## source now makes that the save knows nothing about (no contract with the same
+## issuer and title, in any list) is added to its location.
+func _add_new_offers() -> void:
+	var known := {}
+	for list in [_active, _completed, _failed]:
+		for contract in list:
+			known[[contract.origin, contract.title]] = true
+	for location in _available:
+		for contract in _available[location]:
+			known[[contract.origin, contract.title]] = true
+	for location in _available.keys():
+		for contract in _source.generate(location, _context):
+			if known.has([location, contract.title]):
+				continue
+			contract.id = StringName("contract_%d" % _next_id)
+			contract.context = _context
+			_next_id += 1
+			_available[location].append(contract)
 
 
 func _load_list(entries: Array, into: Array[Contract], registry: ContentRegistry) -> void:
 	for entry in entries:
-		into.append(ContractFactory.from_dict(entry, registry))
+		var contract := ContractFactory.from_dict(entry, registry)
+		contract.context = _context
+		into.append(contract)
 
 
 func _dicts(contracts: Array[Contract]) -> Array:
@@ -244,6 +334,27 @@ func _dicts(contracts: Array[Contract]) -> Array:
 	for contract in contracts:
 		result.append(contract.to_dict())
 	return result
+
+
+## An accepted exploration contract whose target the same save says is already
+## scouted should have been completed: a damaged save, not something to repair
+## by paying out on load.
+func _check_exploration(data: Dictionary, document: Dictionary, registry: ContentRegistry) -> Array[String]:
+	var problems: Array[String] = []
+	var galaxy_section = document.get("galaxy", {})
+	var scouted = galaxy_section.get("scouted_nodes", {}) if galaxy_section is Dictionary else {}
+	if not scouted is Dictionary:
+		return problems
+	for entry in data.get("active", []):
+		if entry.get("type") != "exploration":
+			continue
+		if entry.get("explored", false) == true:
+			continue
+		var summary := registry.system_summary(StringName(entry["target_system"]))
+		var reached = scouted.get(entry["target_system"], [])
+		if summary != null and reached is Array and reached.size() >= summary.location_ids.size() and not reached.is_empty():
+			problems.append("active exploration contract '%s' targets a system that is already scouted" % entry["id"])
+	return problems
 
 
 ## Active delivery contracts and the cargo lots must match one to one: a lot

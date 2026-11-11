@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/jungle.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"medusa"
+display_name = "Medusa"
+faction_name = ""
+population = 0
+size = 420.0
+dockable = false
+planet_type = ExtResource("2")

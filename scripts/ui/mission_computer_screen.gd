@@ -9,7 +9,7 @@ const ERROR_COLOR := Color(1.0, 0.45, 0.4)
 const INFO_ROW_SCENE := preload("res://scenes/ui/info_row.tscn")
 const SECTION_TITLES := ["AVAILABLE HERE", "ACTIVE", "COMPLETED"]
 
-enum Column { TITLE, DESTINATION, CARGO, REWARD }
+enum Column { TITLE, TYPE, DESTINATION, OBJECTIVE, REWARD }
 
 var _contracts: ContractManager
 var _economy: EconomyManager
@@ -31,11 +31,11 @@ var _selected: Contract
 
 func _ready() -> void:
 	_table.columns = Column.size()
-	var titles := ["CONTRACT", "DESTINATION", "CARGO", "REWARD"]
+	var titles := ["CONTRACT", "TYPE", "DESTINATION", "OBJECTIVE", "REWARD"]
 	for column in Column.size():
 		_table.set_column_title(column, titles[column])
-		_table.set_column_expand(column, column == Column.TITLE)
-		_table.set_column_custom_minimum_width(column, 200 if column == Column.TITLE else 130)
+		_table.set_column_expand(column, column == Column.TITLE or column == Column.DESTINATION)
+		_table.set_column_custom_minimum_width(column, 200 if column == Column.TITLE else 120)
 	_table.set_column_title_alignment(Column.REWARD, HORIZONTAL_ALIGNMENT_RIGHT)
 	_table.item_selected.connect(_on_item_selected)
 	_back_button.pressed.connect(close)
@@ -101,8 +101,9 @@ func _refresh() -> void:
 		for contract in groups[section]:
 			var item := _table.create_item(header)
 			item.set_text(Column.TITLE, contract.title)
-			item.set_text(Column.DESTINATION, contract.destination.display_name)
-			item.set_text(Column.CARGO, contract.get_requirement_text())
+			item.set_text(Column.TYPE, contract.get_type_label())
+			item.set_text(Column.DESTINATION, contract.get_destination_text())
+			item.set_text(Column.OBJECTIVE, contract.get_requirement_text())
 			item.set_text(Column.REWARD, "%s CR" % NumberFormat.with_commas(contract.reward))
 			item.set_text_alignment(Column.REWARD, HORIZONTAL_ALIGNMENT_RIGHT)
 			item.set_metadata(Column.TITLE, contract)
@@ -142,10 +143,14 @@ func _show_detail() -> void:
 		return
 	_title_label.text = _selected.title.to_upper()
 	_description_label.text = _selected.description
+	_add_row("TYPE", _selected.get_type_label())
 	_add_row("STATUS", _selected.get_status_text())
-	_add_row("FROM", _selected.origin.display_name)
-	_add_row("TO", _selected.destination.display_name)
-	_add_row("CARGO", _selected.get_requirement_text())
+	_add_row("ISSUED AT", _selected.get_origin_text())
+	_add_row("TARGET" if _selected.destination == null else "TO", _selected.get_destination_text())
+	_add_row("OBJECTIVE", _selected.get_requirement_text())
+	var journey := _selected.get_journey_text()
+	if not journey.is_empty() and _selected.status != Contract.Status.COMPLETED:
+		_add_row("JOURNEY", journey)
 	_add_row("REWARD", "%s CR" % NumberFormat.with_commas(_selected.reward))
 	_progress_label.text = _selected.get_progress_text()
 	var result := _contracts.check_accept(_selected, _location)

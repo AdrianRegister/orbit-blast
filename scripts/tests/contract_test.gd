@@ -27,13 +27,13 @@ func _init() -> void:
 	# Availability: per location, one-time, unique ids.
 	var at_earth := contracts.get_available(earth_data)
 	var at_mars := contracts.get_available(mars_data)
-	_check(at_earth.size() == 3 and at_mars.size() == 2, "offers are available per location")
-	_check(contracts.get_available(earth_data).size() == 3, "same contracts on every visit")
+	_check(at_earth.size() == 7 and at_mars.size() == 4, "offers are available per location (%d at Earth, %d at Mars)" % [at_earth.size(), at_mars.size()])
+	_check(contracts.get_available(earth_data).size() == 7, "same contracts on every visit")
 	var ids := {}
 	for contract in at_earth + at_mars + contracts.get_available(victory_data):
 		ids[contract.id] = true
 		_check(contract.status == Contract.Status.AVAILABLE, "%s starts AVAILABLE" % contract.title)
-	_check(ids.size() == 7, "contract ids are unique")
+	_check(ids.size() == 14, "contract ids are unique (%d)" % ids.size())
 
 	var food_job: CargoDeliveryContract = at_earth[0]
 	var bulk_job: CargoDeliveryContract = at_earth[2]
@@ -53,7 +53,7 @@ func _init() -> void:
 	_check(changes[0] == 1, "cargo change is announced")
 	_check(player.cargo.get_quantity(&"food") == 0 and player.cargo.get_manifest().is_empty(),
 			"contract cargo is not ordinary cargo")
-	_check(contracts.get_available(earth_data).size() == 2 and contracts.get_active() == [food_job],
+	_check(contracts.get_available(earth_data).size() == 6 and contracts.get_active() == [food_job],
 			"accepted contract leaves the offers and becomes active")
 	_check(contracts.accept(food_job, earth_data) == ContractManager.AcceptResult.NOT_AVAILABLE, "cannot accept twice")
 

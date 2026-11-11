@@ -53,6 +53,19 @@ func upgrade(id: StringName) -> UpgradeDefinition:
 	return _upgrades.get(id)
 
 
+## The description of a system for the map and for contracts; null if unknown.
+func system_summary(id: StringName) -> SystemSummary:
+	return _galaxy.get_summary(id) if _galaxy != null else null
+
+
+## The largest cargo capacity of any ship model.
+func max_cargo_capacity() -> int:
+	var best := 0
+	for model: ShipStats in _ship_stats.values():
+		best = maxi(best, model.cargo_capacity)
+	return best
+
+
 func has_system(id: StringName) -> bool:
 	return _galaxy != null and _galaxy.has_system(id)
 

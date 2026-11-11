@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="Resource" path="res://resources/locations/medusa.tres" id="loc_medusa"]
+[ext_resource type="Resource" path="res://resources/locations/cerberus.tres" id="loc_cerberus"]
+
+[node name="Wolf359System" instance=ExtResource("1")]
+system_id = &"wolf_359"
+system_name = "Wolf 359"
+
+[node name="Medusa" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-600, 500)
+data = ExtResource("loc_medusa")
+
+[node name="Cerberus" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(900, -300)
+data = ExtResource("loc_cerberus")

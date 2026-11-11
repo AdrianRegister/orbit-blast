@@ -49,7 +49,7 @@ func _init() -> void:
 	var root_item := table.get_root()
 	_check(root_item.get_child_count() == 3, "three sections: available, active, completed")
 	var available := root_item.get_first_child()
-	_check(available.get_child_count() == 3, "three contracts offered at Earth")
+	_check(available.get_child_count() == 7, "seven contracts offered at Earth (three cargo runs in Sol, four new ones, none of them exploration)")
 
 	# Select the first contract and accept it with the button.
 	var accept: Button = missions.get_node("%AcceptButton")

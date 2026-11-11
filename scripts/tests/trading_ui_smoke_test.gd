@@ -61,7 +61,7 @@ func _init() -> void:
 	_check(trade_panel.global_position.y + trade_panel.size.y <= screen.y - 90.0,
 			"trade panel ends 90+ px above the screen bottom (%d of %d)" % [trade_panel.global_position.y + trade_panel.size.y, screen.y])
 	_check(table.size.y > 150.0, "table has usable height (%d px)" % table.size.y)
-	_check(table.get_root().get_child_count() == 4, "Earth lists 4 commodities")
+	_check(table.get_root().get_child_count() == 6, "Earth lists 6 commodities")
 
 	# Select Food (first row), buy 10 through the button.
 	var quantity: SpinBox = trading.get_node("%QuantityBox")

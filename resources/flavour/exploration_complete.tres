@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FlavourPool" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/flavour_pool.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+entries = Array[String]([
+    "You file the survey data with the issuer's automated clerk. It acknowledges receipt with a sound like a very small sneeze, and a payment slip slides out of a slot you hadn't noticed.", 
+    "The last of the sensor sweeps of {system} comes back clean. Somewhere an underpaid cartographer is about to have the best day of their year.", 
+    "You tag the final survey point in {system} and the navicomputer chirps approvingly. For a moment you consider naming something after yourself. Then you remember the paperwork."
+])

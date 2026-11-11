@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ContractOffer" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/commodities/rare_isotopes.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "Isotopes to Tau Ceti"
+description = "A small, valuable, faintly warm shipment for the research labs of Aurelia. Two jumps and no questions."
+destination_path = "res://resources/locations/aurelia.tres"
+commodity = ExtResource("2")
+quantity = 20
+reward = 0
+reward_multiplier = 1.0

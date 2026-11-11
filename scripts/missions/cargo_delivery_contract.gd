@@ -10,6 +10,16 @@ var quantity: int = 0
 var quantity_in_hold: int = 0
 
 
+func get_type_label() -> String:
+	return "CARGO"
+
+
+func get_journey_text() -> String:
+	if context == null or destination == null:
+		return ""
+	return context.journey_text(_journey_start(), context.system_of(destination))
+
+
 func get_requirement_text() -> String:
 	return "%s %s" % [NumberFormat.with_commas(quantity), commodity.display_name]
 

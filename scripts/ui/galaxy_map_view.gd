@@ -28,7 +28,12 @@ const BACKGROUND := Color(0.02, 0.03, 0.06)
 const GRID := Color(0.1, 0.16, 0.24, 0.5)
 const LINK_DIM := Color(0.2, 0.3, 0.42)
 const LINK_REACHABLE := Color(0.35, 0.8, 1.0)
-const DISCOVERED := Color(0.85, 0.92, 1.0)
+## Discovered systems are blue; a system that is uninhabited and has been
+## scouted shows white instead. Until it is scouted an uninhabited system looks
+## like any other discovered one, so scouting is a reveal.
+const DISCOVERED := Color(0.35, 0.6, 1.0)
+const SCOUTED_EMPTY := Color(1.0, 1.0, 1.0)
+const OBJECTIVE := Color(1.0, 0.8, 0.2)
 const UNEXPLORED := Color(0.4, 0.46, 0.55)
 const CURRENT := Color(1.0, 0.85, 0.3)
 const SELECTED := Color(0.45, 1.0, 0.6)
@@ -40,6 +45,9 @@ var selected_id: StringName = &""
 
 var _galaxy: Galaxy
 var _travel: TravelManager
+## Callable() -> Dictionary: system id -> Array of the accepted contracts that
+## point there. Marked on the map.
+var _objectives: Callable
 var _press_position: Vector2 = Vector2.ZERO
 var _pressing: bool = false
 var _dragging: bool = false
@@ -54,10 +62,12 @@ func _ready() -> void:
 	resized.connect(_on_resized)
 
 
-func setup(galaxy: Galaxy, travel: TravelManager) -> void:
+func setup(galaxy: Galaxy, travel: TravelManager, objectives: Callable = Callable()) -> void:
 	_galaxy = galaxy
 	_travel = travel
+	_objectives = objectives
 	_travel.discovery_changed.connect(queue_redraw)
+	_travel.scouting_changed.connect(queue_redraw)
 	_travel.destination_changed.connect(queue_redraw)
 
 
@@ -72,7 +82,7 @@ func focus_on(system_id: StringName) -> void:
 		for id in _galaxy.get_system_ids():
 			var offset := (_galaxy.get_map_position(id) - center).abs()
 			reach = reach.max(offset)
-		var margin := Vector2(120.0, 60.0)  # room for labels
+		var margin := Vector2(180.0, 60.0)  # room for labels
 		var fit := minf((size.x * 0.5 - margin.x) / reach.x, (size.y * 0.5 - margin.y) / reach.y)
 		zoom = clampf(fit, MIN_ZOOM, 1.0)
 	_clamp_center()
@@ -83,6 +93,23 @@ func _on_resized() -> void:
 	if _auto_focus != &"" and _galaxy != null:
 		focus_on(_auto_focus)
 	queue_redraw()
+
+
+## The colour a system's marker is drawn in (the current system is drawn gold on
+## top of this).
+func get_system_colour(system_id: StringName) -> Color:
+	if not _travel.is_discovered(system_id):
+		return UNEXPLORED
+	if not _galaxy.is_inhabited(system_id) and _travel.is_scouted(system_id):
+		return SCOUTED_EMPTY
+	return DISCOVERED
+
+
+## The accepted contracts that point at a system (see setup()).
+func get_objectives(system_id: StringName) -> Array:
+	if not _objectives.is_valid():
+		return []
+	return _objectives.call().get(system_id, [])
 
 
 func select(system_id: StringName) -> void:
@@ -215,7 +242,7 @@ func _draw_grid() -> void:
 func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 	var at := get_marker_position(id)
 	var discovered := _travel.is_discovered(id)
-	var colour := DISCOVERED if discovered else UNEXPLORED
+	var colour := get_system_colour(id)
 	if id == current:
 		colour = CURRENT
 		draw_circle(at, MARKER_RADIUS, colour)
@@ -227,6 +254,9 @@ func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 		draw_arc(at, MARKER_RADIUS, 0.0, TAU, 24, colour, 2.0, true)
 	if reachable:
 		draw_arc(at, MARKER_RADIUS + 5.0, 0.0, TAU, 32, LINK_REACHABLE, 2.0, true)
+	var objectives := get_objectives(id)
+	if not objectives.is_empty():
+		draw_arc(at, MARKER_RADIUS + 9.0, 0.0, TAU, 32, OBJECTIVE, 2.0, true)
 	if id == selected_id:
 		_draw_brackets(at, MARKER_RADIUS + 14.0)
 	var font := ThemeDB.fallback_font
@@ -240,6 +270,12 @@ func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 	elif id == _travel.get_destination():
 		draw_string(font, at + Vector2(MARKER_RADIUS + 12.0, 24.0), "DESTINATION",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size - 4, SELECTED)
+	if not objectives.is_empty():
+		var exploring := false
+		for contract in objectives:
+			exploring = exploring or contract is ExplorationContract
+		draw_string(font, at + Vector2(MARKER_RADIUS + 12.0, 24.0 if id != current and id != _travel.get_destination() else 42.0),
+				"EXPLORE" if exploring else "DELIVERY", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size - 4, OBJECTIVE)
 
 
 func _draw_brackets(at: Vector2, half: float) -> void:

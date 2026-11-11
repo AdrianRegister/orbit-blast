@@ -14,6 +14,9 @@ var location_names: Array[String] = []
 ## Distinct commodity names across all locations, sorted.
 var imports: Array[String] = []
 var exports: Array[String] = []
+## True if the system has at least one place people live and can dock at. Worked
+## out from the locations, not stored, so it always agrees with the content.
+var inhabited: bool = false
 var has_shipyard: bool = false
 var has_outfitter: bool = false
 ## Why the scene is not a valid system, if it is not (empty when fine).
@@ -42,6 +45,8 @@ static func from_scene(scene: PackedScene) -> SystemSummary:
 		summary.location_names.append(location.display_name)
 		if not location.is_dockable():
 			continue
+		if location.population > 0:
+			summary.inhabited = true
 		for good in location.imported_goods:
 			import_names[good.display_name] = true
 		for good in location.exported_goods:

@@ -143,3 +143,11 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 ## 11. Current limits
 
 No fuel or energy resource (the cost is shown only), no contracts that send the player to other systems, no markets or contracts in the new systems, and no procedural galaxy. Each system's star background is identical.
+
+## 12. Inhabited, scouted and Wolf 359 (Phase 2.4)
+
+- **`inhabited`** is derived from a system's locations (`SystemSummary.inhabited`, `Galaxy.is_inhabited`): true if at least one dockable location has people. **`scouted`** is player state in `TravelManager`: the bodies of a system the player has been within docking range of; a system is scouted when it has all of them (`get_scouting_progress`, `is_scouted`, `update_scouting`, `system_scouted`). A system must be discovered before it can be scouted, and flying at warp speed does not scout.
+- **Map colours:** discovered systems are blue. A system that is uninhabited **and** scouted turns white; until then an uninhabited system looks like any other discovered one. The info panel shows SCOUTED ("2 of 3 bodies") and INHABITED (Unknown until scouted, except that inhabited systems are recognised on discovery).
+- **Wolf 359** is a dead-end system one jump from Barnard's Star, uninhabited, with **Medusa** (jungle planet, undockable) and **Cerberus** (red gas giant, undockable). It has no NPC traffic.
+- `Galaxy.find_route(a, b)` returns the cheapest chain of systems along the links and `get_route_cost(route)` its fuel cost; contracts use them for journey text and rewards.
+- The `galaxy` save section gains `scouted_nodes` (`{system id: [location ids]}`, optional).
