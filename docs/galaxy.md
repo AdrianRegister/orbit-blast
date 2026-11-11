@@ -151,3 +151,35 @@ No fuel or energy resource (the cost is shown only), no contracts that send the 
 - **Wolf 359** is a dead-end system one jump from Barnard's Star, uninhabited, with **Medusa** (jungle planet, undockable) and **Cerberus** (red gas giant, undockable). It has no NPC traffic.
 - `Galaxy.find_route(a, b)` returns the cheapest chain of systems along the links and `get_route_cost(route)` its fuel cost; contracts use them for journey text and rewards.
 - The `galaxy` save section gains `scouted_nodes` (`{system id: [location ids]}`, optional).
+
+## 13. Factions (Phase 2.6)
+
+A faction is a `Faction` resource (`scripts/resources/faction.gd`) in `resources/factions/`: `id` (permanent, e.g. `faction_1`), `display_name` ("Federation"), `colour`, `description`. Locations (`InhabitedData.faction`), star systems (`GalaxySystem.faction`) and ship models (`ShipStats.faction`) refer to the resource, never to a name, so the name is written in one place. Compare factions by id (`faction_id()`, `Galaxy.get_faction_id()`); show the name with `get_faction_name()`. To add a faction, add a `.tres` with a new id; `ContentRegistry.faction(id)` finds it. Relations and reputation will be added to `Faction`.
+
+
+## 14. The galaxy table and generator (Phase 2.6)
+
+The galaxy follows the Escape Velocity Nova map (`reference_resources/escape_velocity_nova_galaxy_map.webp`). It is **data driven**:
+
+| Piece | File | Role |
+|---|---|---|
+| Table | `data/galaxy/galaxy_map.json` | One row per system: `id`, `name`, `x`,`y` (pixels of the reference image), `faction` (a faction id, "" = unclaimed), `inhabited` (black dot on the reference map), `links`, `region`; flags `hand_built` and `locked`. `origin_system` (Sol) and `scale` place systems on our map |
+| Name pools | `data/galaxy/name_pools.json` | Themed names for generated planets and stations, per region |
+| Generator | `tools/galaxy_generator.gd`, run by `tools/generate_galaxy.gd` | Writes `scenes/systems/generated/`, `resources/locations/generated/`, `resources/markets/generated/` and `resources/universe/galaxy.tres` |
+| Test | `scripts/tests/galaxy_data_test.gd` | The table is sound, the files on disk are exactly what the table produces, speed |
+
+```powershell
+& $godot --headless --path . --script res://tools/generate_galaxy.gd
+```
+
+**What is generated.** Each system gets 1 to 3 bodies (a system holds at most 3 objects). A system the map shows as inhabited gets an inhabited first body built from an archetype (farming, mining, industrial, trade, outpost): exports and imports from the existing commodities, a population range, a market, and for a few places a shipyard or outfitter. Other bodies are barren and cannot be landed on (gas giants, rocks); uninhabited systems have only those. Names come from the region's pool and are unique across the galaxy. Everything is seeded from the system id, so running the generator again changes nothing.
+
+**Hand built and locked.** `hand_built` systems (Sol, Centauri, Barnard's Star, Sirius, Tau Ceti, Procyon, Wolf 359 and Alphard, whose id is still `epsilon_eridani`) keep their own scenes and locations; the generator only lists them in `galaxy.tres`. Ids never change, so old saves still work; only the displayed names differ from before. `locked` systems are generated once and then ignored by the generator, so they can be edited by hand.
+
+**Richer content later.** Change the archetypes (or add fields) in the generator and regenerate; hand built and locked systems are not touched.
+
+**Adding systems.** Add rows (with links on both ends) to the table and regenerate. The test fails if a link is one-sided, an id or name repeats, or a system cannot be reached from Sol.
+
+**Scale.** Neighbour and link lookups use an index; `Galaxy.get_reachable(origin, max_jumps)` is one breadth-first search and is what contract generation uses to find nearby places. The galaxy map only draws names of undiscovered systems when zoomed in, and skips systems that are off screen.
+
+**Now.** The Federation core around Sol (about 90 systems). The remaining regions of the reference map are a later step: more rows in the table, factions for the other territories, name pools for them.

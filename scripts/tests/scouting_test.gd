@@ -90,7 +90,7 @@ func _init() -> void:
 	document["galaxy"].erase("scouted_nodes")
 	_write(PATH, JSON.stringify(document))
 	_check(main.load_game()["ok"] and not travel.is_scouted(&"wolf_359"), "a save from before scouting loads with nothing scouted")
-	document["galaxy"]["scouted_nodes"] = {"wolf_359": ["medusa", "atlantis"]}
+	document["galaxy"]["scouted_nodes"] = {"wolf_359": ["medusa", "no_such_place"]}
 	_write(PATH, JSON.stringify(document))
 	_check(not main.load_game()["ok"], "a body that is not in the system is refused")
 	document["galaxy"]["scouted_nodes"] = {"andromeda": ["medusa"]}

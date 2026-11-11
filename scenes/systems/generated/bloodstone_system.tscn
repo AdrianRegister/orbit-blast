@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/loki_platform.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/semele.tres" id="loc_1"]
+
+[node name="BloodstoneSystem" instance=ExtResource("1")]
+system_id = &"bloodstone"
+system_name = "Bloodstone"
+
+[node name="LokiPlatform" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(-1302, -444)
+data = ExtResource("loc_0")
+
+[node name="Semele" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(1005, 504)
+data = ExtResource("loc_1")

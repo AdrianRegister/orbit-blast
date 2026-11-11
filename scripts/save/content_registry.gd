@@ -8,6 +8,7 @@ extends RefCounted
 ## It lists the content folders once when created. Problems found while doing so
 ## (a missing or duplicate id) are collected in `problems`.
 
+const FACTION_DIR := "res://resources/factions/"
 const COMMODITY_DIR := "res://resources/commodities/"
 const LOCATION_DIR := "res://resources/locations/"
 const SHIP_STATS_DIR := "res://resources/ships/"
@@ -17,6 +18,7 @@ const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 ## Human-readable problems found while building the registry. Empty when sound.
 var problems: Array[String] = []
 
+var _factions: Dictionary = {}  # StringName -> Faction
 var _commodities: Dictionary = {}  # StringName -> Commodity
 var _locations: Dictionary = {}  # StringName -> InhabitedData
 var _ship_stats: Dictionary = {}  # StringName -> ShipStats
@@ -26,6 +28,7 @@ var _galaxy: Galaxy
 
 ## `galaxy` replaces the project's galaxy (used by tests).
 func _init(galaxy: Galaxy = null) -> void:
+	_index(FACTION_DIR, _factions, "faction", "id")
 	_index(COMMODITY_DIR, _commodities, "commodity", "id")
 	_index(LOCATION_DIR, _locations, "location", "id")
 	_index(SHIP_STATS_DIR, _ship_stats, "ship", "id")
@@ -35,6 +38,19 @@ func _init(galaxy: Galaxy = null) -> void:
 		problems.append("galaxy missing: %s" % GALAXY_PATH)
 	else:
 		problems.append_array(_galaxy.validate())
+
+
+func faction(id: StringName) -> Faction:
+	return _factions.get(id)
+
+
+func factions() -> Array[Faction]:
+	var result: Array[Faction] = []
+	var ids := _factions.keys()
+	ids.sort()
+	for id in ids:
+		result.append(_factions[id])
+	return result
 
 
 func commodity(id: StringName) -> Commodity:
@@ -96,6 +112,9 @@ func system_scene(id: StringName) -> PackedScene:
 
 func _index(directory: String, into: Dictionary, kind: String, id_property: String) -> void:
 	for file_name in ResourceLoader.list_directory(directory):
+		if file_name.ends_with("/"):
+			_index(directory + file_name, into, kind, id_property)  # a sub folder (generated content)
+			continue
 		if not file_name.ends_with(".tres"):
 			continue
 		var resource := load(directory + file_name)

@@ -9,7 +9,7 @@
 
 [node name="EpsilonEridaniSystem" instance=ExtResource("1")]
 system_id = &"epsilon_eridani"
-system_name = "Epsilon Eridani"
+system_name = "Alphara"
 
 [node name="Elysium" parent="Objects" index="0" instance=ExtResource("2")]
 position = Vector2(200, -900)

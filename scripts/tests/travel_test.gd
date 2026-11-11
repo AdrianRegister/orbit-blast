@@ -41,13 +41,13 @@ func _init() -> void:
 	_check(not check.ok and "already" in check.reason, "the current system is refused: %s" % check.reason)
 	check = travel.check_jump(&"barnards_star", far, false)
 	_check(not check.ok and not check.reachable, "a disconnected system is refused: %s" % check.reason)
-	check = travel.check_jump(&"sirius", far, true)
+	check = travel.check_jump(&"kerella", far, true)
 	_check(not check.ok and check.reachable and "Depart" in check.reason, "docked: %s" % check.reason)
-	check = travel.check_jump(&"sirius", 1000.0, false)
+	check = travel.check_jump(&"kerella", 1000.0, false)
 	_check(not check.ok and check.reachable and "centre" in check.reason, "too close to the centre: %s" % check.reason)
-	check = travel.check_jump(&"sirius", far, false)
+	check = travel.check_jump(&"kerella", far, false)
 	_check(check.ok and check.cost > 0 and check.required_distance == 2000.0, "a linked system far enough out is allowed (cost %d)" % check.cost)
-	_check(not main.jump_to(&"sirius").ok and main.get_system().system_id == &"sol", "Main.jump_to refuses from the middle of Sol and stays put")
+	_check(not main.jump_to(&"kerella").ok and main.get_system().system_id == &"sol", "Main.jump_to refuses from the middle of Sol and stays put")
 
 	# --- State that must survive the jump.
 	economy.buy(economy.get_market(earth), food, 25)
@@ -66,12 +66,12 @@ func _init() -> void:
 	ship.velocity = Vector2.ZERO
 	ship.rotation = -PI / 2.0  # pointing up
 	var departure_heading := ship.rotation
-	var result := main.jump_to(&"sirius")
+	var result := main.jump_to(&"kerella")
 	await process_frame
 	await process_frame
-	_check(result.ok, "the jump to Sirius is made")
+	_check(result.ok, "the jump to Kerella is made")
 	var system := main.get_system()
-	_check(system.system_id == &"sirius" and system != old_system, "Sirius is now loaded")
+	_check(system.system_id == &"kerella" and system != old_system, "Kerella is now loaded")
 	_check(not is_instance_valid(old_system) or old_system.is_queued_for_deletion(), "Sol was unloaded")
 	var system_count := 0
 	for child in main.get_children():
@@ -83,43 +83,45 @@ func _init() -> void:
 	var heading := Vector2.from_angle(departure_heading)
 	_check(ship.global_position.normalized().dot(-heading) > 0.999, "it enters from the opposite side to the way it was pointing (pointing up, in from the bottom)")
 	_check(ship.velocity.normalized().dot(heading) > 0.999 and ship.velocity.length() > 0.0, "...flying the same way")
-	_check(travel.is_discovered(&"sirius") and travel.get_discovered().size() == 2, "Sirius is discovered on arrival")
+	_check(travel.is_discovered(&"kerella") and travel.get_discovered().size() == 2, "Kerella is discovered on arrival")
 	_check(player.credits == credits and player.cargo.get_used() == cargo_used, "credits and cargo are unchanged")
 	_check(contracts.get_active().size() == contract_count, "contracts are unchanged")
 	_check(player.fleet.get_active().ship_name == "Wanderer" and player.fleet.get_active().upgrades.size() == 1, "the ship and its upgrades are unchanged")
-	_check(system.get_ships_root().get_child_count() > 0, "Sirius has fresh NPC traffic (%d)" % system.get_ships_root().get_child_count())
+	_check(system.get_ships_root().get_child_count() > 0, "%s has fresh NPC traffic, arriving from its neighbours (%d)" % [system.system_name, system.get_ships_root().get_child_count()])
 	_check(main.get_node("Targeting").get_node_or_null(".") != null, "targeting still works")
 	_check(main._get_system_name_of(load("res://resources/locations/mars.tres")) == "Sol", "contract destinations in other systems still name their system")
 
 	# --- Along the network, and no shortcuts.
-	_check(not travel.check_jump(&"procyon", 3300.0, false).reachable, "Sirius does not connect to Procyon")
+	_check(not travel.check_jump(&"tau_ceti", 3300.0, false).reachable, "Kerella does not connect to Tau Ceti")
 	ship.global_position = Vector2(0, 3400)
-	_check(main.jump_to(&"tau_ceti").ok, "Sirius to Tau Ceti")
+	_check(main.jump_to(&"sirius").ok, "Kerella to Sirius")
 	await process_frame
-	_check(main.get_system().system_id == &"tau_ceti" and travel.get_discovered().size() == 3, "arrived at Tau Ceti; three systems discovered")
-	_check(main.get_system().get_ships_root().get_child_count() == 0, "Tau Ceti has only one place to dock, so no traffic")
+	_check(main.get_system().system_id == &"sirius" and travel.get_discovered().size() == 3, "arrived at Sirius; three systems discovered")
 
 	# --- Saving and loading with discovery.
-	_check(saves.save_game(), "save in Tau Ceti")
+	_check(saves.save_game(), "save in Sirius")
 	travel._discovered.clear()
-	travel._discovered[&"tau_ceti"] = true
+	travel._discovered[&"sirius"] = true
 	_check(main.load_game()["ok"], "load it again")
-	_check(travel.get_discovered().size() == 3 and travel.is_discovered(&"sirius") and travel.is_discovered(&"sol"), "discovery was saved and restored")
-	_check(main.get_system().system_id == &"tau_ceti", "and the player is back in Tau Ceti")
+	_check(travel.get_discovered().size() == 3 and travel.is_discovered(&"kerella") and travel.is_discovered(&"sol"), "discovery was saved and restored")
+	_check(main.get_system().system_id == &"sirius", "and the player is back in Sirius")
 	_check(player.credits == credits and player.fleet.get_active().ship_name == "Wanderer", "credits and ship also restored")
 
 	# --- Docked in another system.
-	var aurelia := _find("Aurelia")
-	ship.global_position = aurelia.global_position + Vector2(0, 100)
+	var aurelia: Targetable = null
+	for node in main.get_system().get_inhabited_nodes():
+		if aurelia == null and node.data.is_dockable():
+			aurelia = node.get_node("Targetable")
+	ship.global_position = aurelia.global_position + Vector2(0, 60)
 	ship.velocity = Vector2.ZERO
 	main.get_node("Targeting").select(aurelia)
 	main.get_node("Docking").try_dock()
 	await process_frame
-	_check(not main.jump_to(&"sirius").ok, "cannot jump while docked")
-	_check(saves.save_game(), "save while docked at Aurelia")
+	_check(not main.jump_to(&"kerella").ok, "cannot jump while docked")
+	_check(saves.save_game(), "save while docked")
 	_check(main.load_game()["ok"], "load it")
 	await process_frame
-	_check(main.get_docked_target() != null and main.get_docked_target().target_name == "Aurelia", "restored docked at Aurelia")
+	_check(main.get_docked_target() != null and main.get_docked_target().target_name == aurelia.target_name, "restored docked where it was")
 	main.get_node("Docking").undock()
 
 	# --- Old saves (no galaxy section) and bad data.
@@ -127,7 +129,7 @@ func _init() -> void:
 	document.erase("galaxy")
 	_write(PATH, JSON.stringify(document))
 	_check(main.load_game()["ok"], "a save without a galaxy section loads")
-	_check(travel.is_discovered(&"sol") and travel.is_discovered(&"tau_ceti"), "it defaults to Sol plus the current system")
+	_check(travel.is_discovered(&"sol") and travel.is_discovered(&"sirius"), "it defaults to Sol plus the current system")
 	_check(travel.get_discovered().size() == 2, "...and nothing else")
 	document["galaxy"] = {"discovered": ["sol", "andromeda"]}
 	_write(PATH, JSON.stringify(document))

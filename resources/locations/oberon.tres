@@ -2,12 +2,13 @@
 
 [ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/planet_types/gas_giant_green.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"oberon"
 display_name = "Oberon"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 0
 planet_type = ExtResource("2")
 size = 1000.0

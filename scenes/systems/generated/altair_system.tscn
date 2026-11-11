@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/psyche_ring.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/vali.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/tucana.tres" id="loc_2"]
+
+[node name="AltairSystem" instance=ExtResource("1")]
+system_id = &"altair"
+system_name = "Altair"
+
+[node name="PsycheRing" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(164, 893)
+data = ExtResource("loc_0")
+
+[node name="Vali" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-934, 88)
+data = ExtResource("loc_1")
+
+[node name="Tucana" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(1068, -1019)
+data = ExtResource("loc_2")

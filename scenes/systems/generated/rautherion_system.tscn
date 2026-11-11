@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/paris_gate.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/atalanta.tres" id="loc_1"]
+
+[node name="RautherionSystem" instance=ExtResource("1")]
+system_id = &"rautherion"
+system_name = "Rautherion"
+
+[node name="ParisGate" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(-865, 555)
+data = ExtResource("loc_0")
+
+[node name="Atalanta" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(374, -610)
+data = ExtResource("loc_1")

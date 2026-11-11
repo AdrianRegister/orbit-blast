@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/jason.tres" id="loc_0"]
+
+[node name="NGC1170System" instance=ExtResource("1")]
+system_id = &"ngc_1170"
+system_name = "NGC-1170"
+
+[node name="Jason" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-327, -663)
+data = ExtResource("loc_0")

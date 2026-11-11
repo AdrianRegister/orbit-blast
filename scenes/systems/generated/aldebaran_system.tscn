@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/aegir_dock.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/volans.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/minerva.tres" id="loc_2"]
+
+[node name="AldebaranSystem" instance=ExtResource("1")]
+system_id = &"aldebaran"
+system_name = "Aldebaran"
+
+[node name="AegirDock" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(930, 600)
+data = ExtResource("loc_0")
+
+[node name="Volans" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-988, 727)
+data = ExtResource("loc_1")
+
+[node name="Minerva" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(-23, -702)
+data = ExtResource("loc_2")

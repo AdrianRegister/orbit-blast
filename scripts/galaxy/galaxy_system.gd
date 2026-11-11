@@ -11,5 +11,5 @@ extends Resource
 @export var map_position: Vector2 = Vector2.ZERO
 ## True for systems the player knows about from the start of a new game.
 @export var start_discovered: bool = false
-## Owning faction, as plain text until factions exist.
-@export var faction_name: String = ""
+## Owning faction. Null = unclaimed.
+@export var faction: Faction

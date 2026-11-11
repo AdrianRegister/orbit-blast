@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/thebe.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/theseus.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/faunus.tres" id="loc_2"]
+
+[node name="CodehavenSystem" instance=ExtResource("1")]
+system_id = &"codehaven"
+system_name = "Codehaven"
+
+[node name="Thebe" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(136, -833)
+data = ExtResource("loc_0")
+
+[node name="Theseus" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(568, 744)
+data = ExtResource("loc_1")
+
+[node name="Faunus" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(-1007, 374)
+data = ExtResource("loc_2")

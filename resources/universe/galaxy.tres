@@ -3,108 +3,1235 @@
 [ext_resource type="Script" path="res://scripts/galaxy/galaxy.gd" id="g"]
 [ext_resource type="Script" path="res://scripts/galaxy/galaxy_system.gd" id="gs"]
 [ext_resource type="Script" path="res://scripts/galaxy/system_link.gd" id="sl"]
-[ext_resource type="PackedScene" path="res://scenes/systems/wolf_359_system.tscn" id="sc_wolf_359"]
-[ext_resource type="PackedScene" path="res://scenes/systems/sol_system.tscn" id="sc_sol"]
-[ext_resource type="PackedScene" path="res://scenes/systems/alpha_centauri_system.tscn" id="sc_alpha_centauri"]
-[ext_resource type="PackedScene" path="res://scenes/systems/barnards_star_system.tscn" id="sc_barnards_star"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="f_faction_1"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/south_manchester_system.tscn" id="sc_south_manchester"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/rimshot_system.tscn" id="sc_rimshot"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/lalande_21185_system.tscn" id="sc_lalande_21185"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/agate_system.tscn" id="sc_agate"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/narcissus_system.tscn" id="sc_narcissus"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/kerella_system.tscn" id="sc_kerella"]
 [ext_resource type="PackedScene" path="res://scenes/systems/sirius_system.tscn" id="sc_sirius"]
-[ext_resource type="PackedScene" path="res://scenes/systems/tau_ceti_system.tscn" id="sc_tau_ceti"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/glimmer_system.tscn" id="sc_glimmer"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/ngc_1776_system.tscn" id="sc_ngc_1776"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/codehaven_system.tscn" id="sc_codehaven"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/homeland_system.tscn" id="sc_homeland"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/journey_s_end_system.tscn" id="sc_journey_s_end"]
 [ext_resource type="PackedScene" path="res://scenes/systems/procyon_system.tscn" id="sc_procyon"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/sibko_system.tscn" id="sc_sibko"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/rigel_system.tscn" id="sc_rigel"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/trishka_system.tscn" id="sc_trishka"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/avalon_system.tscn" id="sc_avalon"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/metter_system.tscn" id="sc_metter"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/hjg_0637_system.tscn" id="sc_hjg_0637"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/canopus_system.tscn" id="sc_canopus"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/outpost_819_system.tscn" id="sc_outpost_819"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_034_system.tscn" id="sc_spc_034"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_1367_system.tscn" id="sc_spc_1367"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/capella_system.tscn" id="sc_capella"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/bloodstone_system.tscn" id="sc_bloodstone"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/porto_rillia_system.tscn" id="sc_porto_rillia"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/pollux_system.tscn" id="sc_pollux"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/petra_system.tscn" id="sc_petra"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/aldebaran_system.tscn" id="sc_aldebaran"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/nesre_primus_system.tscn" id="sc_nesre_primus"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/eeniar_system.tscn" id="sc_eeniar"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/aral_system.tscn" id="sc_aral"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/rautherion_system.tscn" id="sc_rautherion"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/lesten_system.tscn" id="sc_lesten"]
+[ext_resource type="PackedScene" path="res://scenes/systems/barnards_star_system.tscn" id="sc_barnards_star"]
+[ext_resource type="PackedScene" path="res://scenes/systems/alpha_centauri_system.tscn" id="sc_alpha_centauri"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/arcturus_system.tscn" id="sc_arcturus"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/tidbinbilla_system.tscn" id="sc_tidbinbilla"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/galvan_system.tscn" id="sc_galvan"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/altair_system.tscn" id="sc_altair"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/tenetria_system.tscn" id="sc_tenetria"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/ngc_1894_system.tscn" id="sc_ngc_1894"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_1948_system.tscn" id="sc_spc_1948"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/ngc_2019_system.tscn" id="sc_ngc_2019"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/ngc_0946_system.tscn" id="sc_ngc_0946"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/kania_system.tscn" id="sc_kania"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/kon_system.tscn" id="sc_kon"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/naka_system.tscn" id="sc_naka"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/gefjon_system.tscn" id="sc_gefjon"]
+[ext_resource type="PackedScene" path="res://scenes/systems/wolf_359_system.tscn" id="sc_wolf_359"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/hannaford_system.tscn" id="sc_hannaford"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/lotus_system.tscn" id="sc_lotus"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/archenar_system.tscn" id="sc_archenar"]
+[ext_resource type="PackedScene" path="res://scenes/systems/sol_system.tscn" id="sc_sol"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_1927_system.tscn" id="sc_spc_1927"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/murasaki_system.tscn" id="sc_murasaki"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/fomalhaut_system.tscn" id="sc_fomalhaut"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_2421_system.tscn" id="sc_spc_2421"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_2637_system.tscn" id="sc_spc_2637"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_0193_system.tscn" id="sc_spc_0193"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_1555_system.tscn" id="sc_spc_1555"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_011_system.tscn" id="sc_spc_011"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_020_system.tscn" id="sc_spc_020"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/koria_system.tscn" id="sc_koria"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/sanddown_system.tscn" id="sc_sanddown"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/xante_system.tscn" id="sc_xante"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/felos_system.tscn" id="sc_felos"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/hjg_1034_system.tscn" id="sc_hjg_1034"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/moonrise_system.tscn" id="sc_moonrise"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/nesre_secundus_system.tscn" id="sc_nesre_secundus"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/tuatha_system.tscn" id="sc_tuatha"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/nadir_system.tscn" id="sc_nadir"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/enlightenment_system.tscn" id="sc_enlightenment"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/horizon_system.tscn" id="sc_horizon"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/jenner_system.tscn" id="sc_jenner"]
+[ext_resource type="PackedScene" path="res://scenes/systems/tau_ceti_system.tscn" id="sc_tau_ceti"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/mcmurdo_system.tscn" id="sc_mcmurdo"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/fire_system.tscn" id="sc_fire"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/merrynne_system.tscn" id="sc_merrynne"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/vega_system.tscn" id="sc_vega"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/ngc_1170_system.tscn" id="sc_ngc_1170"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spica_system.tscn" id="sc_spica"]
 [ext_resource type="PackedScene" path="res://scenes/systems/epsilon_eridani_system.tscn" id="sc_epsilon_eridani"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/obatta_system.tscn" id="sc_obatta"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/tichel_system.tscn" id="sc_tichel"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/spc_050_system.tscn" id="sc_spc_050"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/gateway_system.tscn" id="sc_gateway"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/vemap_system.tscn" id="sc_vemap"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/heraan_cov_system.tscn" id="sc_heraan_cov"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/neirt_system.tscn" id="sc_neirt"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/unin_system.tscn" id="sc_unin"]
+[ext_resource type="PackedScene" path="res://scenes/systems/generated/wittor_system.tscn" id="sc_wittor"]
+
+[sub_resource type="Resource" id="sys_south_manchester"]
+script = ExtResource("gs")
+scene = ExtResource("sc_south_manchester")
+map_position = Vector2(-1110, -619)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_rimshot"]
+script = ExtResource("gs")
+scene = ExtResource("sc_rimshot")
+map_position = Vector2(-863, -571)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_lalande_21185"]
+script = ExtResource("gs")
+scene = ExtResource("sc_lalande_21185")
+map_position = Vector2(-926, -497)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_agate"]
+script = ExtResource("gs")
+scene = ExtResource("sc_agate")
+map_position = Vector2(-616, -497)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_narcissus"]
+script = ExtResource("gs")
+scene = ExtResource("sc_narcissus")
+map_position = Vector2(-961, -325)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_kerella"]
+script = ExtResource("gs")
+scene = ExtResource("sc_kerella")
+map_position = Vector2(-741, -372)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_sirius"]
+script = ExtResource("gs")
+scene = ExtResource("sc_sirius")
+map_position = Vector2(-494, -437)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_glimmer"]
+script = ExtResource("gs")
+scene = ExtResource("sc_glimmer")
+map_position = Vector2(-372, -498)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_ngc_1776"]
+script = ExtResource("gs")
+scene = ExtResource("sc_ngc_1776")
+map_position = Vector2(-394, -399)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_codehaven"]
+script = ExtResource("gs")
+scene = ExtResource("sc_codehaven")
+map_position = Vector2(-494, -619)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_homeland"]
+script = ExtResource("gs")
+scene = ExtResource("sc_homeland")
+map_position = Vector2(-224, -372)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_journey_s_end"]
+script = ExtResource("gs")
+scene = ExtResource("sc_journey_s_end")
+map_position = Vector2(-616, -251)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_procyon"]
+script = ExtResource("gs")
+scene = ExtResource("sc_procyon")
+map_position = Vector2(-738, -125)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_sibko"]
+script = ExtResource("gs")
+scene = ExtResource("sc_sibko")
+map_position = Vector2(-913, -77)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_rigel"]
+script = ExtResource("gs")
+scene = ExtResource("sc_rigel")
+map_position = Vector2(-653, -1)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_trishka"]
+script = ExtResource("gs")
+scene = ExtResource("sc_trishka")
+map_position = Vector2(-863, 72)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_avalon"]
+script = ExtResource("gs")
+scene = ExtResource("sc_avalon")
+map_position = Vector2(-616, 72)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_metter"]
+script = ExtResource("gs")
+scene = ExtResource("sc_metter")
+map_position = Vector2(-467, -176)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_hjg_0637"]
+script = ExtResource("gs")
+scene = ExtResource("sc_hjg_0637")
+map_position = Vector2(-432, -64)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_canopus"]
+script = ExtResource("gs")
+scene = ExtResource("sc_canopus")
+map_position = Vector2(-319, 23)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_outpost_819"]
+script = ExtResource("gs")
+scene = ExtResource("sc_outpost_819")
+map_position = Vector2(-296, -199)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_034"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_034")
+map_position = Vector2(-1108, -220)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_1367"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_1367")
+map_position = Vector2(-1115, -120)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_capella"]
+script = ExtResource("gs")
+scene = ExtResource("sc_capella")
+map_position = Vector2(60, -556)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_bloodstone"]
+script = ExtResource("gs")
+scene = ExtResource("sc_bloodstone")
+map_position = Vector2(182, -589)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_porto_rillia"]
+script = ExtResource("gs")
+scene = ExtResource("sc_porto_rillia")
+map_position = Vector2(244, -556)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_pollux"]
+script = ExtResource("gs")
+scene = ExtResource("sc_pollux")
+map_position = Vector2(308, -498)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_petra"]
+script = ExtResource("gs")
+scene = ExtResource("sc_petra")
+map_position = Vector2(-125, -521)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_aldebaran"]
+script = ExtResource("gs")
+scene = ExtResource("sc_aldebaran")
+map_position = Vector2(-65, -435)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_nesre_primus"]
+script = ExtResource("gs")
+scene = ExtResource("sc_nesre_primus")
+map_position = Vector2(182, -435)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_eeniar"]
+script = ExtResource("gs")
+scene = ExtResource("sc_eeniar")
+map_position = Vector2(393, -435)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_aral"]
+script = ExtResource("gs")
+scene = ExtResource("sc_aral")
+map_position = Vector2(268, -372)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_rautherion"]
+script = ExtResource("gs")
+scene = ExtResource("sc_rautherion")
+map_position = Vector2(365, -372)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_lesten"]
+script = ExtResource("gs")
+scene = ExtResource("sc_lesten")
+map_position = Vector2(182, -313)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_barnards_star"]
+script = ExtResource("gs")
+scene = ExtResource("sc_barnards_star")
+map_position = Vector2(-100, -300)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_alpha_centauri"]
+script = ExtResource("gs")
+scene = ExtResource("sc_alpha_centauri")
+map_position = Vector2(-174, -268)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_arcturus"]
+script = ExtResource("gs")
+scene = ExtResource("sc_arcturus")
+map_position = Vector2(308, -251)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_tidbinbilla"]
+script = ExtResource("gs")
+scene = ExtResource("sc_tidbinbilla")
+map_position = Vector2(551, -251)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_galvan"]
+script = ExtResource("gs")
+scene = ExtResource("sc_galvan")
+map_position = Vector2(614, -282)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_altair"]
+script = ExtResource("gs")
+scene = ExtResource("sc_altair")
+map_position = Vector2(798, -313)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_tenetria"]
+script = ExtResource("gs")
+scene = ExtResource("sc_tenetria")
+map_position = Vector2(861, -435)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_ngc_1894"]
+script = ExtResource("gs")
+scene = ExtResource("sc_ngc_1894")
+map_position = Vector2(601, -422)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_1948"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_1948")
+map_position = Vector2(502, -571)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_ngc_2019"]
+script = ExtResource("gs")
+scene = ExtResource("sc_ngc_2019")
+map_position = Vector2(627, -564)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_ngc_0946"]
+script = ExtResource("gs")
+scene = ExtResource("sc_ngc_0946")
+map_position = Vector2(762, -579)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_kania"]
+script = ExtResource("gs")
+scene = ExtResource("sc_kania")
+map_position = Vector2(988, -123)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_kon"]
+script = ExtResource("gs")
+scene = ExtResource("sc_kon")
+map_position = Vector2(740, -123)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_naka"]
+script = ExtResource("gs")
+scene = ExtResource("sc_naka")
+map_position = Vector2(432, -123)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_gefjon"]
+script = ExtResource("gs")
+scene = ExtResource("sc_gefjon")
+map_position = Vector2(247, -123)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_wolf_359"]
+script = ExtResource("gs")
+scene = ExtResource("sc_wolf_359")
+map_position = Vector2(246, -64)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_hannaford"]
+script = ExtResource("gs")
+scene = ExtResource("sc_hannaford")
+map_position = Vector2(0, -86)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_lotus"]
+script = ExtResource("gs")
+scene = ExtResource("sc_lotus")
+map_position = Vector2(-122, -126)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_archenar"]
+script = ExtResource("gs")
+scene = ExtResource("sc_archenar")
+map_position = Vector2(-62, -186)
+start_discovered = false
+faction = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_sol"]
 script = ExtResource("gs")
 scene = ExtResource("sc_sol")
 map_position = Vector2(0, 0)
 start_discovered = true
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="sys_alpha_centauri"]
+[sub_resource type="Resource" id="sys_spc_1927"]
 script = ExtResource("gs")
-scene = ExtResource("sc_alpha_centauri")
-map_position = Vector2(-260, -130)
+scene = ExtResource("sc_spc_1927")
+map_position = Vector2(556, -64)
 start_discovered = false
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="sys_barnards_star"]
+[sub_resource type="Resource" id="sys_murasaki"]
 script = ExtResource("gs")
-scene = ExtResource("sc_barnards_star")
-map_position = Vector2(-330, -330)
+scene = ExtResource("sc_murasaki")
+map_position = Vector2(494, 62)
 start_discovered = false
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="sys_sirius"]
+[sub_resource type="Resource" id="sys_fomalhaut"]
 script = ExtResource("gs")
-scene = ExtResource("sc_sirius")
-map_position = Vector2(10, -200)
+scene = ExtResource("sc_fomalhaut")
+map_position = Vector2(647, 62)
 start_discovered = false
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_2421"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_2421")
+map_position = Vector2(-95, -750)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_2637"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_2637")
+map_position = Vector2(-247, -653)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_0193"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_0193")
+map_position = Vector2(213, -774)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_1555"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_1555")
+map_position = Vector2(146, -737)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_011"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_011")
+map_position = Vector2(269, -719)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spc_020"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_020")
+map_position = Vector2(367, -696)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_koria"]
+script = ExtResource("gs")
+scene = ExtResource("sc_koria")
+map_position = Vector2(577, -774)
+start_discovered = false
+
+[sub_resource type="Resource" id="sys_sanddown"]
+script = ExtResource("gs")
+scene = ExtResource("sc_sanddown")
+map_position = Vector2(-122, 98)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_xante"]
+script = ExtResource("gs")
+scene = ExtResource("sc_xante")
+map_position = Vector2(-728, 269)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_felos"]
+script = ExtResource("gs")
+scene = ExtResource("sc_felos")
+map_position = Vector2(-900, 363)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_hjg_1034"]
+script = ExtResource("gs")
+scene = ExtResource("sc_hjg_1034")
+map_position = Vector2(-554, 368)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_moonrise"]
+script = ExtResource("gs")
+scene = ExtResource("sc_moonrise")
+map_position = Vector2(-395, 269)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_nesre_secundus"]
+script = ExtResource("gs")
+scene = ExtResource("sc_nesre_secundus")
+map_position = Vector2(-463, 121)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_tuatha"]
+script = ExtResource("gs")
+scene = ExtResource("sc_tuatha")
+map_position = Vector2(-432, 461)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_nadir"]
+script = ExtResource("gs")
+scene = ExtResource("sc_nadir")
+map_position = Vector2(-590, 521)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_enlightenment"]
+script = ExtResource("gs")
+scene = ExtResource("sc_enlightenment")
+map_position = Vector2(-248, 246)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_horizon"]
+script = ExtResource("gs")
+scene = ExtResource("sc_horizon")
+map_position = Vector2(-248, 430)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_jenner"]
+script = ExtResource("gs")
+scene = ExtResource("sc_jenner")
+map_position = Vector2(-122, 491)
+start_discovered = false
+faction = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_tau_ceti"]
 script = ExtResource("gs")
 scene = ExtResource("sc_tau_ceti")
-map_position = Vector2(60, -420)
+map_position = Vector2(-62, 183)
 start_discovered = false
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="sys_procyon"]
+[sub_resource type="Resource" id="sys_mcmurdo"]
 script = ExtResource("gs")
-scene = ExtResource("sc_procyon")
-map_position = Vector2(250, -120)
+scene = ExtResource("sc_mcmurdo")
+map_position = Vector2(185, 183)
 start_discovered = false
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_fire"]
+script = ExtResource("gs")
+scene = ExtResource("sc_fire")
+map_position = Vector2(368, 183)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_merrynne"]
+script = ExtResource("gs")
+scene = ExtResource("sc_merrynne")
+map_position = Vector2(75, 220)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_vega"]
+script = ExtResource("gs")
+scene = ExtResource("sc_vega")
+map_position = Vector2(309, 244)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_ngc_1170"]
+script = ExtResource("gs")
+scene = ExtResource("sc_ngc_1170")
+map_position = Vector2(0, 307)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_spica"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spica")
+map_position = Vector2(0, 430)
+start_discovered = false
+faction = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_epsilon_eridani"]
 script = ExtResource("gs")
 scene = ExtResource("sc_epsilon_eridani")
-map_position = Vector2(340, -310)
+map_position = Vector2(309, 430)
 start_discovered = false
-faction_name = "TestFaction_1"
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="sys_wolf_359"]
+[sub_resource type="Resource" id="sys_obatta"]
 script = ExtResource("gs")
-scene = ExtResource("sc_wolf_359")
-map_position = Vector2(-500, -480)
+scene = ExtResource("sc_obatta")
+map_position = Vector2(494, 493)
 start_discovered = false
-faction_name = ""
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="link_barnards_star_wolf_359"]
-script = ExtResource("sl")
-a = &"barnards_star"
-b = &"wolf_359"
+[sub_resource type="Resource" id="sys_tichel"]
+script = ExtResource("gs")
+scene = ExtResource("sc_tichel")
+map_position = Vector2(677, 244)
+start_discovered = false
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="link_sol_alpha_centauri"]
-script = ExtResource("sl")
-a = &"sol"
-b = &"alpha_centauri"
+[sub_resource type="Resource" id="sys_spc_050"]
+script = ExtResource("gs")
+scene = ExtResource("sc_spc_050")
+map_position = Vector2(729, 480)
+start_discovered = false
+faction = ExtResource("f_faction_1")
 
-[sub_resource type="Resource" id="link_sol_sirius"]
+[sub_resource type="Resource" id="sys_gateway"]
+script = ExtResource("gs")
+scene = ExtResource("sc_gateway")
+map_position = Vector2(62, 615)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_vemap"]
+script = ExtResource("gs")
+scene = ExtResource("sc_vemap")
+map_position = Vector2(293, 690)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_heraan_cov"]
+script = ExtResource("gs")
+scene = ExtResource("sc_heraan_cov")
+map_position = Vector2(160, 813)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_neirt"]
+script = ExtResource("gs")
+scene = ExtResource("sc_neirt")
+map_position = Vector2(-99, 768)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_unin"]
+script = ExtResource("gs")
+scene = ExtResource("sc_unin")
+map_position = Vector2(883, 435)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="sys_wittor"]
+script = ExtResource("gs")
+scene = ExtResource("sc_wittor")
+map_position = Vector2(751, 701)
+start_discovered = false
+faction = ExtResource("f_faction_1")
+
+[sub_resource type="Resource" id="link_lalande_21185_narcissus"]
 script = ExtResource("sl")
-a = &"sol"
+a = &"lalande_21185"
+b = &"narcissus"
+
+[sub_resource type="Resource" id="link_lalande_21185_rimshot"]
+script = ExtResource("sl")
+a = &"lalande_21185"
+b = &"rimshot"
+
+[sub_resource type="Resource" id="link_lalande_21185_south_manchester"]
+script = ExtResource("sl")
+a = &"lalande_21185"
+b = &"south_manchester"
+
+[sub_resource type="Resource" id="link_agate_lalande_21185"]
+script = ExtResource("sl")
+a = &"agate"
+b = &"lalande_21185"
+
+[sub_resource type="Resource" id="link_narcissus_spc_034"]
+script = ExtResource("sl")
+a = &"narcissus"
+b = &"spc_034"
+
+[sub_resource type="Resource" id="link_kerella_lalande_21185"]
+script = ExtResource("sl")
+a = &"kerella"
+b = &"lalande_21185"
+
+[sub_resource type="Resource" id="link_kerella_narcissus"]
+script = ExtResource("sl")
+a = &"kerella"
+b = &"narcissus"
+
+[sub_resource type="Resource" id="link_kerella_procyon"]
+script = ExtResource("sl")
+a = &"kerella"
+b = &"procyon"
+
+[sub_resource type="Resource" id="link_kerella_sirius"]
+script = ExtResource("sl")
+a = &"kerella"
 b = &"sirius"
 
-[sub_resource type="Resource" id="link_sol_procyon"]
+[sub_resource type="Resource" id="link_kerella_sol"]
 script = ExtResource("sl")
-a = &"sol"
+a = &"kerella"
+b = &"sol"
+
+[sub_resource type="Resource" id="link_glimmer_sirius"]
+script = ExtResource("sl")
+a = &"glimmer"
+b = &"sirius"
+
+[sub_resource type="Resource" id="link_ngc_1776_sirius"]
+script = ExtResource("sl")
+a = &"ngc_1776"
+b = &"sirius"
+
+[sub_resource type="Resource" id="link_codehaven_sirius"]
+script = ExtResource("sl")
+a = &"codehaven"
+b = &"sirius"
+
+[sub_resource type="Resource" id="link_journey_s_end_procyon"]
+script = ExtResource("sl")
+a = &"journey_s_end"
 b = &"procyon"
+
+[sub_resource type="Resource" id="link_procyon_rigel"]
+script = ExtResource("sl")
+a = &"procyon"
+b = &"rigel"
+
+[sub_resource type="Resource" id="link_procyon_sibko"]
+script = ExtResource("sl")
+a = &"procyon"
+b = &"sibko"
+
+[sub_resource type="Resource" id="link_procyon_trishka"]
+script = ExtResource("sl")
+a = &"procyon"
+b = &"trishka"
+
+[sub_resource type="Resource" id="link_avalon_hjg_0637"]
+script = ExtResource("sl")
+a = &"avalon"
+b = &"hjg_0637"
+
+[sub_resource type="Resource" id="link_hjg_0637_metter"]
+script = ExtResource("sl")
+a = &"hjg_0637"
+b = &"metter"
+
+[sub_resource type="Resource" id="link_hjg_0637_nesre_secundus"]
+script = ExtResource("sl")
+a = &"hjg_0637"
+b = &"nesre_secundus"
+
+[sub_resource type="Resource" id="link_canopus_hjg_0637"]
+script = ExtResource("sl")
+a = &"canopus"
+b = &"hjg_0637"
+
+[sub_resource type="Resource" id="link_outpost_819_sirius"]
+script = ExtResource("sl")
+a = &"outpost_819"
+b = &"sirius"
+
+[sub_resource type="Resource" id="link_spc_034_spc_1367"]
+script = ExtResource("sl")
+a = &"spc_034"
+b = &"spc_1367"
+
+[sub_resource type="Resource" id="link_capella_nesre_primus"]
+script = ExtResource("sl")
+a = &"capella"
+b = &"nesre_primus"
+
+[sub_resource type="Resource" id="link_bloodstone_capella"]
+script = ExtResource("sl")
+a = &"bloodstone"
+b = &"capella"
+
+[sub_resource type="Resource" id="link_pollux_porto_rillia"]
+script = ExtResource("sl")
+a = &"pollux"
+b = &"porto_rillia"
+
+[sub_resource type="Resource" id="link_petra_spc_2421"]
+script = ExtResource("sl")
+a = &"petra"
+b = &"spc_2421"
+
+[sub_resource type="Resource" id="link_aldebaran_homeland"]
+script = ExtResource("sl")
+a = &"aldebaran"
+b = &"homeland"
+
+[sub_resource type="Resource" id="link_aldebaran_nesre_primus"]
+script = ExtResource("sl")
+a = &"aldebaran"
+b = &"nesre_primus"
+
+[sub_resource type="Resource" id="link_aldebaran_petra"]
+script = ExtResource("sl")
+a = &"aldebaran"
+b = &"petra"
+
+[sub_resource type="Resource" id="link_aldebaran_barnards_star"]
+script = ExtResource("sl")
+a = &"aldebaran"
+b = &"barnards_star"
+
+[sub_resource type="Resource" id="link_nesre_primus_pollux"]
+script = ExtResource("sl")
+a = &"nesre_primus"
+b = &"pollux"
+
+[sub_resource type="Resource" id="link_nesre_primus_sol"]
+script = ExtResource("sl")
+a = &"nesre_primus"
+b = &"sol"
+
+[sub_resource type="Resource" id="link_nesre_primus_spc_011"]
+script = ExtResource("sl")
+a = &"nesre_primus"
+b = &"spc_011"
+
+[sub_resource type="Resource" id="link_eeniar_pollux"]
+script = ExtResource("sl")
+a = &"eeniar"
+b = &"pollux"
+
+[sub_resource type="Resource" id="link_eeniar_spc_1948"]
+script = ExtResource("sl")
+a = &"eeniar"
+b = &"spc_1948"
+
+[sub_resource type="Resource" id="link_aral_pollux"]
+script = ExtResource("sl")
+a = &"aral"
+b = &"pollux"
+
+[sub_resource type="Resource" id="link_alpha_centauri_archenar"]
+script = ExtResource("sl")
+a = &"alpha_centauri"
+b = &"archenar"
 
 [sub_resource type="Resource" id="link_alpha_centauri_barnards_star"]
 script = ExtResource("sl")
 a = &"alpha_centauri"
 b = &"barnards_star"
 
-[sub_resource type="Resource" id="link_sirius_tau_ceti"]
+[sub_resource type="Resource" id="link_arcturus_gefjon"]
 script = ExtResource("sl")
-a = &"sirius"
+a = &"arcturus"
+b = &"gefjon"
+
+[sub_resource type="Resource" id="link_arcturus_lesten"]
+script = ExtResource("sl")
+a = &"arcturus"
+b = &"lesten"
+
+[sub_resource type="Resource" id="link_arcturus_naka"]
+script = ExtResource("sl")
+a = &"arcturus"
+b = &"naka"
+
+[sub_resource type="Resource" id="link_arcturus_rautherion"]
+script = ExtResource("sl")
+a = &"arcturus"
+b = &"rautherion"
+
+[sub_resource type="Resource" id="link_arcturus_tidbinbilla"]
+script = ExtResource("sl")
+a = &"arcturus"
+b = &"tidbinbilla"
+
+[sub_resource type="Resource" id="link_arcturus_nesre_primus"]
+script = ExtResource("sl")
+a = &"arcturus"
+b = &"nesre_primus"
+
+[sub_resource type="Resource" id="link_galvan_tidbinbilla"]
+script = ExtResource("sl")
+a = &"galvan"
+b = &"tidbinbilla"
+
+[sub_resource type="Resource" id="link_altair_galvan"]
+script = ExtResource("sl")
+a = &"altair"
+b = &"galvan"
+
+[sub_resource type="Resource" id="link_altair_kania"]
+script = ExtResource("sl")
+a = &"altair"
+b = &"kania"
+
+[sub_resource type="Resource" id="link_altair_tenetria"]
+script = ExtResource("sl")
+a = &"altair"
+b = &"tenetria"
+
+[sub_resource type="Resource" id="link_ngc_1894_ngc_2019"]
+script = ExtResource("sl")
+a = &"ngc_1894"
+b = &"ngc_2019"
+
+[sub_resource type="Resource" id="link_ngc_1894_tidbinbilla"]
+script = ExtResource("sl")
+a = &"ngc_1894"
+b = &"tidbinbilla"
+
+[sub_resource type="Resource" id="link_ngc_0946_ngc_2019"]
+script = ExtResource("sl")
+a = &"ngc_0946"
+b = &"ngc_2019"
+
+[sub_resource type="Resource" id="link_ngc_0946_tenetria"]
+script = ExtResource("sl")
+a = &"ngc_0946"
+b = &"tenetria"
+
+[sub_resource type="Resource" id="link_kania_tichel"]
+script = ExtResource("sl")
+a = &"kania"
+b = &"tichel"
+
+[sub_resource type="Resource" id="link_gefjon_wolf_359"]
+script = ExtResource("sl")
+a = &"gefjon"
+b = &"wolf_359"
+
+[sub_resource type="Resource" id="link_lotus_outpost_819"]
+script = ExtResource("sl")
+a = &"lotus"
+b = &"outpost_819"
+
+[sub_resource type="Resource" id="link_archenar_hannaford"]
+script = ExtResource("sl")
+a = &"archenar"
+b = &"hannaford"
+
+[sub_resource type="Resource" id="link_archenar_lotus"]
+script = ExtResource("sl")
+a = &"archenar"
+b = &"lotus"
+
+[sub_resource type="Resource" id="link_archenar_sol"]
+script = ExtResource("sl")
+a = &"archenar"
+b = &"sol"
+
+[sub_resource type="Resource" id="link_sol_tau_ceti"]
+script = ExtResource("sl")
+a = &"sol"
 b = &"tau_ceti"
 
-[sub_resource type="Resource" id="link_procyon_epsilon_eridani"]
+[sub_resource type="Resource" id="link_sol_tichel"]
 script = ExtResource("sl")
-a = &"procyon"
-b = &"epsilon_eridani"
+a = &"sol"
+b = &"tichel"
+
+[sub_resource type="Resource" id="link_fomalhaut_kon"]
+script = ExtResource("sl")
+a = &"fomalhaut"
+b = &"kon"
+
+[sub_resource type="Resource" id="link_fomalhaut_murasaki"]
+script = ExtResource("sl")
+a = &"fomalhaut"
+b = &"murasaki"
+
+[sub_resource type="Resource" id="link_fomalhaut_spc_1927"]
+script = ExtResource("sl")
+a = &"fomalhaut"
+b = &"spc_1927"
+
+[sub_resource type="Resource" id="link_fomalhaut_tichel"]
+script = ExtResource("sl")
+a = &"fomalhaut"
+b = &"tichel"
+
+[sub_resource type="Resource" id="link_spc_2421_spc_2637"]
+script = ExtResource("sl")
+a = &"spc_2421"
+b = &"spc_2637"
+
+[sub_resource type="Resource" id="link_spc_0193_spc_1555"]
+script = ExtResource("sl")
+a = &"spc_0193"
+b = &"spc_1555"
+
+[sub_resource type="Resource" id="link_spc_011_spc_0193"]
+script = ExtResource("sl")
+a = &"spc_011"
+b = &"spc_0193"
+
+[sub_resource type="Resource" id="link_spc_011_spc_020"]
+script = ExtResource("sl")
+a = &"spc_011"
+b = &"spc_020"
+
+[sub_resource type="Resource" id="link_spc_020_spc_1948"]
+script = ExtResource("sl")
+a = &"spc_020"
+b = &"spc_1948"
+
+[sub_resource type="Resource" id="link_koria_ngc_2019"]
+script = ExtResource("sl")
+a = &"koria"
+b = &"ngc_2019"
+
+[sub_resource type="Resource" id="link_sanddown_tau_ceti"]
+script = ExtResource("sl")
+a = &"sanddown"
+b = &"tau_ceti"
+
+[sub_resource type="Resource" id="link_felos_xante"]
+script = ExtResource("sl")
+a = &"felos"
+b = &"xante"
+
+[sub_resource type="Resource" id="link_hjg_1034_moonrise"]
+script = ExtResource("sl")
+a = &"hjg_1034"
+b = &"moonrise"
+
+[sub_resource type="Resource" id="link_hjg_1034_nadir"]
+script = ExtResource("sl")
+a = &"hjg_1034"
+b = &"nadir"
+
+[sub_resource type="Resource" id="link_hjg_1034_nesre_secundus"]
+script = ExtResource("sl")
+a = &"hjg_1034"
+b = &"nesre_secundus"
+
+[sub_resource type="Resource" id="link_hjg_1034_tuatha"]
+script = ExtResource("sl")
+a = &"hjg_1034"
+b = &"tuatha"
+
+[sub_resource type="Resource" id="link_nesre_secundus_xante"]
+script = ExtResource("sl")
+a = &"nesre_secundus"
+b = &"xante"
+
+[sub_resource type="Resource" id="link_nesre_secundus_sol"]
+script = ExtResource("sl")
+a = &"nesre_secundus"
+b = &"sol"
+
+[sub_resource type="Resource" id="link_enlightenment_moonrise"]
+script = ExtResource("sl")
+a = &"enlightenment"
+b = &"moonrise"
+
+[sub_resource type="Resource" id="link_enlightenment_tau_ceti"]
+script = ExtResource("sl")
+a = &"enlightenment"
+b = &"tau_ceti"
+
+[sub_resource type="Resource" id="link_horizon_spica"]
+script = ExtResource("sl")
+a = &"horizon"
+b = &"spica"
+
+[sub_resource type="Resource" id="link_jenner_spica"]
+script = ExtResource("sl")
+a = &"jenner"
+b = &"spica"
+
+[sub_resource type="Resource" id="link_mcmurdo_vega"]
+script = ExtResource("sl")
+a = &"mcmurdo"
+b = &"vega"
+
+[sub_resource type="Resource" id="link_fire_vega"]
+script = ExtResource("sl")
+a = &"fire"
+b = &"vega"
+
+[sub_resource type="Resource" id="link_merrynne_tau_ceti"]
+script = ExtResource("sl")
+a = &"merrynne"
+b = &"tau_ceti"
+
+[sub_resource type="Resource" id="link_ngc_1170_spica"]
+script = ExtResource("sl")
+a = &"ngc_1170"
+b = &"spica"
+
+[sub_resource type="Resource" id="link_epsilon_eridani_spica"]
+script = ExtResource("sl")
+a = &"epsilon_eridani"
+b = &"spica"
+
+[sub_resource type="Resource" id="link_epsilon_eridani_vega"]
+script = ExtResource("sl")
+a = &"epsilon_eridani"
+b = &"vega"
+
+[sub_resource type="Resource" id="link_epsilon_eridani_vemap"]
+script = ExtResource("sl")
+a = &"epsilon_eridani"
+b = &"vemap"
+
+[sub_resource type="Resource" id="link_epsilon_eridani_sol"]
+script = ExtResource("sl")
+a = &"epsilon_eridani"
+b = &"sol"
+
+[sub_resource type="Resource" id="link_obatta_vega"]
+script = ExtResource("sl")
+a = &"obatta"
+b = &"vega"
+
+[sub_resource type="Resource" id="link_spc_050_tichel"]
+script = ExtResource("sl")
+a = &"spc_050"
+b = &"tichel"
+
+[sub_resource type="Resource" id="link_spc_050_unin"]
+script = ExtResource("sl")
+a = &"spc_050"
+b = &"unin"
+
+[sub_resource type="Resource" id="link_spc_050_wittor"]
+script = ExtResource("sl")
+a = &"spc_050"
+b = &"wittor"
+
+[sub_resource type="Resource" id="link_gateway_neirt"]
+script = ExtResource("sl")
+a = &"gateway"
+b = &"neirt"
+
+[sub_resource type="Resource" id="link_gateway_spica"]
+script = ExtResource("sl")
+a = &"gateway"
+b = &"spica"
+
+[sub_resource type="Resource" id="link_heraan_cov_vemap"]
+script = ExtResource("sl")
+a = &"heraan_cov"
+b = &"vemap"
 
 [resource]
 script = ExtResource("g")
-systems = Array[ExtResource("gs")]([SubResource("sys_sol"), SubResource("sys_alpha_centauri"), SubResource("sys_barnards_star"), SubResource("sys_sirius"), SubResource("sys_tau_ceti"), SubResource("sys_procyon"), SubResource("sys_epsilon_eridani"), SubResource("sys_wolf_359")])
-links = Array[ExtResource("sl")]([SubResource("link_sol_alpha_centauri"), SubResource("link_sol_sirius"), SubResource("link_sol_procyon"), SubResource("link_alpha_centauri_barnards_star"), SubResource("link_sirius_tau_ceti"), SubResource("link_procyon_epsilon_eridani"), SubResource("link_barnards_star_wolf_359")])
+systems = Array[ExtResource("gs")]([SubResource("sys_south_manchester"), SubResource("sys_rimshot"), SubResource("sys_lalande_21185"), SubResource("sys_agate"), SubResource("sys_narcissus"), SubResource("sys_kerella"), SubResource("sys_sirius"), SubResource("sys_glimmer"), SubResource("sys_ngc_1776"), SubResource("sys_codehaven"), SubResource("sys_homeland"), SubResource("sys_journey_s_end"), SubResource("sys_procyon"), SubResource("sys_sibko"), SubResource("sys_rigel"), SubResource("sys_trishka"), SubResource("sys_avalon"), SubResource("sys_metter"), SubResource("sys_hjg_0637"), SubResource("sys_canopus"), SubResource("sys_outpost_819"), SubResource("sys_spc_034"), SubResource("sys_spc_1367"), SubResource("sys_capella"), SubResource("sys_bloodstone"), SubResource("sys_porto_rillia"), SubResource("sys_pollux"), SubResource("sys_petra"), SubResource("sys_aldebaran"), SubResource("sys_nesre_primus"), SubResource("sys_eeniar"), SubResource("sys_aral"), SubResource("sys_rautherion"), SubResource("sys_lesten"), SubResource("sys_barnards_star"), SubResource("sys_alpha_centauri"), SubResource("sys_arcturus"), SubResource("sys_tidbinbilla"), SubResource("sys_galvan"), SubResource("sys_altair"), SubResource("sys_tenetria"), SubResource("sys_ngc_1894"), SubResource("sys_spc_1948"), SubResource("sys_ngc_2019"), SubResource("sys_ngc_0946"), SubResource("sys_kania"), SubResource("sys_kon"), SubResource("sys_naka"), SubResource("sys_gefjon"), SubResource("sys_wolf_359"), SubResource("sys_hannaford"), SubResource("sys_lotus"), SubResource("sys_archenar"), SubResource("sys_sol"), SubResource("sys_spc_1927"), SubResource("sys_murasaki"), SubResource("sys_fomalhaut"), SubResource("sys_spc_2421"), SubResource("sys_spc_2637"), SubResource("sys_spc_0193"), SubResource("sys_spc_1555"), SubResource("sys_spc_011"), SubResource("sys_spc_020"), SubResource("sys_koria"), SubResource("sys_sanddown"), SubResource("sys_xante"), SubResource("sys_felos"), SubResource("sys_hjg_1034"), SubResource("sys_moonrise"), SubResource("sys_nesre_secundus"), SubResource("sys_tuatha"), SubResource("sys_nadir"), SubResource("sys_enlightenment"), SubResource("sys_horizon"), SubResource("sys_jenner"), SubResource("sys_tau_ceti"), SubResource("sys_mcmurdo"), SubResource("sys_fire"), SubResource("sys_merrynne"), SubResource("sys_vega"), SubResource("sys_ngc_1170"), SubResource("sys_spica"), SubResource("sys_epsilon_eridani"), SubResource("sys_obatta"), SubResource("sys_tichel"), SubResource("sys_spc_050"), SubResource("sys_gateway"), SubResource("sys_vemap"), SubResource("sys_heraan_cov"), SubResource("sys_neirt"), SubResource("sys_unin"), SubResource("sys_wittor")])
+links = Array[ExtResource("sl")]([SubResource("link_lalande_21185_narcissus"), SubResource("link_lalande_21185_rimshot"), SubResource("link_lalande_21185_south_manchester"), SubResource("link_agate_lalande_21185"), SubResource("link_narcissus_spc_034"), SubResource("link_kerella_lalande_21185"), SubResource("link_kerella_narcissus"), SubResource("link_kerella_procyon"), SubResource("link_kerella_sirius"), SubResource("link_kerella_sol"), SubResource("link_glimmer_sirius"), SubResource("link_ngc_1776_sirius"), SubResource("link_codehaven_sirius"), SubResource("link_journey_s_end_procyon"), SubResource("link_procyon_rigel"), SubResource("link_procyon_sibko"), SubResource("link_procyon_trishka"), SubResource("link_avalon_hjg_0637"), SubResource("link_hjg_0637_metter"), SubResource("link_hjg_0637_nesre_secundus"), SubResource("link_canopus_hjg_0637"), SubResource("link_outpost_819_sirius"), SubResource("link_spc_034_spc_1367"), SubResource("link_capella_nesre_primus"), SubResource("link_bloodstone_capella"), SubResource("link_pollux_porto_rillia"), SubResource("link_petra_spc_2421"), SubResource("link_aldebaran_homeland"), SubResource("link_aldebaran_nesre_primus"), SubResource("link_aldebaran_petra"), SubResource("link_aldebaran_barnards_star"), SubResource("link_nesre_primus_pollux"), SubResource("link_nesre_primus_sol"), SubResource("link_nesre_primus_spc_011"), SubResource("link_eeniar_pollux"), SubResource("link_eeniar_spc_1948"), SubResource("link_aral_pollux"), SubResource("link_alpha_centauri_archenar"), SubResource("link_alpha_centauri_barnards_star"), SubResource("link_arcturus_gefjon"), SubResource("link_arcturus_lesten"), SubResource("link_arcturus_naka"), SubResource("link_arcturus_rautherion"), SubResource("link_arcturus_tidbinbilla"), SubResource("link_arcturus_nesre_primus"), SubResource("link_galvan_tidbinbilla"), SubResource("link_altair_galvan"), SubResource("link_altair_kania"), SubResource("link_altair_tenetria"), SubResource("link_ngc_1894_ngc_2019"), SubResource("link_ngc_1894_tidbinbilla"), SubResource("link_ngc_0946_ngc_2019"), SubResource("link_ngc_0946_tenetria"), SubResource("link_kania_tichel"), SubResource("link_gefjon_wolf_359"), SubResource("link_lotus_outpost_819"), SubResource("link_archenar_hannaford"), SubResource("link_archenar_lotus"), SubResource("link_archenar_sol"), SubResource("link_sol_tau_ceti"), SubResource("link_sol_tichel"), SubResource("link_fomalhaut_kon"), SubResource("link_fomalhaut_murasaki"), SubResource("link_fomalhaut_spc_1927"), SubResource("link_fomalhaut_tichel"), SubResource("link_spc_2421_spc_2637"), SubResource("link_spc_0193_spc_1555"), SubResource("link_spc_011_spc_0193"), SubResource("link_spc_011_spc_020"), SubResource("link_spc_020_spc_1948"), SubResource("link_koria_ngc_2019"), SubResource("link_sanddown_tau_ceti"), SubResource("link_felos_xante"), SubResource("link_hjg_1034_moonrise"), SubResource("link_hjg_1034_nadir"), SubResource("link_hjg_1034_nesre_secundus"), SubResource("link_hjg_1034_tuatha"), SubResource("link_nesre_secundus_xante"), SubResource("link_nesre_secundus_sol"), SubResource("link_enlightenment_moonrise"), SubResource("link_enlightenment_tau_ceti"), SubResource("link_horizon_spica"), SubResource("link_jenner_spica"), SubResource("link_mcmurdo_vega"), SubResource("link_fire_vega"), SubResource("link_merrynne_tau_ceti"), SubResource("link_ngc_1170_spica"), SubResource("link_epsilon_eridani_spica"), SubResource("link_epsilon_eridani_vega"), SubResource("link_epsilon_eridani_vemap"), SubResource("link_epsilon_eridani_sol"), SubResource("link_obatta_vega"), SubResource("link_spc_050_tichel"), SubResource("link_spc_050_unin"), SubResource("link_spc_050_wittor"), SubResource("link_gateway_neirt"), SubResource("link_gateway_spica"), SubResource("link_heraan_cov_vemap")])
 fuel_per_unit = 0.1

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/gas_giant_green.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"circe"
+display_name = "Circe"
+planet_type = ExtResource("2")
+population = 0
+dockable = false
+size = 761.0

@@ -219,7 +219,7 @@ Example: add **Venus** to the Sol system.
 |-------|---------|-------|
 | `planet_type` | `resources/planet_types/terrestrial.tres` | **Required.** Chooses the sprite |
 | `display_name` | `Venus` | **Required** |
-| `faction_name` | `TestFaction_1` | free text for now |
+| `faction` | `resources/factions/federation.tres` | A **Faction** resource (see `resources/factions/`); empty = nobody owns it |
 | `population` | `250000` | |
 | `exported_goods` | `[electronics.tres]` | `Commodity` resources; must not overlap imports |
 | `imported_goods` | `[fuel.tres]` | |
@@ -244,7 +244,7 @@ Or write the file by hand, following the existing format:
 script = ExtResource("1")
 planet_type = ExtResource("2")
 display_name = "Venus"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 250000
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])

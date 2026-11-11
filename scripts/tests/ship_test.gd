@@ -145,11 +145,11 @@ func _init() -> void:
 	for id in [&"federation_frigate", &"federation_cruiser", &"federation_capital_ship"]:
 		var model := registry.ship_stats(id)
 		_check(model != null and model.validate().is_empty(), "%s exists and validates" % id)
-		_check(model.faction_name == "TestFaction_1", "%s belongs to the Federation" % id)
+		_check(model.faction_id() == &"faction_1", "%s belongs to the Federation" % id)
 		var type: ShipType = load("res://resources/ship_types/%s.tres" % str(id).trim_prefix(""))
 		_check(type.category == ShipType.Category.MILITARY and type.validate().is_empty(), "%s is a military ship type" % id)
 	for id in [&"bulk_freighter", &"light_frigate"]:
-		_check(registry.ship_stats(id) != null and registry.ship_stats(id).validate().is_empty() and registry.ship_stats(id).faction_name == "", "%s exists, validates and has no faction" % id)
+		_check(registry.ship_stats(id) != null and registry.ship_stats(id).validate().is_empty() and registry.ship_stats(id).faction == null, "%s exists, validates and has no faction" % id)
 	var in_traffic := {}
 	for type in (load("res://resources/traffic/default_traffic.tres") as TrafficConfig).ship_types:
 		in_traffic[type.stats.id] = type
@@ -167,15 +167,18 @@ func _init() -> void:
 	for system_id in galaxy.get_system_ids():
 		for location_id in galaxy.get_summary(system_id).location_ids:
 			for model in registry.location(location_id).shipyard_ships:
-				if model.faction_name != "":
+				if model.faction != null:
 					sold_anywhere = true
 	_check(not sold_anywhere, "no shipyard lists a Federation ship")
 
 	var federation_yard := InhabitedData.new()
-	federation_yard.faction_name = "TestFaction_1"
+	federation_yard.faction = registry.faction(&"faction_1")
 	federation_yard.shipyard_ships = [shuttle, frigate]
 	var other_yard := InhabitedData.new()
-	other_yard.faction_name = "SomeoneElse"
+	var someone_else := Faction.new()
+	someone_else.id = &"faction_2"
+	someone_else.display_name = "Someone Else"
+	other_yard.faction = someone_else
 	other_yard.shipyard_ships = [shuttle, frigate]
 	player.credits = 5000000
 	here[0] = other_yard

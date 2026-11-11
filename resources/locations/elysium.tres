@@ -12,12 +12,13 @@
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"elysium"
 display_name = "Elysium"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 7800000
 planet_type = ExtResource("2")
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])

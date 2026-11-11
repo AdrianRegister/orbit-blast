@@ -41,9 +41,9 @@ func _init() -> void:
 	_check(view.get_marker_position(&"epsilon_eridani").x > view.get_marker_position(&"barnards_star").x, "the layout is the configured geography")
 
 	# --- Selecting by clicking.
-	_click(view, view.get_marker_position(&"sirius"))
-	_check(map.get_selected_id() == &"sirius", "clicking a marker selects it")
-	_check(map.get_node("%NameLabel").text == "SIRIUS" and map.get_node("%StatusLabel").text == "UNEXPLORED", "the panel names it and says unexplored")
+	_click(view, view.get_marker_position(&"tau_ceti"))
+	_check(map.get_selected_id() == &"tau_ceti", "clicking a marker selects it")
+	_check(map.get_node("%NameLabel").text == "TAU CETI" and map.get_node("%StatusLabel").text == "UNEXPLORED", "the panel names it and says unexplored")
 	var rows := _row_text(map)
 	_check("Unknown" in rows and "Direct jump from Sol" in rows, "unexplored details are hidden, the route is shown (%s)" % rows.replace("\n", " | "))
 	_check("fuel" in rows and "LINKS TO" in rows and "Sol" in rows, "cost and destinations are shown")
@@ -133,7 +133,7 @@ func _init() -> void:
 	_press("galaxy_map")
 	await process_frame
 	_check(map.visible, "the map opens while docked")
-	_click(view, view.get_marker_position(&"sirius"))
+	_click(view, view.get_marker_position(&"tau_ceti"))
 	_check(not jump.disabled, "docked: a destination can still be chosen")
 	_press("galaxy_map")
 	await process_frame
@@ -148,25 +148,25 @@ func _init() -> void:
 	await process_frame
 	_click(view, view.get_marker_position(&"barnards_star"))
 	_check(jump.disabled, "an unlinked system cannot be chosen")
-	_click(view, view.get_marker_position(&"sirius"))
+	_click(view, view.get_marker_position(&"tau_ceti"))
 	jump.pressed.emit()
 	await process_frame
 	await process_frame
 	_check(not map.visible and not paused, "SELECT DESTINATION closes the map and resumes")
-	_check(travel.get_destination() == &"sirius" and main.get_system().system_id == &"sol", "Sirius is the destination; the ship is still in Sol")
+	_check(travel.get_destination() == &"tau_ceti" and main.get_system().system_id == &"sol", "Tau Ceti is the destination; the ship is still in Sol")
 	_press("jump")
 	await create_timer(2.6).timeout
-	_check(main.get_system().system_id == &"sirius" and travel.is_discovered(&"sirius"), "J takes the player to Sirius, which is discovered")
+	_check(main.get_system().system_id == &"tau_ceti" and travel.is_discovered(&"tau_ceti"), "J takes the player to Tau Ceti, which is discovered")
 	_check(travel.get_destination() == &"", "the destination is cleared on arrival")
 
-	# --- The map now shows Sirius as current and Sirius as discovered.
+	# --- The map now shows Tau Ceti as current and Tau Ceti as discovered.
 	_press("galaxy_map")
 	await process_frame
-	_check(view.get_marker_position(&"sirius").distance_to(view.size * 0.5) < 1.0 and map.get_selected_id() == &"sirius", "the map re-opens centred on Sirius")
-	_click(view, view.get_marker_position(&"tau_ceti"))
-	_check("Direct jump from Sirius" in _row_text(map), "reachability follows the current system")
+	_check(view.get_marker_position(&"tau_ceti").distance_to(view.size * 0.5) < 1.0 and map.get_selected_id() == &"tau_ceti", "the map re-opens centred on Tau Ceti")
 	_click(view, view.get_marker_position(&"sol"))
-	_check(map.get_node("%StatusLabel").text == "DISCOVERED" and "TestFaction_1" in _row_text(map), "Sol shows as discovered, with its faction and details")
+	_check("Direct jump from Tau Ceti" in _row_text(map), "reachability follows the current system")
+	_click(view, view.get_marker_position(&"sol"))
+	_check(map.get_node("%StatusLabel").text == "DISCOVERED" and "Federation" in _row_text(map), "Sol shows as discovered, with its faction and details")
 
 	print("")
 	print("GALAXY MAP SMOKE TEST: ", "all passed" if _failures == 0 else "%d FAILED" % _failures)

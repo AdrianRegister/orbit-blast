@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MarketData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/market_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/market_listing.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+
+[sub_resource type="Resource" id="listing_0"]
+script = ExtResource("2")
+commodity = ExtResource("c_water")
+base_stock = 135
+
+[sub_resource type="Resource" id="listing_1"]
+script = ExtResource("2")
+commodity = ExtResource("c_food")
+base_stock = 135
+
+[sub_resource type="Resource" id="listing_2"]
+script = ExtResource("2")
+commodity = ExtResource("c_electronics")
+base_stock = 67
+
+[resource]
+script = ExtResource("1")
+listings = Array[ExtResource("2")]([SubResource("listing_0"), SubResource("listing_1"), SubResource("listing_2")])

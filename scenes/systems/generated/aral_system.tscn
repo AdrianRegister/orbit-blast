@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/dido_gate.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/belenus_platform.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/harmony.tres" id="loc_2"]
+
+[node name="AralSystem" instance=ExtResource("1")]
+system_id = &"aral"
+system_name = "Aral"
+
+[node name="DidoGate" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(833, 134)
+data = ExtResource("loc_0")
+
+[node name="BelenusPlatform" parent="Objects" index="1" instance=ExtResource("3")]
+position = Vector2(-592, 1333)
+data = ExtResource("loc_1")
+
+[node name="Harmony" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(-397, -1027)
+data = ExtResource("loc_2")

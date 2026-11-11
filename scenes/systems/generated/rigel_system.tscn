@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/ephesus.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/forseti_station.tres" id="loc_1"]
+
+[node name="RigelSystem" instance=ExtResource("1")]
+system_id = &"rigel"
+system_name = "Rigel"
+
+[node name="Ephesus" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-1011, 243)
+data = ExtResource("loc_0")
+
+[node name="ForsetiStation" parent="Objects" index="1" instance=ExtResource("3")]
+position = Vector2(1222, -816)
+data = ExtResource("loc_1")

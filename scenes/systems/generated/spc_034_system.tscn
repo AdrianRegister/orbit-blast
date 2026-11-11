@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/selene.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/delphi.tres" id="loc_1"]
+
+[node name="SPC034System" instance=ExtResource("1")]
+system_id = &"spc_034"
+system_name = "SPC-034"
+
+[node name="Selene" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-967, 500)
+data = ExtResource("loc_0")
+
+[node name="Delphi" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(1281, -175)
+data = ExtResource("loc_1")

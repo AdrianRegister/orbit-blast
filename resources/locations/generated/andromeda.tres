@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/terrestrial.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
+[ext_resource type="Resource" path="res://resources/markets/generated/andromeda_market.tres" id="market"]
+
+[resource]
+script = ExtResource("1")
+id = &"andromeda"
+display_name = "Andromeda"
+planet_type = ExtResource("2")
+faction = ExtResource("faction_1")
+population = 3277300
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_fuel"), ExtResource("c_food")])
+size = 440.0
+market = ExtResource("market")

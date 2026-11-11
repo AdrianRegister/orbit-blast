@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/desert.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/markets/generated/aurora_market.tres" id="market"]
+
+[resource]
+script = ExtResource("1")
+id = &"aurora"
+display_name = "Aurora"
+planet_type = ExtResource("2")
+faction = ExtResource("faction_1")
+population = 969100
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])
+size = 334.0
+market = ExtResource("market")

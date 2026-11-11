@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/cygnus.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/victoria_gate.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/hephaestus.tres" id="loc_2"]
+
+[node name="SPC050System" instance=ExtResource("1")]
+system_id = &"spc_050"
+system_name = "SPC-050"
+
+[node name="Cygnus" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-452, 548)
+data = ExtResource("loc_0")
+
+[node name="VictoriaGate" parent="Objects" index="1" instance=ExtResource("3")]
+position = Vector2(-201, -1033)
+data = ExtResource("loc_1")
+
+[node name="Hephaestus" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(1415, 409)
+data = ExtResource("loc_2")

@@ -19,6 +19,9 @@ func _init() -> void:
 	var quiet := await _run(0.25, bearings)
 	var none := await _run(0.0, bearings)
 	var isolated := await _run(1.0, no_bearings)
+	var one_dock := await _run(1.0, bearings, "res://scenes/systems/tau_ceti_system.tscn")  # a single place to land
+	var no_dock := await _run(1.0, bearings, "res://scenes/systems/wolf_359_system.tscn")  # nowhere to land
+	var lonely := await _run(1.0, no_bearings, "res://scenes/systems/tau_ceti_system.tscn")  # one place and no links
 
 	print("INFO  traffic_rate 1.0:  %d arrivals, %d departures, peak %d ships (cap %d)" % [busy["arrivals"], busy["warps"], busy["peak"], busy["cap"]])
 	print("INFO  traffic_rate 0.25: %d arrivals, %d departures, peak %d ships (cap %d)" % [quiet["arrivals"], quiet["warps"], quiet["peak"], quiet["cap"]])
@@ -44,14 +47,24 @@ func _init() -> void:
 	_check(isolated["arrivals"] == 0 and isolated["warps"] == 0, "a system with no links has no jumping traffic")
 	_check(isolated["peak"] > 0 and isolated["end"] > 0, "...but its residents still fly between its locations (%d now)" % isolated["end"])
 
+	# --- Fewer than two places to land does not mean no traffic: ships still come and go.
+	print("INFO  one dock: %d arrivals, %d departures; no dock: %d arrivals, %d departures" % [one_dock["arrivals"], one_dock["warps"], no_dock["arrivals"], no_dock["warps"]])
+	_check(one_dock["arrivals"] >= 10 and one_dock["warps"] >= 8, "a system with one place to land still has ships arriving (%d) and leaving (%d)" % [one_dock["arrivals"], one_dock["warps"]])
+	_check(one_dock["bad_arrivals"] == 0 and one_dock["early_warps"] == 0 and one_dock["vanished"] == 0, "...arriving at the edge along a link, jumping out only beyond the jump radius, never vanishing")
+	_check(one_dock["docked"] > 0, "...and they visit the one place to land")
+	_check(no_dock["arrivals"] >= 10 and no_dock["warps"] >= 8, "a system with nowhere to land has ships passing through: %d arrivals, %d departures" % [no_dock["arrivals"], no_dock["warps"]])
+	_check(no_dock["bad_arrivals"] == 0 and no_dock["early_warps"] == 0 and no_dock["vanished"] == 0 and no_dock["docked"] == 0, "...which obey the same rules and never dock")
+	_check(no_dock["peak"] <= no_dock["cap"] and one_dock["peak"] <= one_dock["cap"], "the cap is respected in both")
+	_check(lonely["arrivals"] == 0 and lonely["ever"] == 0, "with one place to land and no links there is still no traffic")
+
 	print("")
 	print("TRAFFIC FLOW TESTS: ", "all passed" if _failures == 0 else "%d FAILED" % _failures)
 	quit(1 if _failures > 0 else 0)
 
 
 ## Runs one system for SECONDS and reports what happened.
-func _run(rate: float, bearings: Array[Vector2]) -> Dictionary:
-	var system: StarSystem = load("res://scenes/systems/sol_system.tscn").instantiate()
+func _run(rate: float, bearings: Array[Vector2], scene: String = "res://scenes/systems/sol_system.tscn") -> Dictionary:
+	var system: StarSystem = load(scene).instantiate()
 	system.traffic_rate = rate
 	root.add_child(system)
 	var player := Node2D.new()
@@ -62,7 +75,7 @@ func _run(rate: float, bearings: Array[Vector2]) -> Dictionary:
 	system.start_traffic(player)
 	var traffic: TrafficManager = system.get_node("Traffic")
 	var report := {"arrivals": 0, "warps": 0, "peak": 0, "cap": traffic.get_max_ships(), "bad_arrivals": 0, "early_warps": 0,
-			"vanished": 0, "targetable_warps": 0, "arrival_speeds_ok": true, "departures_visited": false, "ever": 0, "end": 0}
+			"vanished": 0, "docked": 0, "targetable_warps": 0, "arrival_speeds_ok": true, "departures_visited": false, "ever": 0, "end": 0}
 	var seen := {}
 	var visited := {}
 	for step in int(SECONDS / STEP):
@@ -89,6 +102,8 @@ func _run(rate: float, bearings: Array[Vector2]) -> Dictionary:
 			ship._physics_process(STEP)
 			if before == NpcShip.State.DOCKED:
 				visited[ship] = true
+			if ship.state == NpcShip.State.DOCKED and before != NpcShip.State.DOCKED:
+				report["docked"] += 1
 			if before != NpcShip.State.WARPING and ship.state == NpcShip.State.WARPING:
 				report["warps"] += 1
 				if visited.has(ship) or true:

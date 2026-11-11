@@ -6,12 +6,13 @@
 [ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
 [ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
 [ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"minos"
 display_name = "Minos"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 12000
 planet_type = ExtResource("2")
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])

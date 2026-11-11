@@ -6,12 +6,13 @@
 [ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
 [ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
 [ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"daedalus"
 display_name = "Daedalus"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 90000
 planet_type = ExtResource("2")
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_food")])

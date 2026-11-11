@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/sleipnir.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/thetis.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/erato.tres" id="loc_2"]
+
+[node name="HeraanCovSystem" instance=ExtResource("1")]
+system_id = &"heraan_cov"
+system_name = "Heraan Cov"
+
+[node name="Sleipnir" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(16, 1475)
+data = ExtResource("loc_0")
+
+[node name="Thetis" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-716, -374)
+data = ExtResource("loc_1")
+
+[node name="Erato" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(635, -329)
+data = ExtResource("loc_2")

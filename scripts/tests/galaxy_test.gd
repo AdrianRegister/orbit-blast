@@ -19,27 +19,43 @@ func _init() -> void:
 	_check(sol.has_shipyard and sol.has_outfitter, "services are summarised")
 	_check(real.get_summary(&"nonsense") == null and not real.has_system(&"nonsense"), "unknown systems give nothing")
 
-	# The real network: Sol with three neighbours, each with one more system.
+	# The real network comes from the galaxy table (data/galaxy/galaxy_map.json).
+	var table: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/galaxy/galaxy_map.json"))
+	var table_links := 0
+	for row in table["systems"]:
+		table_links += row["links"].size()
+	table_links /= 2
 	var ids := real.get_system_ids()
-	_check(ids.size() == 8, "the galaxy has Sol, six more systems and Wolf 359 (%d)" % ids.size())
-	_check(real.get_neighbours(&"sol").size() == 3, "Sol has three connections")
-	var outer := 0
-	for neighbour in real.get_neighbours(&"sol"):
-		var onward := real.get_neighbours(neighbour).filter(func(id: StringName) -> bool: return id != &"sol")
-		_check(onward.size() == 1, "%s leads on to exactly one further system" % neighbour)
-		outer += onward.size()
-	_check(outer == 3 and real.links.size() == 7, "seven links make up the network")
-	_check(real.get_neighbours(&"wolf_359") == [&"barnards_star"], "Wolf 359 is one jump out from Barnard's Star, and a dead end")
+	_check(ids.size() == table["systems"].size() and ids.size() >= 90, "the galaxy has every system in the table (%d)" % ids.size())
+	_check(real.links.size() == table_links, "and every link (%d)" % real.links.size())
+	_check(real.get_neighbours(&"sol").size() >= 3, "Sol has several connections (%d)" % real.get_neighbours(&"sol").size())
+	var sol_row: Dictionary = {}
+	for row in table["systems"]:
+		if row["id"] == "sol":
+			sol_row = row
+	var table_neighbours: Array[StringName] = []
+	for other in sol_row["links"]:
+		table_neighbours.append(StringName(other))
+	var neighbours := real.get_neighbours(&"sol")
+	neighbours.sort()
+	table_neighbours.sort()
+	_check(neighbours == table_neighbours, "Sol's neighbours are the table's")
+	_check(real.get_neighbours(&"wolf_359") == [&"gefjon"], "Wolf 359 is a dead end off Gefjon, as on the EV Nova map")
 	_check(real.is_start_discovered(&"sol") and not real.is_start_discovered(&"sirius"), "only Sol starts discovered")
 	_check(real.is_inhabited(&"sol") and real.is_inhabited(&"sirius"), "inhabited systems are recognised")
 	_check(not real.is_inhabited(&"wolf_359") and not real.is_inhabited(&"nonsense"), "Wolf 359 is uninhabited (derived from its locations)")
-	var route := real.find_route(&"sol", &"wolf_359")
-	_check(route == [&"sol", &"alpha_centauri", &"barnards_star", &"wolf_359"], "route Sol to Wolf 359: %s" % [route])
-	_check(real.find_route(&"epsilon_eridani", &"barnards_star").size() == 5, "Epsilon Eridani to Barnard's Star is four jumps")
+	var route := real.find_route(&"sol", &"barnards_star")
+	_check(route.size() >= 2 and route[0] == &"sol" and route[route.size() - 1] == &"barnards_star", "there is a route from Sol to Barnard's Star: %s" % [route])
+	var far := real.find_route(&"epsilon_eridani", &"barnards_star")
+	_check(far.size() >= 3 and real.get_route_cost(far) > 0, "Alphard to Barnard's Star takes several jumps (%d)" % (far.size() - 1))
 	_check(real.find_route(&"sol", &"sol") == [&"sol"] and real.get_route_cost([&"sol"] as Array[StringName]) == 0, "a route to the same system is just that system")
-	var direct := real.get_jump_cost(&"sol", &"alpha_centauri")
-	_check(real.get_route_cost(real.find_route(&"sol", &"alpha_centauri")) == direct, "route cost of one jump is that jump's cost")
-	_check(real.get_route_cost(route) == real.get_jump_cost(&"sol", &"alpha_centauri") + real.get_jump_cost(&"alpha_centauri", &"barnards_star") + real.get_jump_cost(&"barnards_star", &"wolf_359"), "route cost adds up the jumps")
+	var next_to_sol: StringName = real.get_neighbours(&"sol")[0]
+	var direct := real.get_jump_cost(&"sol", next_to_sol)
+	_check(real.get_route_cost(real.find_route(&"sol", next_to_sol)) == direct, "route cost of one jump is that jump's cost")
+	var added := 0
+	for i in range(1, route.size()):
+		added += real.get_jump_cost(route[i - 1], route[i])
+	_check(real.get_route_cost(route) == added, "route cost adds up the jumps")
 	_check(real.find_route(&"sol", &"andromeda").is_empty(), "no route to an unknown system")
 	var all_locations := {}
 	for id in ids:

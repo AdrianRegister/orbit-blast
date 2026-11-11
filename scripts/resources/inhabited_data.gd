@@ -4,7 +4,7 @@ extends TargetDetails
 ## Lives in a .tres file under resources/locations/ and is assigned to an
 ## InhabitedNode instance. Position is not stored here: it belongs to the
 ## star system the location is placed in.
-## Faction is a plain string until factions exist. Goods are Commodity resources.
+## Goods are Commodity resources. The faction is a Faction resource.
 
 ## Permanent unique id, e.g. &"earth". Save files and contracts refer to the
 ## location by this id, so it must never change once saves exist.
@@ -16,9 +16,10 @@ extends TargetDetails
 		display_name = value
 		emit_changed()
 
-@export var faction_name: String = "":
+## Who owns this location. Null = nobody.
+@export var faction: Faction:
 	set(value):
-		faction_name = value
+		faction = value
 		emit_changed()
 
 @export var population: int = 0:
@@ -69,9 +70,19 @@ func is_dockable() -> bool:
 	return true
 
 
+## The owning faction's display name, or "" if nobody owns the location.
+func get_faction_name() -> String:
+	return faction.display_name if faction != null else ""
+
+
+## The owning faction's id, or &"" if nobody owns the location.
+func faction_id() -> StringName:
+	return faction.id if faction != null else &""
+
+
 func get_rows() -> Array:
 	return [
-		["OWNED BY", faction_name],
+		["OWNED BY", get_faction_name()],
 		["POPULATION", _format_number(population)],
 		["EXPORTS", _join_goods(exported_goods)],
 		["IMPORTS", _join_goods(imported_goods)],

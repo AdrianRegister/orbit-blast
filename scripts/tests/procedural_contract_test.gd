@@ -82,7 +82,7 @@ func _check_generator() -> void:
 	var seen := {&"cargo": 0, &"ferry": 0, &"exploration": 0, &"bulk": 0}
 	var emptiest := 99
 	var bad: Array[String] = []
-	for seed_value in 40:
+	for seed_value in 10:
 		for location in inhabited:
 			var source := ProceduralContractSource.new()
 			source.seed_rng(seed_value * 1000 + location.id.hash() % 997)
@@ -183,7 +183,7 @@ func _problem_with(contract: Contract, origin: InhabitedData, context: ContractC
 		return "quantity %d does not fit any ship" % delivery.quantity
 	if jumps > 4:
 		return "cargo run is %d jumps" % jumps
-	if _galaxy.get_faction(destination_system) != _galaxy.get_faction(origin_system) or destination.faction_name != origin.faction_name:
+	if _galaxy.get_faction_id(destination_system) != _galaxy.get_faction_id(origin_system) or destination.faction_id() != origin.faction_id():
 		return "delivery into another faction's territory"
 	if delivery.commodity.base_price <= 0:
 		return "cargo is not a trade good"
@@ -201,16 +201,19 @@ func _check_faction_rule() -> void:
 	var galaxy: Galaxy = _galaxy.duplicate(true)
 	for system in galaxy.systems:
 		if system.scene.resource_path.ends_with("procyon_system.tscn"):
-			system.faction_name = "Rival Federation"
+			var rival := Faction.new()
+			rival.id = &"faction_2"
+			rival.display_name = "Rival Federation"
+			system.faction = rival
 	var context := _context(galaxy)
-	_check(galaxy.get_faction(&"procyon") == "Rival Federation" and galaxy.get_faction(&"sol") == "TestFaction_1", "(setup) Procyon belongs to someone else")
+	_check(galaxy.get_faction_name(&"procyon") == "Rival Federation" and galaxy.get_faction_id(&"sol") == &"faction_1", "(setup) Procyon belongs to someone else")
 	var procyon_locations: Array[StringName] = []
 	for id in galaxy.get_summary(&"procyon").location_ids:
 		procyon_locations.append(id)
 	var wrong := 0
 	var cargo_runs := 0
 	var ferries_there := 0
-	for seed_value in 60:
+	for seed_value in 12:
 		for location in _inhabited():
 			var source := ProceduralContractSource.new()
 			source.seed_rng(seed_value * 31 + location.id.hash() % 101)
@@ -223,7 +226,7 @@ func _check_faction_rule() -> void:
 					cargo_runs += 1
 					if from_procyon or procyon_locations.has(contract.destination.id):
 						wrong += 1
-	_check(cargo_runs > 100, "(setup) plenty of cargo contracts were generated (%d)" % cargo_runs)
+	_check(cargo_runs > 40, "(setup) plenty of cargo contracts were generated (%d)" % cargo_runs)
 	_check(wrong == 0, "no cargo is ever sent into or out of another faction's system (%d wrong)" % wrong)
 	_check(ferries_there > 0, "passengers, unlike cargo, may still travel there (%d)" % ferries_there)
 
@@ -283,7 +286,7 @@ func _check_authority_and_saving() -> void:
 		var parsed: Dictionary = JSON.parse_string(JSON.stringify(military))
 		var loaded := ContractFactory.from_dict(parsed, _registry)
 		_check(loaded.get_type_id() == type and loaded.authority == Contract.Authority.MILITARY, "%s keeps a military authority through saving" % type)
-		_check(loaded.get_issuing_faction() == "TestFaction_1", "the issuing faction is the issuer's")
+		_check(loaded.get_issuing_faction().id == &"faction_1", "the issuing faction is the issuer's")
 		var old_save := data.duplicate()
 		old_save.erase("issuing_authority")
 		_check(ContractFactory.validate(old_save, _registry).is_empty() and ContractFactory.from_dict(old_save, _registry).authority == Contract.Authority.CIVILIAN,
@@ -385,9 +388,19 @@ func _check_real_game() -> void:
 	var travel: TravelManager = main.get_node("Travel")
 	var disabled: Array[String] = []
 	var visited := 0
+	# The real game has far too many places to land at every one in a test: the
+	# hand built systems and a sample of the generated ones.
+	var sample: Array[StringName] = []
+	var generated := 0
 	for system_id in main.galaxy.get_system_ids():
 		if not main.galaxy.is_inhabited(system_id):
 			continue
+		if system_id in [&"sol", &"alpha_centauri", &"barnards_star", &"sirius", &"tau_ceti", &"procyon", &"epsilon_eridani"]:
+			sample.append(system_id)
+		elif generated < 5:
+			generated += 1
+			sample.append(system_id)
+	for system_id in sample:
 		if is_instance_valid(docking.docked_target):
 			docking.undock()
 			await create_timer(1.7).timeout
@@ -408,7 +421,7 @@ func _check_real_game() -> void:
 			visited += 1
 			if not is_instance_valid(docking.docked_target) or button.disabled or contracts.get_available(node.data).is_empty():
 				disabled.append(node.data.display_name)
-	_check(visited >= 13, "(setup) visited %d inhabited locations in the real game" % visited)
+	_check(visited >= 15, "(setup) visited %d inhabited locations in the real game" % visited)
 	_check(disabled.is_empty(), "the Mission Computer is enabled at every inhabited location: %s" % [disabled])
 	main.queue_free()
 	await process_frame

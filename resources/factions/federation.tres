@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Faction" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"faction_1"
+display_name = "Federation"
+colour = Color(0.35, 0.55, 1, 1)
+description = "The core government of the known galaxy."

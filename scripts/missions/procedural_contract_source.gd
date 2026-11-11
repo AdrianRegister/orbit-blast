@@ -88,8 +88,8 @@ func _make(type: StringName, location: InhabitedData, context: ContractContext) 
 
 func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 	var origin_system := context.system_of(origin)
-	var faction := context.galaxy.get_faction(origin_system)
-	if faction.is_empty() or origin.faction_name != faction:
+	var faction := context.galaxy.get_faction_id(origin_system)
+	if faction == &"" or origin.faction_id() != faction:
 		return null  # unowned places do not send cargo anywhere
 	var bulk := _rng.randf() < rules.bulk_chance
 	var commodity := _pick_commodity(origin, context, bulk)
@@ -105,14 +105,8 @@ func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 	# Same-faction places only, so nobody is sent into someone else's territory.
 	var options: Array = []
 	var weights: Array[float] = []
-	for place in context.registry.locations():
-		if place == origin or not is_inhabited(place):
-			continue
-		var system := context.system_of(place)
-		if system == &"" or context.galaxy.get_faction(system) != faction or place.faction_name != faction:
-			continue
-		var distance := _jumps(context, origin_system, system)
-		if distance.x < 0 or distance.x > rules.cargo_max_jumps:
+	for place in _places_within(origin, context, rules.cargo_max_jumps):
+		if context.galaxy.get_faction_id(context.system_of(place)) != faction or place.faction_id() != faction:
 			continue
 		options.append(place)
 		weights.append(rules.importer_weight if _imports(place, commodity) else 1.0)
@@ -120,6 +114,8 @@ func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 	if destination == null:
 		return null
 	var journey := _jumps(context, origin_system, context.system_of(destination))
+	if journey.x < 0 or journey.x > rules.cargo_max_jumps:
+		return null  # the cheapest route is longer than the limit
 	var contract := CargoDeliveryContract.new()
 	contract.origin = origin
 	contract.destination = destination
@@ -166,21 +162,13 @@ func _make_ferry(origin: InhabitedData, context: ContractContext) -> Contract:
 	if passengers_good == null:
 		return null
 	var origin_system := context.system_of(origin)
-	var options: Array = []
-	for place in context.registry.locations():
-		if place == origin or not is_inhabited(place):
-			continue
-		var system := context.system_of(place)
-		if system == &"":
-			continue
-		var distance := _jumps(context, origin_system, system)
-		if distance.x < 0 or distance.x > rules.ferry_max_jumps:
-			continue
-		options.append(place)
+	var options := _places_within(origin, context, rules.ferry_max_jumps)
 	if options.is_empty():
 		return null
 	var destination: InhabitedData = options[_rng.randi_range(0, options.size() - 1)]
 	var journey := _jumps(context, origin_system, context.system_of(destination))
+	if journey.x < 0 or journey.x > rules.ferry_max_jumps:
+		return null
 	var contract := FerryContract.new()
 	contract.origin = origin
 	contract.destination = destination
@@ -199,20 +187,19 @@ func _make_ferry(origin: InhabitedData, context: ContractContext) -> Contract:
 func _make_exploration(origin: InhabitedData, context: ContractContext) -> Contract:
 	var origin_system := context.system_of(origin)
 	var options: Array[StringName] = []
-	for system in context.galaxy.get_system_ids():
+	for system in _systems_within(origin_system, context, rules.exploration_max_jumps):
 		var summary := context.galaxy.get_summary(system)
 		if summary == null or summary.inhabited or summary.location_ids.is_empty() or system == origin_system:
 			continue
 		if context.travel != null and context.travel.is_scouted(system):
-			continue
-		var distance := _jumps(context, origin_system, system)
-		if distance.x < 0 or distance.x > rules.exploration_max_jumps:
 			continue
 		options.append(system)
 	if options.is_empty():
 		return null
 	var target: StringName = options[_rng.randi_range(0, options.size() - 1)]
 	var journey := _jumps(context, origin_system, target)
+	if journey.x < 0 or journey.x > rules.exploration_max_jumps:
+		return null
 	var contract := ExplorationContract.new()
 	contract.origin = origin
 	contract.target_system = target
@@ -224,6 +211,29 @@ func _make_exploration(origin: InhabitedData, context: ContractContext) -> Contr
 
 
 # ----------------------------------------------------------------- helpers
+
+## The systems within `max_jumps` jumps of a system (itself included), sorted by
+## id so everything built from them is reproducible. One breadth-first search.
+func _systems_within(origin_system: StringName, context: ContractContext, max_jumps: int) -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(context.galaxy.get_reachable(origin_system, max_jumps).keys())
+	ids.sort()
+	return ids
+
+
+## Inhabited places, other than the origin, in systems within `max_jumps` jumps.
+func _places_within(origin: InhabitedData, context: ContractContext, max_jumps: int) -> Array:
+	var places: Array = []
+	for system in _systems_within(context.system_of(origin), context, max_jumps):
+		var summary := context.galaxy.get_summary(system)
+		if summary == null:
+			continue
+		for location_id in summary.location_ids:
+			var place := context.registry.location(location_id)
+			if place != null and place != origin and is_inhabited(place):
+				places.append(place)
+	return places
+
 
 ## (jumps, fuel) between two systems; (0, 0) within one system, (-1, -1) if
 ## there is no route.

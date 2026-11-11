@@ -35,9 +35,9 @@ func _init() -> void:
 
 	# --- Choosing a destination.
 	_check(not travel.set_destination(&"barnards_star"), "a system with no direct link cannot be the destination")
-	_check(travel.set_destination(&"sirius") and travel.get_destination() == &"sirius", "a linked system can")
+	_check(travel.set_destination(&"tau_ceti") and travel.get_destination() == &"tau_ceti", "a linked system can")
 	await process_frame
-	_check(hud.get_node("%NavDestinationLabel").text == "Selected destination: Sirius", "the HUD shows: %s" % hud.get_node("%NavDestinationLabel").text)
+	_check(hud.get_node("%NavDestinationLabel").text == "Selected destination: Tau Ceti", "the HUD shows: %s" % hud.get_node("%NavDestinationLabel").text)
 	_check(hud.get_node("%NavStatusLabel").text == "TOO CLOSE TO CENTRE", "in the middle of Sol it says too close: %s" % hud.get_node("%NavStatusLabel").text)
 	_check(not main.try_jump().ok and not ship.warping, "J refuses while too close")
 	_check("centre" in hud.get_node("%NavMessageLabel").text, "...with the reason: %s" % hud.get_node("%NavMessageLabel").text)
@@ -75,7 +75,7 @@ func _init() -> void:
 	await create_timer(0.7).timeout
 	_check(flash.visible or main.get_system() != old_system, "at two seconds the screen flashes")
 	await create_timer(0.7).timeout
-	_check(main.get_system().system_id == &"sirius", "the player has arrived in Sirius")
+	_check(main.get_system().system_id == &"tau_ceti", "the player has arrived in Tau Ceti")
 	_check(not ship.warping and ship.velocity.length() <= Main.ARRIVAL_SPEED + 1.0, "warp ended; the ship drifts in slowly (%d px/s)" % ship.velocity.length())
 	_check(absf(ship.global_position.length() - main.get_system().jump_radius) < 150.0, "on the edge of the system")
 	_check(ship.global_position.x < -1800.0 and absf(ship.global_position.y) < 300.0 and absf(ship.rotation) < 0.01, "pointing right, the ship came in from the left and still points right")
@@ -86,10 +86,10 @@ func _init() -> void:
 	_check(not flash.visible, "the flash has faded away")
 
 	# --- Docked: J gives the reason.
-	travel.set_destination(&"tau_ceti")
+	travel.set_destination(&"sanddown")
 	var aurelia_target: Targetable
 	for t in get_nodes_in_group(Targetable.GROUP):
-		if t.target_name == "Persephone":
+		if t.target_name == "Aurelia":
 			aurelia_target = t
 	ship.global_position = aurelia_target.global_position + Vector2(0, 100)
 	ship.velocity = Vector2.ZERO
@@ -102,9 +102,9 @@ func _init() -> void:
 	# --- The destination is saved and restored.
 	_check(saves.save_game(), "save with a destination chosen")
 	travel.clear_destination()
-	_check(main.load_game()["ok"] and travel.get_destination() == &"tau_ceti", "the destination is restored by loading")
+	_check(main.load_game()["ok"] and travel.get_destination() == &"sanddown", "the destination is restored by loading")
 	var document := saves.build_document()
-	document["galaxy"]["destination"] = "procyon"  # not linked to Sirius
+	document["galaxy"]["destination"] = "procyon"  # not linked to Tau Ceti
 	_write(PATH, JSON.stringify(document))
 	_check(main.load_game()["ok"] and travel.get_destination() == &"", "a saved destination that is not linked is dropped")
 	document["galaxy"]["destination"] = "andromeda"

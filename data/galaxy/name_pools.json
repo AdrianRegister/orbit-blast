@@ -1,0 +1,39 @@
+{
+	"comment": "Names for generated planets and stations, by region. A body takes the next unused name from its region's list (shuffled by system id), so every name is used once. Names must be unique across the whole galaxy and must not clash with hand-made locations.",
+	"federation_core": {
+		"planets": [
+			"Achelous", "Adonis", "Aegeus", "Aeolus", "Aether", "Agenor", "Ajax", "Alcmene", "Alcyone", "Amalthea",
+			"Amphion", "Anchises", "Andromeda", "Antaeus", "Antigone", "Apollo", "Arachne", "Ares", "Argus", "Ariadne",
+			"Artemis", "Asclepius", "Astraea", "Atalanta", "Athena", "Auriga", "Aurora", "Bacchus", "Bellona", "Boreas",
+			"Briseis", "Cadmus", "Calliope", "Callisto", "Calypso", "Cassandra", "Castor", "Ceres", "Charon", "Chiron",
+			"Circe", "Clio", "Clytemnestra", "Cronus", "Cybele", "Cyrene", "Danae", "Daphne", "Deimos", "Demeter",
+			"Diana", "Dido", "Dione", "Dryope", "Echo", "Electra", "Endymion", "Eos", "Epimetheus", "Erato",
+			"Eris", "Eros", "Europa", "Eurydice", "Evander", "Faunus", "Flora", "Fortuna", "Gaia", "Galatea",
+			"Ganymede", "Glaucus", "Hades", "Halcyon", "Harmonia", "Hebe", "Hector", "Helios", "Hephaestus", "Hercules",
+			"Hermes", "Hesperus", "Hestia", "Hippolyta", "Hyacinth", "Hyperion", "Iapetus", "Icarus", "Io", "Iris",
+			"Janus", "Jason", "Juno", "Jupiter", "Lachesis", "Laocoon", "Leda", "Lucina", "Maia", "Medea",
+			"Melpomene", "Memnon", "Mentor", "Mercury", "Midas", "Minerva", "Mnemosyne", "Morpheus", "Narcissa", "Nemesis",
+			"Neptune", "Nereus", "Nestor", "Nike", "Niobe", "Nyx", "Oceanus", "Odysseus", "Orion", "Orpheus",
+			"Pallas", "Pan", "Pandora", "Paris", "Pegasus", "Penelope", "Persephone Minor", "Perseus", "Phaedra", "Phoebe",
+			"Phoenix", "Pluto", "Polyhymnia", "Pomona", "Poseidon", "Priam", "Prometheus", "Proteus", "Psyche", "Pyrrha",
+			"Quirinus", "Rhea", "Romulus", "Salacia", "Saturn", "Selene", "Semele", "Silvanus", "Sisyphus", "Sol Invictus",
+			"Tethys", "Thalia", "Thanatos", "Thebe", "Theseus", "Thetis", "Titan", "Tithonus", "Triton", "Troilus",
+			"Ulysses", "Urania", "Uranus", "Vesta", "Victoria", "Vulcan", "Xanthe", "Zephyr", "Zeus", "Zethus",
+			"Aegir", "Baldur", "Bragi", "Eir", "Forseti", "Freya Minor", "Frigg", "Heimdall", "Idunn", "Kvasir",
+			"Loki", "Mimir", "Njord", "Odin", "Ran", "Sif", "Skadi", "Thor", "Tyr", "Ullr",
+			"Vali", "Vidar", "Yggdrasil", "Asgard", "Midgard", "Valhalla", "Bifrost", "Fenrir", "Jormungand", "Sleipnir",
+			"Brigid", "Cernunnos", "Danu", "Lugh", "Morrigan", "Nuada", "Rhiannon", "Taranis", "Epona", "Belenus",
+			"Avalon Minor", "Camelot", "Lyonesse", "Tintagel", "Arcadia", "Atlantis", "Thule", "Hyperborea", "Olympia", "Delphi",
+			"Corinth", "Sparta", "Thebes", "Mycenae", "Argos", "Ithaca", "Troy", "Knossos", "Rhodes", "Delos",
+			"Lesbos", "Naxos", "Paros", "Samos", "Chios", "Ephesus", "Miletus", "Halicarnassus", "Byzantium", "Carthage",
+			"Alexandria", "Antioch", "Palmyra", "Petra Minor", "Babylon", "Nineveh", "Ur", "Uruk", "Memphis", "Karnak",
+			"Luxor", "Giza", "Tarsus", "Pergamon", "Syracuse", "Ostia", "Capua", "Pompeii", "Ravenna", "Verona",
+			"Aquila", "Cygnus", "Draco", "Lyra", "Pavo", "Pyxis", "Vela Minor", "Volans", "Corvus", "Crux",
+			"Hydra", "Lacerta", "Lepus", "Lupus", "Musca", "Norma", "Octans", "Puppis", "Sagitta", "Serpens",
+			"Tucana", "Aries", "Libra", "Gemini", "Scorpius", "Cetus", "Eridanus", "Fornax", "Grus", "Indus",
+			"Argonaut", "Beacon", "Concord", "Covenant", "Endeavour", "Fidelity", "Haven", "Harmony", "Meridian", "Providence",
+			"Resolve", "Sanctuary", "Solace", "Temperance", "Vigil", "Wayfarer", "Horizon Minor", "Tranquility", "Serenity", "Unity"
+		],
+		"station_suffixes": ["Station", "Orbital", "Ring", "Platform", "Gate", "Port", "Anchorage", "Dock"]
+	}
+}

@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/solace.tres" id="loc_0"]
+
+[node name="HJG1034System" instance=ExtResource("1")]
+system_id = &"hjg_1034"
+system_name = "HJG-1034"
+
+[node name="Solace" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(62, 1053)
+data = ExtResource("loc_0")

@@ -23,6 +23,9 @@ const DRAG_THRESHOLD := 6.0
 const GRID_SPACING := 100.0
 ## How far past the outermost system the view may be panned, in map units.
 const PAN_MARGIN := 150.0
+## Names of systems the player knows nothing about are only drawn at least this
+## zoomed in (or when selected), so a big galaxy does not drown in labels.
+const UNEXPLORED_LABEL_ZOOM := 1.0
 
 const BACKGROUND := Color(0.02, 0.03, 0.06)
 const GRID := Color(0.1, 0.16, 0.24, 0.5)
@@ -241,6 +244,8 @@ func _draw_grid() -> void:
 
 func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 	var at := get_marker_position(id)
+	if not Rect2(Vector2(-80, -40), size + Vector2(160, 80)).has_point(at):
+		return  # off screen
 	var discovered := _travel.is_discovered(id)
 	var colour := get_system_colour(id)
 	if id == current:
@@ -262,8 +267,10 @@ func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 	var font := ThemeDB.fallback_font
 	var font_size := ThemeDB.fallback_font_size + 2
 	var label_colour := colour if (discovered or reachable or id == current) else colour.darkened(0.2)
-	draw_string(font, at + Vector2(MARKER_RADIUS + 12.0, 5.0), _galaxy.get_summary(id).system_name,
-			HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, label_colour)
+	var known := discovered or reachable or id == current or id == selected_id or id == _travel.get_destination() or not objectives.is_empty()
+	if known or zoom >= UNEXPLORED_LABEL_ZOOM:
+		draw_string(font, at + Vector2(MARKER_RADIUS + 12.0, 5.0), _galaxy.get_summary(id).system_name,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, label_colour)
 	if id == current:
 		draw_string(font, at + Vector2(MARKER_RADIUS + 12.0, 24.0), "YOU ARE HERE",
 				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size - 4, CURRENT)

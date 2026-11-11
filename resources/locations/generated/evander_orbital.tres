@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="InhabitedData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/medical_supplies.tres" id="c_medical_supplies"]
+[ext_resource type="Resource" path="res://resources/markets/generated/evander_orbital_market.tres" id="market"]
+
+[resource]
+script = ExtResource("1")
+id = &"evander_orbital"
+display_name = "Evander Orbital"
+faction = ExtResource("faction_1")
+population = 656800
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_water")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_medical_supplies")])
+size = 180.0
+market = ExtResource("market")

@@ -63,8 +63,14 @@ func start(system: StarSystem, player: Node2D) -> void:
 		for problem in problems:
 			push_error("%s traffic: %s" % [system.name, problem])
 		return
-	if _locations.size() < 2 or _rate <= 0.0:
-		return  # Ships need somewhere to go from and to, and a system can have no traffic.
+	if _rate <= 0.0:
+		return  # a system can have no traffic at all
+	# Ships come in from, and go out to, neighbouring systems whatever the system
+	# holds: they visit its locations if it has any and otherwise just pass through.
+	# A system with no links needs two places to land so its residents have
+	# somewhere to fly between.
+	if _exit_bearings.is_empty() and _locations.size() < 2:
+		return
 
 	_running = true
 	for i in roundi(get_max_ships() * config.initial_fill_fraction):
@@ -100,10 +106,13 @@ func _process(delta: float) -> void:
 	tick(delta)
 
 
-## A ship that already left a location and is on its way somewhere.
+## A ship that is already part way through its journey: between two locations,
+## on its way to the only location, or (with none) crossing the system.
 func _spawn_in_flight() -> bool:
 	if get_ship_count() >= get_max_ships():
 		return false
+	if _locations.size() < 2:
+		return _spawn_in_flight_alone()
 	for attempt in SPAWN_ATTEMPTS:
 		var origin: InhabitedNode = _locations.pick_random()
 		var destination: InhabitedNode = _random_other(origin)
@@ -114,6 +123,27 @@ func _spawn_in_flight() -> bool:
 			var type_speed: float = ship.ship_type.stats.max_speed
 			ship.velocity = (destination.global_position - position).normalized() * type_speed * 0.8
 			return true
+	return false
+
+
+## Initial traffic for a system with fewer than two locations (it has links).
+func _spawn_in_flight_alone() -> bool:
+	for attempt in SPAWN_ATTEMPTS:
+		var bearing: Vector2 = _exit_bearings.pick_random()
+		if _locations.is_empty():
+			var position: Vector2 = _system.global_position + bearing.rotated(randf_range(-0.6, 0.6)) * _system.jump_radius * randf_range(0.2, 0.9)
+			if _is_clear(position, null):
+				var ship := _create_ship(null, null, position)
+				ship.begin_departure(bearing)
+				return true
+		else:
+			var destination: InhabitedNode = _locations[0]
+			var edge: Vector2 = _system.global_position + bearing * _system.jump_radius
+			var position: Vector2 = edge.lerp(destination.global_position, randf_range(0.3, 0.8))
+			if _is_clear(position, null):
+				var ship := _create_ship(destination, destination, position)
+				ship.velocity = (destination.global_position - position).normalized() * ship.ship_type.stats.max_speed * 0.8
+				return true
 	return false
 
 
@@ -138,17 +168,21 @@ func _spawn_arrival() -> bool:
 	for attempt in SPAWN_ATTEMPTS:
 		var bearing: Vector2 = _exit_bearings.pick_random()
 		var position: Vector2 = _system.global_position + bearing * _system.jump_radius
-		var destination: InhabitedNode = _locations.pick_random()
+		# With no location to visit the ship is passing through: aim it at somewhere
+		# near the centre.
+		var destination: InhabitedNode = _locations.pick_random() if not _locations.is_empty() else null
+		var aim: Vector2 = destination.global_position if destination != null \
+				else _system.global_position + Vector2.from_angle(randf() * TAU) * randf_range(0.0, 600.0)
 		if _is_clear(position, null):
 			var ship := _create_ship(destination, destination, position)
-			ship.begin_arrival((destination.global_position - position).normalized())
+			ship.begin_arrival((aim - position).normalized())
 			return true
 	return false
 
 
 func _create_ship(origin: InhabitedNode, destination: InhabitedNode, position: Vector2) -> NpcShip:
 	var ship: NpcShip = NPC_SCENE.instantiate()
-	var faction: String = origin.data.faction_name if origin.data != null else ""
+	var faction: String = origin.data.get_faction_name() if origin != null and origin.data != null else ""
 	ship.setup(_pick_ship_type(), config, _locations, faction, destination, _player)
 	ship.configure_jumping(_system.global_position, _system.jump_radius, _exit_bearings)
 	_system.get_ships_root().add_child(ship)
@@ -178,7 +212,7 @@ func _is_clear(position: Vector2, own_origin: InhabitedNode) -> bool:
 func _random_other(excluding: InhabitedNode) -> InhabitedNode:
 	var options: Array[InhabitedNode] = _locations.filter(
 			func(node: InhabitedNode) -> bool: return node != excluding)
-	return options.pick_random()
+	return options.pick_random() if not options.is_empty() else excluding
 
 
 ## Weighted random choice among the configured ship types.

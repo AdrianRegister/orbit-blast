@@ -115,7 +115,7 @@ How it is done:
 
 ## 6. Interaction with planets and stations
 
-- NPCs treat every `InhabitedNode` in the system's `Objects` node as a possible destination, so a new planet or station is automatically part of the traffic. A system needs at least two to have traffic.
+- NPCs treat every `InhabitedNode` in the system's `Objects` node as a possible destination, so a new planet or station is automatically part of the traffic. A system with links to other systems has traffic whatever it holds: ships jump in from its neighbours and out again. With one place to land they visit it and leave; with none (an uninhabited system) they pass straight through, entering by one link and leaving by another ("Passing through the system"). A system with no links needs at least two places to land, as before.
 - NPCs only read from locations (position, docking range, name, faction). They never change them.
 - NPCs do not use or change a location's market or the player's economy.
 - Locations are never moved, blocked or affected by ships.

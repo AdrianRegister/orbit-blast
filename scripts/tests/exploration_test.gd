@@ -33,6 +33,28 @@ class TwoTargetSource:
 		return contracts
 
 
+class WolfSource:
+	extends ContractSource
+	## A test source: one exploration contract for Wolf 359, once.
+	var _made := false
+
+	func get_target_offers() -> int:
+		return 99
+
+	func generate(location: InhabitedData, _context: ContractContext, _wanted: int, _existing: Array[Contract]) -> Array[Contract]:
+		var contracts: Array[Contract] = []
+		if _made:
+			return contracts
+		_made = true
+		var contract := ExplorationContract.new()
+		contract.title = "Chart Wolf 359"
+		contract.origin = location
+		contract.target_system = &"wolf_359"
+		contract.reward = 10000
+		contracts.append(contract)
+		return contracts
+
+
 func _init() -> void:
 	_clean()
 	await _scenario_real_game()
@@ -77,11 +99,11 @@ func _scenario_real_game() -> void:
 			exploration = contract
 	_check(exploration != null and exploration.target_system == &"wolf_359", "Daedalus offers one exploration contract, for Wolf 359")
 	_check(offered.size() == 1, "...and nothing else (%d offers)" % offered.size())
-	var expected_reward: int = main.get_node("Contracts").get_context().rewards.exploration_reward(
-			galaxy.find_route(&"barnards_star", &"wolf_359").size() - 1, galaxy.get_jump_cost(&"barnards_star", &"wolf_359"))
+	var trip: Vector2i = main.get_node("Contracts").get_context().journey(&"barnards_star", &"wolf_359")
+	var expected_reward: int = main.get_node("Contracts").get_context().rewards.exploration_reward(trip.x, trip.y)
 	_check(exploration.reward == expected_reward and exploration.reward > 0, "its reward comes from the reward rules (%d)" % exploration.reward)
 	_check(exploration.get_type_label() == "EXPLORATION" and exploration.get_destination_text() == "Wolf 359", "it is labelled as exploration, targeting Wolf 359")
-	_check("1 jump" in exploration.get_journey_text(), "the journey is shown: %s" % exploration.get_journey_text())
+	_check("%d jumps" % trip.x in exploration.get_journey_text(), "the journey is shown: %s" % exploration.get_journey_text())
 	var elsewhere := 0
 	for location_id in [&"earth", &"mars", &"victory_i", &"hera", &"persephone"]:
 		for contract in contracts.get_available(registry.location(location_id)):
@@ -229,9 +251,9 @@ func _scenario_real_game() -> void:
 		if contract.title == "Luxury goods for Talos":
 			run = contract
 	_check(run != null and run.get_destination_text() == "Talos, Procyon", "Earth offers a delivery to Talos in Procyon")
-	_check("Sol > Procyon: 1 jump" in run.get_journey_text(), "the journey is spelled out: %s" % run.get_journey_text())
-	var jumps_cost := galaxy.get_jump_cost(&"sol", &"procyon")
-	_check(run.reward == contracts.get_context().rewards.cargo_reward(luxury, 25, 1, jumps_cost), "the reward accounts for quantity and distance (%d)" % run.reward)
+	var trip_to_talos: Vector2i = contracts.get_context().journey(&"sol", &"procyon")
+	_check(run.get_journey_text().begins_with("Sol > ") and "Procyon" in run.get_journey_text() and ("%d jumps" % trip_to_talos.x) in run.get_journey_text(), "the journey is spelled out: %s" % run.get_journey_text())
+	_check(run.reward == contracts.get_context().rewards.cargo_reward(luxury, 25, trip_to_talos.x, trip_to_talos.y), "the reward accounts for quantity and distance (%d)" % run.reward)
 	var rules := contracts.get_context().rewards
 	var water: Commodity = registry.commodity(&"water")
 	_check(rules.cargo_reward(water, 100, 2, 50) > rules.cargo_reward(water, 100, 0, 0), "the same cargo pays more for a longer journey")
@@ -327,7 +349,7 @@ func _scenario_manager_cases() -> void:
 
 	# A target scouted before an offer was made is never offered; one scouted after
 	# listing is refused. (Many generations, because the generator is random.)
-	var daedalus := registry.location(&"daedalus")
+	var daedalus := registry.location(&"earth")  # a place in Sol, one jump from Wolf 359
 	var rules: ContractGenerationRules = load("res://resources/contracts/generation_rules.tres").duplicate()
 	rules.exploration_weight = 100.0
 	var generator := ProceduralContractSource.new(rules)
@@ -335,7 +357,7 @@ func _scenario_manager_cases() -> void:
 	var scouted_offers := 0
 	for _try in 40:
 		for contract in generator.generate(daedalus, context, 4, []):
-			if contract is ExplorationContract:
+			if contract is ExplorationContract and (contract as ExplorationContract).target_system == &"wolf_359":
 				scouted_offers += 1
 	_check(scouted_offers == 0, "an exploration target that is already scouted is never offered")
 	var third := ContractManager.new()
@@ -349,9 +371,7 @@ func _scenario_manager_cases() -> void:
 	context2.travel = empty_travel
 	context2.current_system = func() -> StringName: return &"barnards_star"
 	third.setup(economy, context2)
-	var generator2 := ProceduralContractSource.new(rules)
-	generator2.seed_rng(7)
-	third.set_source(generator2)
+	third.set_source(WolfSource.new())
 	var listed: ExplorationContract = null
 	for contract in third.get_available(daedalus):
 		if contract is ExplorationContract:

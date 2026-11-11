@@ -8,12 +8,13 @@
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"aurelia"
 display_name = "Aurelia"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 2400000
 planet_type = ExtResource("2")
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])

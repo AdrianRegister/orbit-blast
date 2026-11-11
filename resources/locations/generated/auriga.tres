@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/resort.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/luxury_goods.tres" id="c_luxury_goods"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/markets/generated/auriga_market.tres" id="market"]
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
+[ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
+[ext_resource type="Resource" path="res://resources/ships/interceptor_stats.tres" id="sy_interceptor"]
+
+[resource]
+script = ExtResource("1")
+id = &"auriga"
+display_name = "Auriga"
+planet_type = ExtResource("2")
+faction = ExtResource("faction_1")
+population = 764900
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_luxury_goods"), ExtResource("c_electronics")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_water"), ExtResource("c_fuel"), ExtResource("c_ore")])
+size = 484.0
+market = ExtResource("market")
+shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_shuttle"), ExtResource("sy_interceptor")])

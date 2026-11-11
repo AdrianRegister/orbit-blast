@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/evander_orbital.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/calypso.tres" id="loc_1"]
+[ext_resource type="Resource" path="res://resources/locations/generated/astraea.tres" id="loc_2"]
+
+[node name="SouthManchesterSystem" instance=ExtResource("1")]
+system_id = &"south_manchester"
+system_name = "South Manchester"
+
+[node name="EvanderOrbital" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(377, 852)
+data = ExtResource("loc_0")
+
+[node name="Calypso" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-1218, -598)
+data = ExtResource("loc_1")
+
+[node name="Astraea" parent="Objects" index="2" instance=ExtResource("2")]
+position = Vector2(1038, -791)
+data = ExtResource("loc_2")

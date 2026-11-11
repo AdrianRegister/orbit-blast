@@ -7,7 +7,6 @@
 script = ExtResource("1")
 id = &"medusa"
 display_name = "Medusa"
-faction_name = ""
 population = 0
 size = 420.0
 dockable = false

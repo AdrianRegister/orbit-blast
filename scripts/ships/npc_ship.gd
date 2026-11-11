@@ -1,6 +1,7 @@
 class_name NpcShip
 extends Node2D
-## An ambient AI ship that flies between inhabited locations of its system.
+## An ambient AI ship that flies between inhabited locations of its system, or,
+## in a system with nowhere to dock, passes through it.
 ## It is told what it is (ShipType), where it can go (the system's locations)
 ## and how to behave (TrafficConfig) by the TrafficManager; it does not look
 ## anything up itself. The root does not rotate (so the Targetable's selection
@@ -16,7 +17,8 @@ extends Node2D
 ##   APPROACHING - braking so it stops inside the destination's docking range.
 ##   DOCKED      - stopped at the location, still visible and targetable, for a
 ##                 while; then it flies on to a new destination.
-##   DEPARTING   - has finished its visits and is flying out of the system.
+##   DEPARTING   - has finished its visits (or has none to make) and is flying out
+##                 of the system.
 ##   WARPING     - jumping out: accelerating away until it is gone.
 ##
 ## Jumping obeys the player's rule: a ship only starts to warp once it is at
@@ -92,6 +94,16 @@ func configure_jumping(centre: Vector2, jump_radius: float, exit_bearings: Array
 	_exit_bearings = exit_bearings
 
 
+## Starts the ship off as one that is simply leaving: flying out along
+## `direction` at most of its top speed. Used for ships that pass through a system
+## with no locations, and when such a system is first filled.
+func begin_departure(direction: Vector2) -> void:
+	_exit_direction = direction.normalized()
+	_face(_exit_direction.angle())
+	velocity = _exit_direction * ship_type.stats.max_speed * 0.8
+	_set_state(State.DEPARTING)
+
+
 ## Starts the ship off as one that has just jumped in: moving fast along
 ## `heading` and slowing down to cruising speed. Call after adding it to the tree.
 func begin_arrival(heading: Vector2) -> void:
@@ -113,7 +125,8 @@ func _ready() -> void:
 	details.faction_name = faction_name
 	_targetable.configure(ship_type.display_name, "Ship (%s)" % ship_type.display_name,
 			ship_type.get_size(), true, details)
-	_set_state(State.TRAVELLING)
+	if state != State.DEPARTING and state != State.ARRIVING:
+		_set_state(State.TRAVELLING)
 	_face(velocity.angle() if velocity.length() > 1.0 else _direction_to_destination().angle())
 
 
@@ -185,9 +198,11 @@ func _dock() -> void:
 ## The visit is over. If it has made all its visits it heads out of the system
 ## (when there is somewhere to jump to); otherwise it flies on to a different location.
 func _finish_visit() -> void:
-	if _visits_left <= 0:
+	# With only one place to land there is nowhere else to fly to, so a ship that
+	# can leave does so after its visit.
+	if _visits_left <= 0 or (_destinations.size() < 2 and not _exit_bearings.is_empty()):
 		if not _exit_bearings.is_empty():
-			_exit_direction = _exit_bearings.pick_random()
+			_exit_direction = _pick_exit()
 			_set_state(State.DEPARTING)
 			return
 		_visits_left = 1  # nowhere to jump to: keep visiting
@@ -203,7 +218,12 @@ func _arrive(delta: float) -> void:
 	velocity = heading * speed
 	global_position += velocity * delta
 	if speed <= ship_type.stats.max_speed:
-		_set_state(State.TRAVELLING)
+		if destination == null:
+			# Nowhere to land here: carry on across the system and leave.
+			_exit_direction = _pick_exit()
+			_set_state(State.DEPARTING)
+		else:
+			_set_state(State.TRAVELLING)
 
 
 ## Flies out along its exit direction at full speed. Once it is far enough from
@@ -237,6 +257,17 @@ func _warp(delta: float) -> void:
 		queue_free()
 
 
+## A direction out of the system. A ship leaves by a different link from the one
+## it is nearest to (the one it came in by), when there is a choice.
+func _pick_exit() -> Vector2:
+	var from_centre := global_position - _system_centre
+	var options: Array[Vector2] = []
+	for bearing in _exit_bearings:
+		if _exit_bearings.size() == 1 or from_centre.length() < 1.0 or from_centre.normalized().dot(bearing) < 0.9:
+			options.append(bearing)
+	return options.pick_random() if not options.is_empty() else _exit_bearings.pick_random()
+
+
 func _pick_destination(excluding: InhabitedNode) -> InhabitedNode:
 	var options: Array[InhabitedNode] = _destinations.filter(
 			func(node: InhabitedNode) -> bool: return node != excluding)
@@ -244,13 +275,15 @@ func _pick_destination(excluding: InhabitedNode) -> InhabitedNode:
 
 
 func _direction_to_destination() -> Vector2:
+	if destination == null:
+		return Vector2.RIGHT
 	var direction: Vector2 = destination.global_position - global_position
 	return direction.normalized() if direction.length() > 0.001 else Vector2.RIGHT
 
 
 func _set_state(new_state: State) -> void:
 	state = new_state
-	var place: String = destination.get_object_name()
+	var place: String = destination.get_object_name() if destination != null else ""
 	match state:
 		State.TRAVELLING:
 			details.status = "Travelling to %s" % place
@@ -261,7 +294,7 @@ func _set_state(new_state: State) -> void:
 		State.ARRIVING:
 			details.status = "Arriving from another system"
 		State.DEPARTING:
-			details.status = "Leaving the system"
+			details.status = "Leaving the system" if destination != null else "Passing through the system"
 		State.WARPING:
 			details.status = "Jumping out"
 	state_changed.emit(state)

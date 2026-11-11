@@ -1,0 +1,952 @@
+{
+  "comment": "Galaxy table for tools/generate_galaxy.gd. x,y are pixels of reference_resources/escape_velocity_nova_galaxy_map.webp (2646x1693). Systems are placed relative to `origin_system` and multiplied by `scale`.",
+  "origin_system": "sol",
+  "scale": 2.6,
+  "start_discovered": ["sol"],
+  "systems": [
+    {
+      "name": "South Manchester",
+      "x": 542.5,
+      "y": 585.5,
+      "inhabited": true,
+      "id": "south_manchester",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["lalande_21185"]
+    },
+    {
+      "name": "Rimshot",
+      "x": 637.5,
+      "y": 604.0,
+      "inhabited": true,
+      "id": "rimshot",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["lalande_21185"]
+    },
+    {
+      "name": "Lalande 21185",
+      "x": 613.5,
+      "y": 632.5,
+      "inhabited": true,
+      "id": "lalande_21185",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["agate", "kerella", "narcissus", "rimshot", "south_manchester"]
+    },
+    {
+      "name": "Agate",
+      "x": 732.5,
+      "y": 632.5,
+      "inhabited": false,
+      "id": "agate",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["lalande_21185"]
+    },
+    {
+      "name": "Narcissus",
+      "x": 600.0,
+      "y": 698.5,
+      "inhabited": false,
+      "id": "narcissus",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["kerella", "lalande_21185", "spc_034"]
+    },
+    {
+      "name": "Kerella",
+      "x": 684.5,
+      "y": 680.5,
+      "inhabited": true,
+      "id": "kerella",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["lalande_21185", "narcissus", "procyon", "sirius", "sol"]
+    },
+    {
+      "name": "Sirius",
+      "x": 779.5,
+      "y": 655.5,
+      "inhabited": true,
+      "id": "sirius",
+      "scene": "sirius_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["codehaven", "glimmer", "kerella", "ngc_1776", "outpost_819"]
+    },
+    {
+      "name": "Glimmer",
+      "x": 826.5,
+      "y": 632.0,
+      "inhabited": true,
+      "id": "glimmer",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["sirius"]
+    },
+    {
+      "name": "NGC-1776",
+      "x": 818.0,
+      "y": 670.0,
+      "inhabited": false,
+      "id": "ngc_1776",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["sirius"]
+    },
+    {
+      "name": "Codehaven",
+      "x": 779.5,
+      "y": 585.5,
+      "inhabited": true,
+      "id": "codehaven",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["sirius"]
+    },
+    {
+      "name": "Homeland",
+      "x": 883.5,
+      "y": 680.5,
+      "inhabited": true,
+      "id": "homeland",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["aldebaran"]
+    },
+    {
+      "name": "Journey's End",
+      "x": 732.5,
+      "y": 727.0,
+      "inhabited": true,
+      "id": "journey_s_end",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["procyon"]
+    },
+    {
+      "name": "Procyon",
+      "x": 685.5,
+      "y": 775.5,
+      "inhabited": false,
+      "id": "procyon",
+      "scene": "procyon_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["journey_s_end", "kerella", "rigel", "sibko", "trishka"]
+    },
+    {
+      "name": "Sibko",
+      "x": 618.5,
+      "y": 794.0,
+      "inhabited": true,
+      "id": "sibko",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["procyon"]
+    },
+    {
+      "name": "Rigel",
+      "x": 718.5,
+      "y": 823.0,
+      "inhabited": true,
+      "id": "rigel",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["procyon"]
+    },
+    {
+      "name": "Trishka",
+      "x": 637.5,
+      "y": 851.0,
+      "inhabited": true,
+      "id": "trishka",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["procyon"]
+    },
+    {
+      "name": "Avalon",
+      "x": 732.5,
+      "y": 851.0,
+      "inhabited": true,
+      "id": "avalon",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["hjg_0637"]
+    },
+    {
+      "name": "Metter",
+      "x": 790.0,
+      "y": 756.0,
+      "inhabited": false,
+      "id": "metter",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["hjg_0637"]
+    },
+    {
+      "name": "HJG-0637",
+      "x": 803.5,
+      "y": 799.0,
+      "inhabited": false,
+      "id": "hjg_0637",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["avalon", "canopus", "metter", "nesre_secundus"]
+    },
+    {
+      "name": "Canopus",
+      "x": 847.0,
+      "y": 832.5,
+      "inhabited": false,
+      "id": "canopus",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["hjg_0637"]
+    },
+    {
+      "name": "Outpost 819",
+      "x": 855.5,
+      "y": 747.0,
+      "inhabited": true,
+      "id": "outpost_819",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["lotus", "sirius"]
+    },
+    {
+      "name": "SPC-034",
+      "x": 543.5,
+      "y": 739.0,
+      "inhabited": true,
+      "id": "spc_034",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["narcissus", "spc_1367"]
+    },
+    {
+      "name": "SPC-1367",
+      "x": 540.5,
+      "y": 777.5,
+      "inhabited": false,
+      "id": "spc_1367",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_034"]
+    },
+    {
+      "name": "Capella",
+      "x": 992.5,
+      "y": 609.5,
+      "inhabited": false,
+      "id": "capella",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["bloodstone", "nesre_primus"]
+    },
+    {
+      "name": "Bloodstone",
+      "x": 1039.5,
+      "y": 597.0,
+      "inhabited": true,
+      "id": "bloodstone",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["capella"]
+    },
+    {
+      "name": "Porto Rillia",
+      "x": 1063.5,
+      "y": 609.5,
+      "inhabited": true,
+      "id": "porto_rillia",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["pollux"]
+    },
+    {
+      "name": "Pollux",
+      "x": 1088.0,
+      "y": 632.0,
+      "inhabited": false,
+      "id": "pollux",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["eeniar", "nesre_primus", "porto_rillia", "aral"]
+    },
+    {
+      "name": "Petra",
+      "x": 921.5,
+      "y": 623.0,
+      "inhabited": false,
+      "id": "petra",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["aldebaran", "spc_2421"]
+    },
+    {
+      "name": "Aldebaran",
+      "x": 944.5,
+      "y": 656.0,
+      "inhabited": true,
+      "id": "aldebaran",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["homeland", "nesre_primus", "petra", "barnards_star"]
+    },
+    {
+      "name": "Nesre Primus",
+      "x": 1039.5,
+      "y": 656.0,
+      "inhabited": true,
+      "id": "nesre_primus",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["aldebaran", "pollux", "sol", "spc_011", "capella", "arcturus"]
+    },
+    {
+      "name": "Eeniar",
+      "x": 1120.5,
+      "y": 656.0,
+      "inhabited": true,
+      "id": "eeniar",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["pollux", "spc_1948"]
+    },
+    {
+      "name": "Aral",
+      "x": 1072.5,
+      "y": 680.5,
+      "inhabited": true,
+      "id": "aral",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["pollux"]
+    },
+    {
+      "name": "Rautherion",
+      "x": 1110.0,
+      "y": 680.5,
+      "inhabited": true,
+      "id": "rautherion",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["arcturus"]
+    },
+    {
+      "name": "Lesten",
+      "x": 1039.5,
+      "y": 703.0,
+      "inhabited": true,
+      "id": "lesten",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["arcturus"]
+    },
+    {
+      "name": "Barnard's Star",
+      "x": 931.0,
+      "y": 708.0,
+      "inhabited": false,
+      "id": "barnards_star",
+      "scene": "barnards_star_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["alpha_centauri", "aldebaran"]
+    },
+    {
+      "name": "Centauri",
+      "x": 902.5,
+      "y": 720.5,
+      "inhabited": true,
+      "id": "alpha_centauri",
+      "scene": "alpha_centauri_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["archenar", "barnards_star"]
+    },
+    {
+      "name": "Arcturus",
+      "x": 1088.0,
+      "y": 727.0,
+      "inhabited": true,
+      "id": "arcturus",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["gefjon", "lesten", "naka", "rautherion", "tidbinbilla", "nesre_primus"]
+    },
+    {
+      "name": "Tidbinbilla",
+      "x": 1181.5,
+      "y": 727.0,
+      "inhabited": false,
+      "id": "tidbinbilla",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["arcturus", "galvan", "ngc_1894"]
+    },
+    {
+      "name": "Galvan",
+      "x": 1205.5,
+      "y": 715.0,
+      "inhabited": true,
+      "id": "galvan",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["altair", "tidbinbilla"]
+    },
+    {
+      "name": "Altair",
+      "x": 1276.5,
+      "y": 703.0,
+      "inhabited": true,
+      "id": "altair",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["galvan", "kania", "tenetria"]
+    },
+    {
+      "name": "Tenetria",
+      "x": 1300.5,
+      "y": 656.0,
+      "inhabited": false,
+      "id": "tenetria",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["altair", "ngc_0946"]
+    },
+    {
+      "name": "NGC-1894",
+      "x": 1200.5,
+      "y": 661.0,
+      "inhabited": false,
+      "id": "ngc_1894",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["ngc_2019", "tidbinbilla"]
+    },
+    {
+      "name": "SPC-1948",
+      "x": 1162.5,
+      "y": 604.0,
+      "inhabited": false,
+      "id": "spc_1948",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["eeniar", "spc_020"]
+    },
+    {
+      "name": "NGC-2019",
+      "x": 1210.5,
+      "y": 606.5,
+      "inhabited": false,
+      "id": "ngc_2019",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["koria", "ngc_0946", "ngc_1894"]
+    },
+    {
+      "name": "NGC-0946",
+      "x": 1262.5,
+      "y": 601.0,
+      "inhabited": false,
+      "id": "ngc_0946",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["ngc_2019", "tenetria"]
+    },
+    {
+      "name": "Kania",
+      "x": 1349.5,
+      "y": 776.0,
+      "inhabited": true,
+      "id": "kania",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["altair", "tichel"]
+    },
+    {
+      "name": "Kon",
+      "x": 1254.0,
+      "y": 776.0,
+      "inhabited": true,
+      "id": "kon",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["fomalhaut"]
+    },
+    {
+      "name": "Naka",
+      "x": 1135.5,
+      "y": 776.0,
+      "inhabited": false,
+      "id": "naka",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["arcturus"]
+    },
+    {
+      "name": "Gefjon",
+      "x": 1064.5,
+      "y": 776.0,
+      "inhabited": true,
+      "id": "gefjon",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["arcturus", "wolf_359"]
+    },
+    {
+      "name": "Wolf 359",
+      "x": 1064.0,
+      "y": 799.0,
+      "inhabited": true,
+      "id": "wolf_359",
+      "scene": "wolf_359_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["gefjon"]
+    },
+    {
+      "name": "Hannaford",
+      "x": 969.5,
+      "y": 790.5,
+      "inhabited": true,
+      "id": "hannaford",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["archenar"]
+    },
+    {
+      "name": "Lotus",
+      "x": 922.5,
+      "y": 775.0,
+      "inhabited": true,
+      "id": "lotus",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["archenar", "outpost_819"]
+    },
+    {
+      "name": "Archenar",
+      "x": 945.5,
+      "y": 752.0,
+      "inhabited": true,
+      "id": "archenar",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["alpha_centauri", "hannaford", "lotus", "sol"]
+    },
+    {
+      "name": "Sol",
+      "x": 969.5,
+      "y": 823.5,
+      "inhabited": true,
+      "id": "sol",
+      "scene": "sol_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": [
+        "nesre_primus",
+        "kerella",
+        "tau_ceti",
+        "tichel",
+        "archenar",
+        "epsilon_eridani",
+        "nesre_secundus"
+      ]
+    },
+    {
+      "name": "SPC-1927",
+      "x": 1183.5,
+      "y": 799.0,
+      "inhabited": false,
+      "id": "spc_1927",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["fomalhaut"]
+    },
+    {
+      "name": "Murasaki",
+      "x": 1159.5,
+      "y": 847.5,
+      "inhabited": true,
+      "id": "murasaki",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["fomalhaut"]
+    },
+    {
+      "name": "Fomalhaut",
+      "x": 1218.5,
+      "y": 847.5,
+      "inhabited": true,
+      "id": "fomalhaut",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["kon", "murasaki", "spc_1927", "tichel"]
+    },
+    {
+      "name": "SPC-2421",
+      "x": 933.0,
+      "y": 535.0,
+      "inhabited": false,
+      "id": "spc_2421",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["petra", "spc_2637"]
+    },
+    {
+      "name": "SPC-2637",
+      "x": 874.5,
+      "y": 572.5,
+      "inhabited": false,
+      "id": "spc_2637",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_2421"]
+    },
+    {
+      "name": "SPC-0193",
+      "x": 1051.5,
+      "y": 526.0,
+      "inhabited": false,
+      "id": "spc_0193",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_011", "spc_1555"]
+    },
+    {
+      "name": "SPC-1555",
+      "x": 1025.5,
+      "y": 540.0,
+      "inhabited": false,
+      "id": "spc_1555",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_0193"]
+    },
+    {
+      "name": "SPC-011",
+      "x": 1073.0,
+      "y": 547.0,
+      "inhabited": false,
+      "id": "spc_011",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["nesre_primus", "spc_0193", "spc_020"]
+    },
+    {
+      "name": "SPC-020",
+      "x": 1110.5,
+      "y": 556.0,
+      "inhabited": false,
+      "id": "spc_020",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_011", "spc_1948"]
+    },
+    {
+      "name": "Koria",
+      "x": 1191.5,
+      "y": 526.0,
+      "inhabited": true,
+      "id": "koria",
+      "faction": "",
+      "region": "federation_core",
+      "links": ["ngc_2019"]
+    },
+    {
+      "name": "Sanddown",
+      "x": 922.5,
+      "y": 861.0,
+      "inhabited": true,
+      "id": "sanddown",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["tau_ceti"]
+    },
+    {
+      "name": "Xante",
+      "x": 689.5,
+      "y": 927.0,
+      "inhabited": false,
+      "id": "xante",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["felos", "nesre_secundus"]
+    },
+    {
+      "name": "Felos",
+      "x": 623.5,
+      "y": 963.0,
+      "inhabited": false,
+      "id": "felos",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["xante"]
+    },
+    {
+      "name": "HJG-1034",
+      "x": 756.5,
+      "y": 965.0,
+      "inhabited": false,
+      "id": "hjg_1034",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["moonrise", "nadir", "nesre_secundus", "tuatha"]
+    },
+    {
+      "name": "Moonrise",
+      "x": 817.5,
+      "y": 927.0,
+      "inhabited": true,
+      "id": "moonrise",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["enlightenment", "hjg_1034"]
+    },
+    {
+      "name": "Nesre Secundus",
+      "x": 791.5,
+      "y": 870.0,
+      "inhabited": true,
+      "id": "nesre_secundus",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["hjg_0637", "hjg_1034", "xante", "sol"]
+    },
+    {
+      "name": "Tuatha",
+      "x": 803.5,
+      "y": 1001.0,
+      "inhabited": false,
+      "id": "tuatha",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["hjg_1034"]
+    },
+    {
+      "name": "Nadir",
+      "x": 742.5,
+      "y": 1024.0,
+      "inhabited": true,
+      "id": "nadir",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["hjg_1034"]
+    },
+    {
+      "name": "Enlightenment",
+      "x": 874.0,
+      "y": 918.0,
+      "inhabited": true,
+      "id": "enlightenment",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["moonrise", "tau_ceti"]
+    },
+    {
+      "name": "Horizon",
+      "x": 874.0,
+      "y": 989.0,
+      "inhabited": true,
+      "id": "horizon",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spica"]
+    },
+    {
+      "name": "Jenner",
+      "x": 922.5,
+      "y": 1012.5,
+      "inhabited": false,
+      "id": "jenner",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spica"]
+    },
+    {
+      "name": "Tau Ceti",
+      "x": 945.5,
+      "y": 894.0,
+      "inhabited": true,
+      "id": "tau_ceti",
+      "scene": "tau_ceti_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["enlightenment", "merrynne", "sanddown", "sol"]
+    },
+    {
+      "name": "McMurdo",
+      "x": 1040.5,
+      "y": 894.0,
+      "inhabited": false,
+      "id": "mcmurdo",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["vega"]
+    },
+    {
+      "name": "Fire",
+      "x": 1111.0,
+      "y": 894.0,
+      "inhabited": true,
+      "id": "fire",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["vega"]
+    },
+    {
+      "name": "Merrynne",
+      "x": 998.5,
+      "y": 908.0,
+      "inhabited": true,
+      "id": "merrynne",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["tau_ceti"]
+    },
+    {
+      "name": "Vega",
+      "x": 1088.5,
+      "y": 917.5,
+      "inhabited": true,
+      "id": "vega",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["epsilon_eridani", "fire", "mcmurdo", "obatta"]
+    },
+    {
+      "name": "NGC-1170",
+      "x": 969.5,
+      "y": 941.5,
+      "inhabited": false,
+      "id": "ngc_1170",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spica"]
+    },
+    {
+      "name": "Spica",
+      "x": 969.5,
+      "y": 989.0,
+      "inhabited": false,
+      "id": "spica",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["epsilon_eridani", "gateway", "horizon", "jenner", "ngc_1170"]
+    },
+    {
+      "name": "Alphara",
+      "x": 1088.5,
+      "y": 989.0,
+      "inhabited": true,
+      "id": "epsilon_eridani",
+      "scene": "epsilon_eridani_system",
+      "hand_built": true,
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spica", "vega", "vemap", "sol"]
+    },
+    {
+      "name": "Obatta",
+      "x": 1159.5,
+      "y": 1013.0,
+      "inhabited": false,
+      "id": "obatta",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["vega"]
+    },
+    {
+      "name": "Tichel",
+      "x": 1230.0,
+      "y": 917.5,
+      "inhabited": true,
+      "id": "tichel",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["fomalhaut", "kania", "sol", "spc_050"]
+    },
+    {
+      "name": "SPC-050",
+      "x": 1250.0,
+      "y": 1008.0,
+      "inhabited": true,
+      "id": "spc_050",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["tichel", "unin", "wittor"]
+    },
+    {
+      "name": "Gateway",
+      "x": 993.5,
+      "y": 1060.0,
+      "inhabited": true,
+      "id": "gateway",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["neirt", "spica"]
+    },
+    {
+      "name": "Vemap",
+      "x": 1082.0,
+      "y": 1089.0,
+      "inhabited": true,
+      "id": "vemap",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["epsilon_eridani", "heraan_cov"]
+    },
+    {
+      "name": "Heraan Cov",
+      "x": 1031.0,
+      "y": 1136.0,
+      "inhabited": true,
+      "id": "heraan_cov",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["vemap"]
+    },
+    {
+      "name": "Neirt",
+      "x": 931.5,
+      "y": 1119.0,
+      "inhabited": false,
+      "id": "neirt",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["gateway"]
+    },
+    {
+      "name": "Unin",
+      "x": 1309.0,
+      "y": 991.0,
+      "inhabited": true,
+      "id": "unin",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_050"]
+    },
+    {
+      "name": "Wittor",
+      "x": 1258.5,
+      "y": 1093.0,
+      "inhabited": true,
+      "id": "wittor",
+      "faction": "faction_1",
+      "region": "federation_core",
+      "links": ["spc_050"]
+    }
+  ]
+}

@@ -93,7 +93,7 @@ func _init() -> void:
 	_expect_rejected(game, parsed, "negative stock",
 			func(d: Dictionary) -> void: d["economy"]["markets"]["earth"]["stock"]["food"] = -1)
 	_expect_rejected(game, parsed, "market of an unknown location",
-			func(d: Dictionary) -> void: d["economy"]["markets"]["atlantis"] = {"stock": {}})
+			func(d: Dictionary) -> void: d["economy"]["markets"]["no_such_place"] = {"stock": {}})
 	_expect_rejected(game, parsed, "cargo lot without a contract",
 			func(d: Dictionary) -> void: d["contracts"]["active"].clear())
 	_expect_rejected(game, parsed, "active contract without its cargo",
@@ -109,7 +109,7 @@ func _init() -> void:
 	_expect_rejected(game, parsed, "unknown contract type",
 			func(d: Dictionary) -> void: d["contracts"]["completed"][0]["type"] = "time_travel")
 	_expect_rejected(game, parsed, "contract to an unknown location",
-			func(d: Dictionary) -> void: d["contracts"]["completed"][0]["destination"] = "atlantis")
+			func(d: Dictionary) -> void: d["contracts"]["completed"][0]["destination"] = "no_such_place")
 	_expect_rejected(game, parsed, "contracts section of the wrong type",
 			func(d: Dictionary) -> void: d["contracts"] = [])
 

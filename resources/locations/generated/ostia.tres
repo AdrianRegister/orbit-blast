@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/jungle.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/markets/generated/ostia_market.tres" id="market"]
+
+[resource]
+script = ExtResource("1")
+id = &"ostia"
+display_name = "Ostia"
+planet_type = ExtResource("2")
+faction = ExtResource("faction_1")
+population = 341200
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_water"), ExtResource("c_food")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])
+size = 284.0
+market = ExtResource("market")

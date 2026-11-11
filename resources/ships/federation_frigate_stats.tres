@@ -2,13 +2,14 @@
 
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ships/federation_frigate.png" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"federation_frigate"
 display_name = "Federation Frigate"
 description = "The backbone of the Federation fleet: a well-armoured escort with respectable agility and firepower."
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 price = 350000
 texture = ExtResource("2")
 display_width = 150

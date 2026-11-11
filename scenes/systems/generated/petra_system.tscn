@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/troy.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/heimdall.tres" id="loc_1"]
+
+[node name="PetraSystem" instance=ExtResource("1")]
+system_id = &"petra"
+system_name = "Petra"
+
+[node name="Troy" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-1105, 69)
+data = ExtResource("loc_0")
+
+[node name="Heimdall" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(768, -54)
+data = ExtResource("loc_1")

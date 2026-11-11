@@ -97,7 +97,7 @@ func _show_system(id: StringName) -> void:
 	for row in _rows.get_children():
 		_rows.remove_child(row)
 		row.queue_free()
-	_add_row("FACTION", (_galaxy.get_faction(id) if not _galaxy.get_faction(id).is_empty() else "None") if discovered else "Unknown")
+	_add_row("FACTION", (_galaxy.get_faction_name(id) if _galaxy.get_faction(id) != null else "None") if discovered else "Unknown")
 	var scouted := _travel.is_scouted(id)
 	var progress := _travel.get_scouting_progress(id)
 	_add_row("SCOUTED", "Yes" if scouted else ("%d of %d bodies" % [progress.x, progress.y] if discovered else "No"))

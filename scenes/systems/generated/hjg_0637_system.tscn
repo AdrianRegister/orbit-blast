@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/daphne.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/halicarnassus.tres" id="loc_1"]
+
+[node name="HJG0637System" instance=ExtResource("1")]
+system_id = &"hjg_0637"
+system_name = "HJG-0637"
+
+[node name="Daphne" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(92, -1466)
+data = ExtResource("loc_0")
+
+[node name="Halicarnassus" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-149, 1243)
+data = ExtResource("loc_1")

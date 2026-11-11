@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/argos_dock.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/gaia.tres" id="loc_1"]
+
+[node name="RimshotSystem" instance=ExtResource("1")]
+system_id = &"rimshot"
+system_name = "Rimshot"
+
+[node name="ArgosDock" parent="Objects" index="0" instance=ExtResource("3")]
+position = Vector2(452, -1254)
+data = ExtResource("loc_0")
+
+[node name="Gaia" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-25, 1469)
+data = ExtResource("loc_1")

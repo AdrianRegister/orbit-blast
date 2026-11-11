@@ -17,12 +17,13 @@
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [resource]
 script = ExtResource("1")
 id = &"victory_i"
 display_name = "Victory I"
-faction_name = "TestFaction_1"
+faction = ExtResource("faction_1")
 population = 4500
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel"), ExtResource("c_industrial_chemicals")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery"), ExtResource("c_water"), ExtResource("c_luxury_goods")])

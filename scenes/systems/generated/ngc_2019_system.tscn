@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/charon.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/helios.tres" id="loc_1"]
+
+[node name="NGC2019System" instance=ExtResource("1")]
+system_id = &"ngc_2019"
+system_name = "NGC-2019"
+
+[node name="Charon" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-60, -1369)
+data = ExtResource("loc_0")
+
+[node name="Helios" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(394, 1290)
+data = ExtResource("loc_1")

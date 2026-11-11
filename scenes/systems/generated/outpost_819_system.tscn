@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/generated/ostia.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/generated/ur.tres" id="loc_1"]
+
+[node name="Outpost819System" instance=ExtResource("1")]
+system_id = &"outpost_819"
+system_name = "Outpost 819"
+
+[node name="Ostia" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(379, 1321)
+data = ExtResource("loc_0")
+
+[node name="Ur" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-338, -703)
+data = ExtResource("loc_1")

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/rocky.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/commodities/rare_isotopes.tres" id="c_rare_isotopes"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/markets/generated/flora_market.tres" id="market"]
+
+[resource]
+script = ExtResource("1")
+id = &"flora"
+display_name = "Flora"
+planet_type = ExtResource("2")
+faction = ExtResource("faction_1")
+population = 6100
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_rare_isotopes")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_machinery"), ExtResource("c_water"), ExtResource("c_fuel")])
+size = 502.0
+market = ExtResource("market")

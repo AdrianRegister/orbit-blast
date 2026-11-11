@@ -18,6 +18,9 @@ var _by_id: Dictionary = {}  # StringName -> GalaxySystem
 var _summaries: Dictionary = {}  # StringName -> SystemSummary
 var _location_system: Dictionary = {}  # location id -> system id
 var _entries: Array[Dictionary] = []  # {"system", "summary"} for every listed system
+var _link_by_pair: Dictionary = {}  # "a|b" (sorted) -> SystemLink
+var _neighbour_ids: Dictionary = {}  # system id -> Array[StringName]
+var _indexed_link_count: int = -1
 var _indexed: bool = false
 
 
@@ -50,10 +53,21 @@ func get_map_position(id: StringName) -> Vector2:
 	return system.map_position if system != null else Vector2.ZERO
 
 
-func get_faction(id: StringName) -> String:
+## The faction that owns a system, or null if it is unclaimed (or unknown).
+func get_faction(id: StringName) -> Faction:
 	_ensure_index()
 	var system: GalaxySystem = _by_id.get(id)
-	return system.faction_name if system != null else ""
+	return system.faction if system != null else null
+
+
+func get_faction_id(id: StringName) -> StringName:
+	var faction := get_faction(id)
+	return faction.id if faction != null else &""
+
+
+func get_faction_name(id: StringName) -> String:
+	var faction := get_faction(id)
+	return faction.display_name if faction != null else ""
 
 
 func is_start_discovered(id: StringName) -> bool:
@@ -130,13 +144,33 @@ func are_connected(a: StringName, b: StringName) -> bool:
 
 ## Ids of the systems directly linked to `id`.
 func get_neighbours(id: StringName) -> Array[StringName]:
+	_ensure_links()
 	var result: Array[StringName] = []
-	for link in links:
-		if link.a == id:
-			result.append(link.b)
-		elif link.b == id:
-			result.append(link.a)
+	result.assign(_neighbour_ids.get(id, []))
 	return result
+
+
+## Every system within `max_jumps` jumps of `origin` (counting the fewest jumps,
+## not the cheapest route): {system id: jumps}, including the origin at 0. One
+## breadth-first search, so it stays fast however big the galaxy is.
+func get_reachable(origin: StringName, max_jumps: int) -> Dictionary:
+	_ensure_links()
+	var reached := {}
+	if not _by_id.has(origin):
+		return reached
+	reached[origin] = 0
+	var queue: Array[StringName] = [origin]
+	var head := 0
+	while head < queue.size():
+		var current: StringName = queue[head]
+		head += 1
+		if reached[current] >= max_jumps:
+			continue
+		for neighbour in _neighbour_ids.get(current, []):
+			if not reached.has(neighbour):
+				reached[neighbour] = reached[current] + 1
+				queue.append(neighbour)
+	return reached
 
 
 ## Fuel needed to jump between two connected systems: the link's own cost if it
@@ -201,11 +235,13 @@ func validate() -> Array[String]:
 
 # ------------------------------------------------------------------ helpers
 
+func _pair_key(a: StringName, b: StringName) -> String:
+	return "%s|%s" % [a, b] if str(a) < str(b) else "%s|%s" % [b, a]
+
+
 func _find_link(a: StringName, b: StringName) -> SystemLink:
-	for link in links:
-		if link.connects(a, b):
-			return link
-	return null
+	_ensure_links()
+	return _link_by_pair.get(_pair_key(a, b))
 
 
 func _reachable_from(start: StringName) -> Dictionary:
@@ -236,3 +272,27 @@ func _ensure_index() -> void:
 		_summaries[summary.id] = summary
 		for location_id in summary.location_ids:
 			_location_system[location_id] = summary.id
+	_index_links()
+
+
+## Rebuilds the link lookups if links were added or removed since they were built.
+func _ensure_links() -> void:
+	_ensure_index()
+	if _indexed_link_count != links.size():
+		_index_links()
+
+
+func _index_links() -> void:
+	_link_by_pair.clear()
+	_neighbour_ids.clear()
+	_indexed_link_count = links.size()
+	for link in links:
+		if link == null:
+			continue
+		_link_by_pair[_pair_key(link.a, link.b)] = link
+		if not _neighbour_ids.has(link.a):
+			_neighbour_ids[link.a] = []
+		if not _neighbour_ids.has(link.b):
+			_neighbour_ids[link.b] = []
+		_neighbour_ids[link.a].append(link.b)
+		_neighbour_ids[link.b].append(link.a)

@@ -7,7 +7,6 @@
 script = ExtResource("1")
 id = &"cerberus"
 display_name = "Cerberus"
-faction_name = ""
 population = 0
 size = 950.0
 dockable = false
