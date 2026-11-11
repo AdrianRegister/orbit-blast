@@ -106,3 +106,7 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 ## 10. Current limits
 
 No deadlines, failure or abandoning, no saving, no refreshing or procedural offers, and no rewards other than credits. The mission screen is only reachable while docked.
+
+## 11. Saving
+
+Every contract (available, active, completed and failed) is saved in full with its type, ids, status and progress, together with the next contract id and the list of locations that have already created their offers. A new contract type must implement `get_type_id()`, `to_dict()`, `validate_dict()` and `load_dict()` and be added to `ContractFactory.create()`. On load, active contracts are checked against the cargo lots so they cannot disagree. See [save-system.md](save-system.md).

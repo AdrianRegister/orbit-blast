@@ -43,7 +43,12 @@ func _init() -> void:
 	npc_scene.free()
 	var player_scene: Node = load("res://scenes/ships/player_ship.tscn").instantiate()
 	_check(is_equal_approx(player_scene.get_node("Sprite2D").rotation, PI / 2.0), "player sprite is turned +90 degrees (art points up)")
-	_check(is_equal_approx(player_scene.get_node("Sprite2D").scale.x * 500.0, 75.0), "player sprite is 75 px wide")
+	var owned := OwnedShip.new()
+	owned.model = shuttle.stats
+	player_scene.add_child(Node.new())  # (the sprite is a child; no tree needed)
+	player_scene._sprite = player_scene.get_node("Sprite2D")
+	player_scene.apply_ship(owned)
+	_check(is_equal_approx(player_scene.get_node("Sprite2D").scale.x * 500.0, 75.0), "player sprite takes the model's scale (75 px wide)")
 	player_scene.free()
 
 	# --- Initial population ----------------------------------------------------

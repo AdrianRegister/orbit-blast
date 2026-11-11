@@ -10,6 +10,10 @@ signal depart_requested
 signal trading_requested
 ## The player pressed Mission Computer.
 signal mission_computer_requested
+## The player pressed Shipyard.
+signal shipyard_requested
+## The player pressed Outfitters.
+signal outfitters_requested
 
 const INFO_ROW_SCENE := preload("res://scenes/ui/info_row.tscn")
 
@@ -21,6 +25,8 @@ const INFO_ROW_SCENE := preload("res://scenes/ui/info_row.tscn")
 @onready var _detail_rows: VBoxContainer = %DetailRows
 @onready var _trading_button: Button = %TradingButton
 @onready var _mission_button: Button = %MissionButton
+@onready var _shipyard_button: Button = %ShipyardButton
+@onready var _outfitter_button: Button = %OutfitterButton
 @onready var _depart_button: Button = %DepartButton
 
 
@@ -28,6 +34,8 @@ func _ready() -> void:
 	_depart_button.pressed.connect(depart_requested.emit)
 	_trading_button.pressed.connect(trading_requested.emit)
 	_mission_button.pressed.connect(mission_computer_requested.emit)
+	_shipyard_button.pressed.connect(shipyard_requested.emit)
+	_outfitter_button.pressed.connect(outfitters_requested.emit)
 
 
 ## Fills the screen from a dockable target and shows it.
@@ -37,7 +45,10 @@ func open(target: Targetable) -> void:
 	var picture: Texture2D = inhabited.get_picture() if inhabited != null else null
 	_picture.texture = picture if picture != null else default_picture
 	_trading_button.disabled = inhabited == null or inhabited.market == null
-	_mission_button.disabled = true  # Main enables it once it knows there is something to show.
+	# Main enables these once it knows there is something to show.
+	_mission_button.disabled = true
+	_shipyard_button.disabled = true
+	_outfitter_button.disabled = true
 
 	for row in _detail_rows.get_children():
 		_detail_rows.remove_child(row)
@@ -58,3 +69,13 @@ func close() -> void:
 func set_mission_computer_enabled(enabled: bool) -> void:
 	_mission_button.disabled = not enabled
 
+
+
+## Whether this location has a shipyard.
+func set_shipyard_enabled(enabled: bool) -> void:
+	_shipyard_button.disabled = not enabled
+
+
+## Whether this location has an outfitter.
+func set_outfitters_enabled(enabled: bool) -> void:
+	_outfitter_button.disabled = not enabled

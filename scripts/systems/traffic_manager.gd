@@ -149,3 +149,15 @@ func _pick_ship_type() -> ShipType:
 		if roll <= 0.0:
 			return ship_type
 	return config.ship_types.back()
+
+
+## Stops the traffic and removes every NPC ship at once.
+func reset() -> void:
+	_running = false
+	set_process(false)
+	_spawn_timer = 0.0
+	if _system == null:
+		return
+	for ship in _system.get_ships_root().get_children():
+		_system.get_ships_root().remove_child(ship)
+		ship.free()

@@ -9,9 +9,17 @@
 [ext_resource type="Resource" path="res://resources/contracts/victory_i_fuel_to_earth.tres" id="co_0"]
 [ext_resource type="Resource" path="res://resources/contracts/victory_i_fuel_to_mars.tres" id="co_1"]
 [ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="cos"]
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
+[ext_resource type="Resource" path="res://resources/ships/interceptor_stats.tres" id="sy_interceptor"]
+[ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
+[ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
+[ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
+[ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 
 [resource]
 script = ExtResource("1")
+id = &"victory_i"
 display_name = "Victory I"
 faction_name = "TestFaction_1"
 population = 4500
@@ -20,3 +28,5 @@ imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtReso
 size = 80.0
 market = ExtResource("market")
 contract_offers = Array[ExtResource("cos")]([ExtResource("co_0"), ExtResource("co_1")])
+shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_interceptor"), ExtResource("sy_shuttle")])
+outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_manoeuvre_1"), ExtResource("up_manoeuvre_2"), ExtResource("up_cargo_bay")])

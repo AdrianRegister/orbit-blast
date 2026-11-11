@@ -6,6 +6,10 @@ extends TargetDetails
 ## star system the location is placed in.
 ## Faction is a plain string until factions exist. Goods are Commodity resources.
 
+## Permanent unique id, e.g. &"earth". Save files and contracts refer to the
+## location by this id, so it must never change once saves exist.
+@export var id: StringName = &""
+
 ## Name shown in the HUD and on the settlement screen.
 @export var display_name: String = "":
 	set(value):
@@ -40,6 +44,12 @@ extends TargetDetails
 
 ## Cargo delivery contracts this location offers at its mission computer.
 @export var contract_offers: Array[ContractOffer] = []
+
+## Ship models this location's shipyard sells. Empty = no shipyard.
+@export var shipyard_ships: Array[ShipStats] = []
+
+## Upgrades this location's outfitter offers. Empty = no outfitter.
+@export var outfitter_upgrades: Array[UpgradeDefinition] = []
 
 ## Optional picture for the settlement screen. Empty = the screen's default.
 @export var picture: Texture2D
@@ -83,12 +93,20 @@ func get_conflicting_goods() -> Array[Commodity]:
 ## Human-readable problems with this data; empty when it is valid.
 func validate() -> Array[String]:
 	var problems: Array[String] = []
+	if id == &"":
+		problems.append("id is empty")
 	if display_name.is_empty():
 		problems.append("display_name is empty")
 	for good in get_conflicting_goods():
 		problems.append("'%s' is both imported and exported" % good.display_name)
 	if market != null:
 		problems.append_array(market.validate())
+	for ship in shipyard_ships:
+		if ship == null:
+			problems.append("shipyard_ships has an empty entry")
+	for upgrade in outfitter_upgrades:
+		if upgrade == null:
+			problems.append("outfitter_upgrades has an empty entry")
 	for offer in contract_offers:
 		if offer == null:
 			problems.append("contract_offers has an empty entry")

@@ -294,3 +294,9 @@ The structure leaves clear places for the planned features:
 
 
 Contract cargo (see [missions.md](missions.md)) is held in the same `CargoHold` as separate lots: it counts toward capacity and appears in the cargo list as "<Name> (contract, <Place> in the <System> system)", but `get_quantity()` ignores it, so it can never be sold.
+
+Credits, cargo (including contract lots) and the stock of every visited market are saved and restored by `EconomyManager.save_state()` / `load_state()`; prices are not saved because they are recomputed from the static data and the stock. See [save-system.md](save-system.md).
+
+## Ships and upgrades
+
+Ship and upgrade purchases use `EconomyManager.try_spend(amount)` (checks the balance, then deducts and emits `credits_changed`), so there is one wallet. The hold's capacity is set from the active ship with `EconomyManager.set_cargo_capacity()`. See [ships-and-upgrades.md](ships-and-upgrades.md).

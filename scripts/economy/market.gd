@@ -12,6 +12,9 @@ var data: MarketData
 
 var _stock: Dictionary = {}  # StringName -> int
 var _commodities: Array[Commodity] = []
+## Room for future mutable market state (price modifiers, blockades, ...).
+## Kept in the save file untouched until a feature gives it meaning.
+var _extra: Dictionary = {}
 
 
 func _init(location_data: InhabitedData, market_data: MarketData) -> void:
@@ -96,3 +99,40 @@ func _contains(goods: Array[Commodity], commodity: Commodity) -> bool:
 		if good != null and commodity != null and good.id == commodity.id:
 			return true
 	return false
+
+
+## Plain data for the save file. Prices are not saved: they are worked out from
+## the static data, the location's goods and the stock.
+func save_state() -> Dictionary:
+	var stock := {}
+	for id in _stock:
+		stock[str(id)] = _stock[id]
+	return {"stock": stock, "extra": _extra.duplicate(true)}
+
+
+## Problems with saved market data; empty when load_state() can use it.
+func validate_state(data: Variant) -> Array[String]:
+	var problems: Array[String] = []
+	if not data is Dictionary:
+		return ["market is not an object"]
+	var stock = data.get("stock")
+	if not stock is Dictionary:
+		problems.append("market stock is not an object")
+	else:
+		for id in stock:
+			if not _stock.has(StringName(id)):
+				problems.append("market does not trade '%s'" % id)
+			if not SaveData.is_int(stock[id]) or stock[id] < 0:
+				problems.append("market stock of '%s' is not a non-negative whole number" % id)
+	if not data.get("extra", {}) is Dictionary:
+		problems.append("market extra is not an object")
+	return problems
+
+
+## Applies validated saved data to a fresh market. Commodities not mentioned
+## keep their starting stock.
+func load_state(data: Dictionary) -> void:
+	for id in data["stock"]:
+		_stock[StringName(id)] = int(data["stock"][id])
+	_extra = data.get("extra", {}).duplicate(true)
+	changed.emit()

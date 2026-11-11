@@ -23,3 +23,34 @@ func get_progress_text() -> String:
 		Status.COMPLETED:
 			return "Delivered to %s" % destination.display_name
 	return ""
+
+
+func get_type_id() -> StringName:
+	return &"cargo_delivery"
+
+
+func to_dict() -> Dictionary:
+	var data := super()
+	data["commodity"] = str(commodity.id)
+	data["quantity"] = quantity
+	data["quantity_in_hold"] = quantity_in_hold
+	return data
+
+
+func validate_dict(data: Dictionary, registry: ContentRegistry) -> Array[String]:
+	var problems := super(data, registry)
+	if not SaveData.is_id(data.get("commodity")) or registry.commodity(StringName(data["commodity"])) == null:
+		problems.append("contract commodity is not a known commodity")
+	if not SaveData.is_int(data.get("quantity")) or data["quantity"] <= 0:
+		problems.append("contract quantity is not a positive whole number")
+	elif not SaveData.is_int(data.get("quantity_in_hold")) \
+			or data["quantity_in_hold"] < 0 or data["quantity_in_hold"] > data["quantity"]:
+		problems.append("contract quantity_in_hold is out of range")
+	return problems
+
+
+func load_dict(data: Dictionary, registry: ContentRegistry) -> void:
+	super(data, registry)
+	commodity = registry.commodity(StringName(data["commodity"]))
+	quantity = int(data["quantity"])
+	quantity_in_hold = int(data["quantity_in_hold"])

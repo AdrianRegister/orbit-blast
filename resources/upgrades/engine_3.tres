@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"engine_3"
+display_name = "Engine Tuning III"
+description = "Racing-grade thrusters: +30% top speed and acceleration. Needs Engine Tuning II."
+category = 1
+price = 55000
+tier = 3
+max_per_ship = 1
+speed_bonus = 0.3
+thrust_bonus = 0.3

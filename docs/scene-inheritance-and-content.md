@@ -501,3 +501,11 @@ Run the project, or check the scripts without opening the editor:
 | Planet sprites | `assets/sprites/planets/` |
 | Settlement pictures | `assets/sprites/settlements/` |
 | Resource classes | `scripts/resources/` |
+
+## Permanent ids
+
+Content that can appear in a save file needs a permanent unique `id`: set `id` on every new location (`InhabitedData`), commodity (`Commodity`) and ship (`ShipStats`), and `system_id` on every new star system scene (and add the system to `resources/universe/system_catalog.tres`). Never change an id once saves exist. See [save-system.md](save-system.md).
+
+## Ship models and locations' services
+
+`ShipStats` now holds the whole ship model (name, price, sprite, base numbers); `ShipType` only adds NPC traffic settings. `InhabitedData` has `shipyard_ships` and `outfitter_upgrades` to say what a location sells. See [ships-and-upgrades.md](ships-and-upgrades.md).

@@ -143,6 +143,23 @@ func award_credits(amount: int) -> void:
 	credits_changed.emit(_player.credits)
 
 
+## Takes `amount` credits for something that is not a trade (a ship, an
+## upgrade). Checked first: False and nothing changed if the player cannot afford it.
+func try_spend(amount: int) -> bool:
+	if amount < 0 or amount > _player.credits:
+		return false
+	if amount > 0:
+		_player.credits -= amount
+		credits_changed.emit(_player.credits)
+	return true
+
+
+## Sets the hold size, which comes from the active ship. The ShipManager checks
+## that the cargo fits before calling this.
+func set_cargo_capacity(capacity: int) -> void:
+	_player.cargo.capacity = capacity
+
+
 func _new_quote(is_buy: bool, commodity: Commodity, quantity: int, unit_price: int) -> TradeQuote:
 	var quote := TradeQuote.new()
 	quote.is_buy = is_buy
@@ -151,3 +168,49 @@ func _new_quote(is_buy: bool, commodity: Commodity, quantity: int, unit_price: i
 	quote.unit_price = unit_price
 	quote.total = unit_price * maxi(quantity, 0)
 	return quote
+
+
+## Plain data for the save file: credits, cargo and every market that has been
+## visited (markets never visited are still at their starting values).
+func save_state() -> Dictionary:
+	var markets := {}
+	for location in _markets:
+		markets[str(location.id)] = _markets[location].save_state()
+	return {"credits": _player.credits, "cargo": _player.cargo.save_state(), "markets": markets}
+
+
+## Problems with saved economy data; empty when load_state() can use it.
+func validate_state(data: Variant, registry: ContentRegistry, _document: Dictionary = {}) -> Array[String]:
+	var problems: Array[String] = []
+	if not data is Dictionary:
+		return ["economy is not an object"]
+	if not SaveData.is_int(data.get("credits")) or data["credits"] < 0:
+		problems.append("credits is not a non-negative whole number")
+	problems.append_array(_player.cargo.validate_state(data.get("cargo"), registry))
+	var markets = data.get("markets")
+	if not markets is Dictionary:
+		problems.append("markets is not an object")
+		return problems
+	for id in markets:
+		var location := registry.location(StringName(id))
+		if location == null or location.market == null:
+			problems.append("'%s' is not a location with a market" % id)
+			continue
+		problems.append_array(Market.new(location, location.market).validate_state(markets[id]))
+	return problems
+
+
+## Replaces credits, cargo and market state with validated saved data. Markets
+## not in the data start fresh again.
+func load_state(data: Dictionary, registry: ContentRegistry) -> void:
+	_player.credits = int(data["credits"])
+	_markets.clear()
+	_player.cargo.load_state(data["cargo"], registry)
+	for id in data["cargo"]["manifest"]:
+		_known_commodities[StringName(id)] = registry.commodity(StringName(id))
+	for contract_id in data["cargo"]["lots"]:
+		var commodity_id := StringName(data["cargo"]["lots"][contract_id]["commodity"])
+		_known_commodities[commodity_id] = registry.commodity(commodity_id)
+	for id in data["markets"]:
+		get_market(registry.location(StringName(id))).load_state(data["markets"][id])
+	credits_changed.emit(_player.credits)

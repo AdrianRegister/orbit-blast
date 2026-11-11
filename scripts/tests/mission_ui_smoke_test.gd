@@ -9,6 +9,9 @@ var _failures: int = 0
 
 func _init() -> void:
 	var main: Node = load("res://scenes/main.tscn").instantiate()
+	var big_hold: ShipStats = load("res://resources/ships/shuttle_stats.tres").duplicate()
+	big_hold.cargo_capacity = 500  # big enough for the test cargo, too small for the bulk contract (480 + 40)
+	main.starting_ship_stats = big_hold
 	root.add_child(main)
 	await process_frame
 	await process_frame

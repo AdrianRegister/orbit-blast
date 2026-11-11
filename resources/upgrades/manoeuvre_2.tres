@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"manoeuvre_2"
+display_name = "Manoeuvring Jets II"
+description = "Gyro-stabilised jets: +25% turn rate. Needs Manoeuvring Jets I."
+category = 2
+price = 28000
+tier = 2
+max_per_ship = 1
+turn_bonus = 0.25

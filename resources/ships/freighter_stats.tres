@@ -1,9 +1,16 @@
 [gd_resource type="Resource" script_class="ShipStats" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/freighter.png" id="2"]
 
 [resource]
 script = ExtResource("1")
+id = &"freighter"
+display_name = "Freighter"
+description = "A bulk hauler with a vast hold and the turning circle of a small moon."
+price = 250000
+texture = ExtResource("2")
+sprite_scale = 0.4
 thrust = 120.0
 turn_rate = 1.2
 max_speed = 280.0

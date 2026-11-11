@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"manoeuvre_1"
+display_name = "Manoeuvring Jets I"
+description = "Extra attitude jets: +10% turn rate."
+category = 2
+price = 12000
+tier = 1
+max_per_ship = 1
+turn_bonus = 0.1

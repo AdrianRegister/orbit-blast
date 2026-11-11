@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cargo_bay"
+display_name = "Cargo Bay Expansion"
+description = "Adds 15 units of cargo space. Up to two can be fitted."
+category = 0
+price = 8000
+tier = 1
+max_per_ship = 2
+cargo_bonus = 15

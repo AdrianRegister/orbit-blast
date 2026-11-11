@@ -14,7 +14,13 @@
 [ext_resource type="Script" path="res://scripts/missions/contract_manager.gd" id="12"]
 [ext_resource type="PackedScene" path="res://scenes/ui/mission_computer_screen.tscn" id="13"]
 [ext_resource type="PackedScene" path="res://scenes/ui/event_popup.tscn" id="14"]
+[ext_resource type="Script" path="res://scripts/save/save_manager.gd" id="16"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="17"]
 [ext_resource type="Resource" path="res://resources/flavour/contract_delivery.tres" id="15"]
+[ext_resource type="Script" path="res://scripts/ships/ship_manager.gd" id="18"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shipyard_screen.tscn" id="19"]
+[ext_resource type="PackedScene" path="res://scenes/ui/outfitters_screen.tscn" id="20"]
+[ext_resource type="PackedScene" path="res://scenes/ui/name_prompt.tscn" id="21"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
@@ -37,8 +43,14 @@ script = ExtResource("7")
 [node name="Economy" type="Node" parent="."]
 script = ExtResource("10")
 
+[node name="Ships" type="Node" parent="."]
+script = ExtResource("18")
+
 [node name="Contracts" type="Node" parent="."]
 script = ExtResource("12")
+
+[node name="Save" type="Node" parent="."]
+script = ExtResource("16")
 
 [node name="Docking" type="Node" parent="."]
 script = ExtResource("8")
@@ -52,3 +64,11 @@ script = ExtResource("8")
 [node name="MissionComputerScreen" parent="." instance=ExtResource("13")]
 
 [node name="EventPopup" parent="." instance=ExtResource("14")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("17")]
+
+[node name="ShipyardScreen" parent="." instance=ExtResource("19")]
+
+[node name="OutfittersScreen" parent="." instance=ExtResource("20")]
+
+[node name="NamePrompt" parent="." instance=ExtResource("21")]

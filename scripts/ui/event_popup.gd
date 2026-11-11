@@ -60,3 +60,9 @@ func _input(event: InputEvent) -> void:
 	if visible and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_accept")):
 		_dismiss()
 		get_viewport().set_input_as_handled()
+
+
+## Drops every queued and shown event without announcing it.
+func clear() -> void:
+	_queue.clear()
+	visible = false

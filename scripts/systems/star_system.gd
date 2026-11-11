@@ -4,6 +4,8 @@ extends Node2D
 ## inherit star_system.tscn and add their objects under the `Objects` node.
 ## Nothing here needs to change to create a new system.
 
+## Permanent unique id, e.g. &"sol". Save files and the SystemCatalog use it.
+@export var system_id: StringName = &""
 @export var system_name: String = ""
 
 @onready var _objects: Node2D = $Objects
@@ -36,4 +38,11 @@ func get_ships_root() -> Node2D:
 
 ## Starts the ambient NPC traffic of this system, keeping spawns clear of the player.
 func start_traffic(player: Node2D) -> void:
+	_traffic.start(self, player)
+
+
+## Removes every NPC ship and starts the traffic again from scratch, as when the
+## system is first entered. Used when a saved game is loaded.
+func restart_traffic(player: Node2D) -> void:
+	_traffic.reset()
 	_traffic.start(self, player)

@@ -205,3 +205,7 @@ The movement, brackets and look of the ships are best checked by running the gam
 | Real factions | Replace the copied `faction_name` string |
 | Jumping between systems | Swap the `StarSystem` node in `Main` and call `start_traffic()` on the new one; the old NPCs are freed with the old system |
 | Collision avoidance, pathfinding | Replace the straight-line steering in `NpcShip._fly()` |
+
+## 11. Saving
+
+NPC ships are not saved. After a load, `StarSystem.restart_traffic()` removes every NPC and starts the traffic again from scratch (`TrafficManager.reset()`), so loading never duplicates ships. See [save-system.md](save-system.md).

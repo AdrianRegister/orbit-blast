@@ -82,3 +82,16 @@ func undock() -> void:
 	_last_undock_msec = Time.get_ticks_msec()
 	_state.change_state(GameStateManager.State.FLYING)
 	undocked.emit(target)
+
+
+## Puts the player back in the docked state after loading a save. Unlike
+## try_dock() it does not emit `docked`, so nothing that happens on arrival
+## (deliveries, autosave) happens a second time.
+func restore_docked(target: Targetable) -> void:
+	docked_target = target
+	_state.change_state(GameStateManager.State.DOCKED)
+
+
+## Forgets any docking without announcing it (used when loading a save).
+func reset() -> void:
+	docked_target = null

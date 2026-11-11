@@ -9,6 +9,7 @@ var _failures: int = 0
 
 func _init() -> void:
 	var main: Node = load("res://scenes/main.tscn").instantiate()
+	main.starting_ship_stats = load("res://resources/ships/freighter_stats.tres")  # a hold big enough for the test cargo
 	root.add_child(main)
 	await process_frame
 	await process_frame

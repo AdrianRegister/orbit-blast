@@ -23,7 +23,7 @@ layout_mode = 2
 theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_bottom = 99
 
 [node name="Layout" type="VBoxContainer" parent="Panel/Margin"]
 layout_mode = 2

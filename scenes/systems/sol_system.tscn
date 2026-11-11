@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://resources/locations/victory_i.tres" id="6"]
 
 [node name="SolSystem" instance=ExtResource("1")]
+system_id = &"sol"
 system_name = "Sol"
 
 [node name="Earth" parent="Objects" index="0" instance=ExtResource("2")]
