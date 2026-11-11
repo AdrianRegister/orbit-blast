@@ -60,7 +60,7 @@ func _ready() -> void:
 	player_data.credits = starting_credits
 	_hud.track_ship(_ship)
 	_hud.set_nav_system(_system)
-	_system.start_traffic(_ship)
+	_begin_traffic(false)
 	if not _system.system_name.is_empty():
 		_hud.set_system_name(_system.system_name)
 	_targeting.target_changed.connect(_hud.set_target)
@@ -208,7 +208,7 @@ func restore_player(system_id: StringName, ship_position: Vector2,
 	_ship.global_position = ship_position
 	_ship.rotation = ship_rotation
 	_ship.velocity = ship_velocity
-	_system.restart_traffic(_ship)
+	_begin_traffic(true)
 
 	if docked_at != &"":
 		var target := _find_location_target(docked_at)
@@ -224,6 +224,20 @@ func restore_player(system_id: StringName, ship_position: Vector2,
 func _get_docked_location() -> InhabitedData:
 	var target := _docking.docked_target
 	return target.details as InhabitedData if target != null else null
+
+
+## (Re)starts the loaded system's NPC traffic. Ships arrive from and leave
+## towards the directions of the system's links on the galaxy map.
+func _begin_traffic(restart: bool) -> void:
+	var bearings: Array[Vector2] = []
+	var here := galaxy.get_map_position(_system.system_id)
+	for neighbour in galaxy.get_neighbours(_system.system_id):
+		bearings.append((galaxy.get_map_position(neighbour) - here).normalized())
+	_system.set_traffic_exits(bearings)
+	if restart:
+		_system.restart_traffic(_ship)
+	else:
+		_system.start_traffic(_ship)
 
 
 func _close_screens() -> void:
@@ -296,7 +310,7 @@ func jump_to(target_id: StringName) -> JumpCheck:
 	var heading := Vector2.from_angle(_ship.rotation)
 	_ship.global_position = _system.global_position - heading * _system.jump_radius
 	_ship.velocity = heading * minf(_ship.stats.max_speed * 0.3, ARRIVAL_SPEED)
-	_system.start_traffic(_ship)
+	_begin_traffic(false)
 	_travel.discover(target_id)
 	_saves.request_autosave()
 	return check

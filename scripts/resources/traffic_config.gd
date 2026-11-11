@@ -4,13 +4,13 @@ extends Resource
 ## to the Traffic node of a system scene; the default lives in
 ## resources/traffic/default_traffic.tres and a system can use its own.
 
-## Most NPC ships alive in the system at once.
+## Most NPC ships alive in the system at once, at a traffic_rate of 1.0.
 @export var max_ships: int = 8
 ## Ship types that may spawn, picked by each type's spawn_weight.
 @export var ship_types: Array[ShipType] = []
 
 @export_group("Spawning")
-## Seconds between new arrivals while below max_ships.
+## Seconds between new arrivals while below the cap, at a traffic_rate of 1.0.
 @export var spawn_interval: float = 6.0
 ## Fraction of max_ships placed in flight when the system loads, so it is not empty.
 @export_range(0.0, 1.0) var initial_fill_fraction: float = 0.5
@@ -28,9 +28,6 @@ extends Resource
 @export var dock_time_range: Vector2 = Vector2(5.0, 15.0)
 ## How many locations an NPC visits before leaving the system, as (min, max).
 @export var visits_range: Vector2i = Vector2i(2, 4)
-## A ship that has finished its visits only leaves the system when it is
-## farther than this from the player, so it never vanishes in view (pixels).
-@export var despawn_distance_from_player: float = 2500.0
 
 
 func validate() -> Array[String]:

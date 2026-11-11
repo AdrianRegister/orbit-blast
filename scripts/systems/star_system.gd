@@ -12,6 +12,13 @@ extends Node2D
 ## system appear on this circle.
 @export var jump_radius: float = 2000.0
 
+## How busy the system's NPC traffic is, relative to the traffic config: it
+## scales both how often ships arrive and how many are in the system at once
+## (and so how often they leave). 1.0 is a busy core system, which every system
+## so far is; a remote or sparsely populated system should use something like
+## 0.1 to 0.3. 0 means no traffic at all.
+@export_range(0.0, 4.0, 0.05) var traffic_rate: float = 1.0
+
 ## Most objects (planets, moons, stations) a system may contain.
 const MAX_OBJECTS := 3
 
@@ -43,6 +50,12 @@ func get_ships_root() -> Node2D:
 	return _ships
 
 
+## Tells the traffic which directions lead to other systems (unit vectors, from
+## the map positions of the links). Call before start_traffic().
+func set_traffic_exits(bearings: Array[Vector2]) -> void:
+	_traffic.set_exit_bearings(bearings)
+
+
 ## Starts the ambient NPC traffic of this system, keeping spawns clear of the player.
 func start_traffic(player: Node2D) -> void:
 	_traffic.start(self, player)
@@ -64,6 +77,8 @@ func validate() -> Array[String]:
 		problems.append("system_id is empty")
 	if system_name.is_empty():
 		problems.append("system_name is empty")
+	if traffic_rate < 0.0:
+		problems.append("traffic_rate is negative")
 	var objects := get_node("Objects").get_children()
 	var planets := 0
 	var moons := 0

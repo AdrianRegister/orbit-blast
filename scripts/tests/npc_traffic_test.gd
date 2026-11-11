@@ -139,7 +139,9 @@ func _init() -> void:
 	var player_spawn_violations := 0
 	var seconds := 1200.0
 	var steps := int(seconds / STEP)
-	var vanished_in_view := 0
+	var vanished_in_view := 0  # ships that disappeared without warping out
+	var warp_starts := 0
+	var early_warps := 0
 	for step in steps:
 		if step == steps / 2:
 			# Halfway: the player flies far away, so finished ships may now leave unseen.
@@ -154,7 +156,11 @@ func _init() -> void:
 			var before: NpcShip.State = ship.state
 			var destination_before: InhabitedNode = ship.destination
 			ship._physics_process(STEP)
-			if ship.is_queued_for_deletion() and ship.global_position.distance_to(player.global_position) < config.despawn_distance_from_player:
+			if before != NpcShip.State.WARPING and ship.state == NpcShip.State.WARPING:
+				warp_starts += 1
+				if ship.global_position.distance_to(system.global_position) < system.jump_radius:
+					early_warps += 1
+			if ship.is_queued_for_deletion() and ship.state != NpcShip.State.WARPING:
 				vanished_in_view += 1
 			states_seen[ship.state] = true
 			if ship.state == NpcShip.State.DOCKED:
@@ -188,7 +194,8 @@ func _init() -> void:
 			"docked ships stay visible, targetable and stopped (%d observations, %d problems)" % [docked_observations, docked_problems])
 	_check(retrograde_seen, "ships turn retrograde to brake before docking")
 	_check(repeat_destination == 0, "ships depart for a different location than they docked at")
-	_check(vanished_in_view == 0, "no ship ever vanished within %d px of the player" % int(config.despawn_distance_from_player))
+	_check(vanished_in_view == 0, "no ship ever just vanished: every one that left warped out first")
+	_check(warp_starts > 0 and early_warps == 0, "ships only jump from beyond the jump radius (%d jumps, %d too early)" % [warp_starts, early_warps])
 	_check(despawned > 0, "ships leave the system after their visits (%d left)" % despawned)
 	_check(total_created > expected_initial, "replacements spawned (%d ships created in total)" % total_created)
 	_check(player_spawn_violations == 0, "no ship spawned within %d px of the player" % int(config.min_spawn_distance_from_player))

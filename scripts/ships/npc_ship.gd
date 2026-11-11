@@ -11,15 +11,30 @@ extends Node2D
 ## thrust against its velocity.
 ##
 ## State machine:
+##   ARRIVING    - has just jumped in at the edge of the system, slowing down.
 ##   TRAVELLING  - flying at the destination at full speed.
 ##   APPROACHING - braking so it stops inside the destination's docking range.
 ##   DOCKED      - stopped at the location, still visible and targetable, for a
 ##                 while; then it flies on to a new destination.
+##   DEPARTING   - has finished its visits and is flying out of the system.
+##   WARPING     - jumping out: accelerating away until it is gone.
+##
+## Jumping obeys the player's rule: a ship only starts to warp once it is at
+## least the system's jump radius from the system centre.
 
-enum State { TRAVELLING, APPROACHING, DOCKED }
+enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING }
 
 ## Docking needs the ship slower than this (pixels per second).
 const DOCK_SPEED := 10.0
+## Speed a ship arrives at when it jumps in, and how fast it slows down (px/s, px/s^2).
+const ARRIVAL_SPEED := 3000.0
+const ARRIVAL_DECELERATION := 3500.0
+## Warp-out: acceleration and top speed (px/s^2, px/s), and how far past the
+## jump radius it has gone when it is removed.
+const WARP_ACCELERATION := 6000.0
+const WARP_SPEED := 9000.0
+const WARP_EXIT_MARGIN := 1200.0
+
 ## The ship aims to stop this fraction of the docking range from the centre,
 ## i.e. just inside the edge of the range.
 const STOP_FRACTION := 0.9
@@ -41,6 +56,12 @@ var velocity: Vector2 = Vector2.ZERO
 var details: NpcShipDetails
 
 var _config: TrafficConfig
+var _system_centre: Vector2 = Vector2.ZERO
+var _jump_radius: float = 0.0
+## Directions out of the system a ship can leave by (towards neighbouring
+## systems). Empty = it cannot leave and keeps visiting forever.
+var _exit_bearings: Array[Vector2] = []
+var _exit_direction: Vector2 = Vector2.ZERO
 var _destinations: Array[InhabitedNode] = []
 var _player: Node2D
 var _visits_left: int = 1
@@ -63,6 +84,27 @@ func setup(type: ShipType, config: TrafficConfig, destinations: Array[InhabitedN
 	_visits_left = randi_range(config.visits_range.x, config.visits_range.y)
 
 
+## Tells the ship where the system's centre is, how far out it may jump, and
+## which directions lead to other systems. Call before adding it to the tree.
+func configure_jumping(centre: Vector2, jump_radius: float, exit_bearings: Array[Vector2]) -> void:
+	_system_centre = centre
+	_jump_radius = jump_radius
+	_exit_bearings = exit_bearings
+
+
+## Starts the ship off as one that has just jumped in: moving fast along
+## `heading` and slowing down to cruising speed. Call after adding it to the tree.
+func begin_arrival(heading: Vector2) -> void:
+	_face(heading.angle())
+	velocity = heading.normalized() * ARRIVAL_SPEED
+	_set_state(State.ARRIVING)
+
+
+## The player's jump rule applied to this ship: far enough from the system centre.
+func can_jump() -> bool:
+	return _jump_radius > 0.0 and global_position.distance_to(_system_centre) >= _jump_radius
+
+
 func _ready() -> void:
 	_sprite.texture = ship_type.texture
 	_sprite.scale = Vector2(ship_type.sprite_scale, ship_type.sprite_scale)
@@ -83,6 +125,12 @@ func _physics_process(delta: float) -> void:
 			_dock_time_left -= delta
 			if _dock_time_left <= 0.0:
 				_finish_visit()
+		State.ARRIVING:
+			_arrive(delta)
+		State.DEPARTING:
+			_depart(delta)
+		State.WARPING:
+			_warp(delta)
 
 
 ## The heading the ship is currently facing, in radians (0 = facing right).
@@ -134,22 +182,59 @@ func _dock() -> void:
 	_set_state(State.DOCKED)
 
 
-## The visit is over. Leaves the system if it has made all its visits and the
-## player cannot see it go; otherwise flies on to a different location.
+## The visit is over. If it has made all its visits it heads out of the system
+## (when there is somewhere to jump to); otherwise it flies on to a different location.
 func _finish_visit() -> void:
 	if _visits_left <= 0:
-		if not _is_near_player():
-			queue_free()
+		if not _exit_bearings.is_empty():
+			_exit_direction = _exit_bearings.pick_random()
+			_set_state(State.DEPARTING)
 			return
-		_visits_left = 1  # Keep flying until it can leave unseen.
+		_visits_left = 1  # nowhere to jump to: keep visiting
 	destination = _pick_destination(destination)
 	_set_state(State.TRAVELLING)
 
 
-func _is_near_player() -> bool:
-	return is_instance_valid(_player) \
-			and global_position.distance_to(_player.global_position) \
-			< _config.despawn_distance_from_player
+## Jumped in: slows from arrival speed to its own top speed, then carries on to
+## its first destination as normal.
+func _arrive(delta: float) -> void:
+	var heading := Vector2.from_angle(get_heading())
+	var speed := maxf(velocity.length() - ARRIVAL_DECELERATION * delta, ship_type.stats.max_speed)
+	velocity = heading * speed
+	global_position += velocity * delta
+	if speed <= ship_type.stats.max_speed:
+		_set_state(State.TRAVELLING)
+
+
+## Flies out along its exit direction at full speed. Once it is far enough from
+## the centre (the same rule as the player) it warps away.
+func _depart(delta: float) -> void:
+	var stats: ShipStats = ship_type.stats
+	var error: Vector2 = _exit_direction * stats.max_speed - velocity
+	if error.length() > STEER_DEADZONE:
+		_turn_toward(error.angle(), delta)
+		if absf(angle_difference(get_heading(), error.angle())) < THRUST_ANGLE:
+			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
+	velocity = velocity.limit_length(stats.max_speed)
+	global_position += velocity * delta
+	if can_jump():
+		_begin_warp()
+
+
+func _begin_warp() -> void:
+	_targetable.set_enabled(false)  # it is gone as far as targeting is concerned
+	if velocity.length() > 1.0:
+		_face(velocity.angle())
+	_set_state(State.WARPING)
+
+
+## Accelerates hard along its heading and is removed once well clear of the system.
+func _warp(delta: float) -> void:
+	velocity += Vector2.from_angle(get_heading()) * WARP_ACCELERATION * delta
+	velocity = velocity.limit_length(WARP_SPEED)
+	global_position += velocity * delta
+	if global_position.distance_to(_system_centre) >= _jump_radius + WARP_EXIT_MARGIN:
+		queue_free()
 
 
 func _pick_destination(excluding: InhabitedNode) -> InhabitedNode:
@@ -173,6 +258,12 @@ func _set_state(new_state: State) -> void:
 			details.status = "Approaching %s" % place
 		State.DOCKED:
 			details.status = "Docked at %s" % place
+		State.ARRIVING:
+			details.status = "Arriving from another system"
+		State.DEPARTING:
+			details.status = "Leaving the system"
+		State.WARPING:
+			details.status = "Jumping out"
 	state_changed.emit(state)
 
 

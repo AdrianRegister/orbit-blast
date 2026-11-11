@@ -17,6 +17,7 @@ func _init() -> void:
 	var map: NavMap = hud.get_nav_map()
 	var ship := main.get_player_ship()
 	var system := main.get_system()
+	var targeting: TargetingManager = main.get_node("Targeting")
 	_check(map.get_parent().get_parent().name == "NavPanel", "the map is part of the navicomputer panel")
 	_check(map.size.x >= 100.0 and map.size.y >= 100.0, "it has a usable size (%s)" % map.size)
 
@@ -54,6 +55,31 @@ func _init() -> void:
 	for i in 4:
 		await create_timer(map.blink_period).timeout
 	_check(map.is_arrow_visible(), "the arrow stays valid while it blinks")
+
+	# --- The selected ship's dot flashes until it is deselected or gone.
+	ship.global_position = Vector2.ZERO
+	var npc: NpcShip = system.get_ships_root().get_child(0)
+	npc.global_position = Vector2(300, 200)
+	var npc_target: Targetable = npc.get_node("Targetable")
+	_check(map.get_selected_blip().is_empty(), "no ship is flagged while nothing is selected")
+	targeting.select(npc_target)
+	_check(not map.get_selected_blip().is_empty() and map.get_selected_blip()["targetable"] == npc_target, "selecting a ship marks its dot")
+	var phases := {}
+	for i in 8:
+		map._time = i * map.target_flash_period + 0.01
+		phases[map.is_target_flash_on()] = true
+	_check(phases.size() == 2, "the selected dot flashes (on and off)")
+	targeting.select(system.get_node("Objects").get_child(0).get_node("Targetable"))
+	_check(map.get_selected_blip().is_empty(), "selecting a planet marks no ship")
+	targeting.select(npc_target)
+	targeting.select(null)
+	_check(map.get_selected_blip().is_empty(), "deselecting stops the flashing")
+	targeting.select(npc_target)
+	system.get_ships_root().remove_child(npc)
+	npc.free()
+	await process_frame
+	_check(map.get_selected_blip().is_empty(), "when the ship no longer exists nothing flashes (and nothing breaks)")
+	map._draw()
 
 	# --- Colours: gas giants grey, stations yellow, planets blue (Barnard's Star).
 	main._swap_system(main.galaxy.get_scene(&"barnards_star"))

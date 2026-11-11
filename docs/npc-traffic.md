@@ -71,7 +71,7 @@ Because the NPCs are children of the system scene, **freeing or replacing the sy
 
 - **Same rules as the player.** Ships fly like the player: thrust only pushes along the facing direction and momentum is kept, so to slow down the ship must turn retrograde first. It docks only when it is inside the docking range (`Targetable.dock_range` via `SpaceObject.get_dock_range()`) and almost stopped. The braking curve starts early enough to leave time for that turn, which is slower for big ships like the freighter.
 - **Docked ships stay in the world.** They do not hide or become untargetable, so they can be selected, and later attacked. They leave by turning toward their next destination and accelerating; nothing teleports.
-- **Leaving the system.** After a random number of visits (`visits_range`) a ship leaves the system when its dock time ends, but only if it is farther than `despawn_distance_from_player` (2500 px) from the player, so it never vanishes in view. If the player is closer, it picks another destination and tries again at its next stop.
+- **Leaving the system.** After a random number of visits (`visits_range`) a ship heads out of the system (DEPARTING) along the direction of one of the system's links, and once it is at least the system's `jump_radius` from the centre (the player's rule) it warps away (WARPING): it accelerates hard and is removed once well clear. A ship that is warping can no longer be targeted. A system with no links has no jumping traffic: its ships keep visiting forever.
 - The steering ignores velocity errors under 8 px/s and thrusts only when facing within about 17 degrees of the direction it needs to accelerate in. There is no pathfinding and no collision between ships or with planets, so ships docked at the same place can overlap.
 - The ship's faction is copied from the faction of the location it came from. There is no separate faction system yet.
 
@@ -82,7 +82,7 @@ Because the NPCs are children of the system scene, **freeing or replacing the sy
 `TrafficManager` (configured by `TrafficConfig`):
 
 1. **At load** it places `initial_fill_fraction × max_ships` ships already in flight, at random points between two locations, so the system is not empty.
-2. **Afterwards**, every `spawn_interval` seconds while below `max_ships`, one ship appears just outside a random location's docking range (as if it had just undocked), heading for a different location.
+2. **Afterwards**, every `spawn_interval` seconds (divided by the system's `traffic_rate`) while below the cap (`max_ships` x `traffic_rate`), one ship appears. In a system with links it jumps in at the edge of the system (see "Traffic between systems" below); a system without links spawns it just outside a random location's docking range, as if it had just undocked.
 3. A spawn point is rejected, and another tried (12 attempts, then it waits for the next tick), if it is:
    - closer than `min_spawn_distance_from_player` to the player,
    - closer than a location's docking range plus `spawn_clearance` to any location (except the one it leaves),
@@ -166,17 +166,16 @@ Settings:
 
 | Field | Meaning | Default |
 |---|---|---|
-| `max_ships` | Most NPCs alive at once; 0 disables traffic | 8 |
+| `max_ships` | Most NPCs alive at once at a traffic_rate of 1.0; 0 disables traffic | 10 |
 | `ship_types` | Pool of `ShipType`; picked by weight | shuttle, freighter, interceptor |
-| `spawn_interval` | Seconds between new arrivals | 6 |
+| `spawn_interval` | Seconds between new arrivals at a traffic_rate of 1.0 | 5 |
 | `initial_fill_fraction` | Share of the cap placed in flight at load | 0.5 |
 | `min_spawn_distance_from_player` | Spawn exclusion radius around the player (px) | 800 |
 | `spawn_clearance` | Extra gap kept beyond each location's docking range (px) | 150 |
 | `ship_spacing` | Minimum gap to other ships when spawning (px) | 150 |
 | `departure_clearance` | How far beyond the docking range newly arriving ships appear (px) | 40 |
 | `dock_time_range` | Seconds docked, (min, max) | (5, 15) |
-| `visits_range` | Visits before leaving the system, (min, max) | (2, 4) |
-| `despawn_distance_from_player` | A finished ship only leaves when farther than this from the player (px) | 2500 |
+| `visits_range` | Visits before leaving the system, (min, max) | (1, 3) |
 
 Problems in the config or a ship type are reported in the Output panel when the system loads.
 
@@ -213,3 +212,15 @@ NPC ships are not saved. After a load, `StarSystem.restart_traffic()` removes ev
 ## Selecting the nearest ship
 
 The **R** key (`target_nearest_ship`) selects the NPC ship closest to the player (`TargetingManager.select_nearest`, measured from the ship given to `set_origin`). T still cycles through ships one by one. R does nothing when there is no ship to select. Covered by `target_nearest_test.gd`.
+
+
+## Traffic between systems
+
+Ships travel between star systems the way the player does. In each system:
+
+- **Arrivals.** New ships jump in (ARRIVING) at the edge of the system, on the circle of the system's `jump_radius`, from the direction of one of its links on the galaxy map (so ships arriving from Sol appear on the side of Sol). They enter fast, slow down to their own top speed, and carry on as normal to a random location. `Main` gives each system the bearings of its links (`StarSystem.set_traffic_exits`) before starting its traffic.
+- **Departures.** After their visits ships leave by a link, jumping once they are beyond the jump radius (see above).
+- **`StarSystem.traffic_rate`** scales it all: the cap on ships in the system (`max_ships` x rate) and how often a ship arrives (`spawn_interval` / rate). Departures follow, because ships leave after their visits and replacements only arrive while below the cap. 1.0 is a busy core system and is the default, so all seven current systems are busy (about four arrivals a minute with the default config). A remote or sparsely populated system should use about 0.1 to 0.3, and 0 means no traffic at all.
+- A system with no links (or none that matter) keeps the older behaviour: its own residents undock from its locations to replace ships, and nobody leaves.
+
+`NpcShip` has the new states ARRIVING, DEPARTING and WARPING; `TrafficManager` has `get_max_ships()`, `get_spawn_interval()` and `set_exit_bearings()`. Tests: `traffic_flow_test.gd` (arrivals on the edge along links, departures only beyond the jump radius, no ship vanishing without warping, rate scaling, rate 0, systems with no links) and the updated `npc_traffic_test.gd`.

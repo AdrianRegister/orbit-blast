@@ -92,6 +92,7 @@ func set_target(target: Targetable) -> void:
 	if _target != null and _target.info_changed.is_connected(_refresh_target):
 		_target.info_changed.disconnect(_refresh_target)
 	_target = target
+	_nav_map.set_target(target)
 	if _target != null:
 		_target.info_changed.connect(_refresh_target)
 	_clear_target_message()
