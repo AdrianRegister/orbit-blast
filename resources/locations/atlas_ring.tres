@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="InhabitedData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
+[ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
+
+[resource]
+script = ExtResource("1")
+id = &"atlas_ring"
+display_name = "Atlas Ring"
+faction_name = "TestFaction_1"
+population = 2500
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_fuel")])
+size = 180.0
+outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_manoeuvre_1")])

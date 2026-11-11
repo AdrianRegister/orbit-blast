@@ -9,3 +9,4 @@ script = ExtResource("1")
 display_name = "Moon"
 texture = ExtResource("2")
 settlement_picture = ExtResource("3")
+is_moon = true

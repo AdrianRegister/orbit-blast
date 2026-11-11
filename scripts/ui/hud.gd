@@ -27,6 +27,11 @@ var _target: Targetable
 @onready var _velocity_value: Label = %VelocityValue
 @onready var _weapon_value: Label = %WeaponValue
 @onready var _cargo_list: CargoList = %CargoList
+@onready var _nav_map: NavMap = %NavMap
+@onready var _nav_destination: Label = %NavDestinationLabel
+@onready var _nav_centre_row: InfoRow = %NavCentreRow
+@onready var _nav_status: Label = %NavStatusLabel
+@onready var _nav_message: Label = %NavMessageLabel
 @onready var _target_label: Label = %TargetLabel
 @onready var _target_info: VBoxContainer = %TargetInfo
 @onready var _target_name: Label = %NameLabel
@@ -36,6 +41,7 @@ var _target: Targetable
 @onready var _target_message: Label = %MessageLabel
 
 var _message_timer: Timer
+var _nav_message_timer: Timer
 
 
 func _ready() -> void:
@@ -51,11 +57,27 @@ func _ready() -> void:
 	_message_timer.wait_time = 4.0
 	_message_timer.timeout.connect(_clear_target_message)
 	add_child(_message_timer)
+	_nav_message_timer = Timer.new()
+	_nav_message_timer.one_shot = true
+	_nav_message_timer.wait_time = 3.0
+	_nav_message_timer.timeout.connect(_nav_message.hide)
+	add_child(_nav_message_timer)
+	set_navigation("", 0.0, 0.0, "", Color.WHITE)
 
 
 ## Tells the HUD which ship's velocity to display.
 func track_ship(ship: PlayerShip) -> void:
 	_ship = ship
+	_nav_map.set_ship(ship)
+
+
+## Tells the navicomputer's map which star system to show.
+func set_nav_system(system: StarSystem) -> void:
+	_nav_map.set_system(system)
+
+
+func get_nav_map() -> NavMap:
+	return _nav_map
 
 
 func _process(_delta: float) -> void:
@@ -146,6 +168,25 @@ func set_energy(value: float, max_value: float) -> void:
 ## `lines` is an Array of [display_name, quantity] pairs.
 func set_cargo(used: int, capacity: int, lines: Array) -> void:
 	_cargo_list.set_cargo(used, capacity, lines)
+
+
+## Fills the navicomputer: the selected destination's name ("" for none), how
+## far the ship is from the system centre, how far it must be to jump, and a
+## status line with its colour.
+func set_navigation(destination_name: String, distance: float, required: float,
+		status: String, status_colour: Color) -> void:
+	_nav_destination.text = "Selected destination: %s" % destination_name if not destination_name.is_empty() \
+			else "No destination selected"
+	_nav_centre_row.set_value("%s / %s" % [NumberFormat.with_commas(roundi(distance)), NumberFormat.with_commas(roundi(required))])
+	_nav_status.text = status
+	_nav_status.add_theme_color_override("font_color", status_colour)
+
+
+## Shows a red message in the navicomputer for a few seconds (e.g. why J did nothing).
+func show_navigation_message(text: String) -> void:
+	_nav_message.text = text
+	_nav_message.show()
+	_nav_message_timer.start()
 
 
 func set_weapon_name(weapon_name: String) -> void:

@@ -54,12 +54,27 @@ func start_new_game(model: ShipStats) -> OwnedShip:
 
 # ----------------------------------------------------------------- buying ships
 
+## The ships this location's shipyard actually sells to the player: its list,
+## without ships that belong to another faction (see ShipStats.faction_name).
+## Ships a shipyard does not list, such as military ships, are never for sale.
+func get_ships_for_sale(location: InhabitedData) -> Array[ShipStats]:
+	var result: Array[ShipStats] = []
+	if location == null:
+		return result
+	for model in location.shipyard_ships:
+		if model != null and (model.faction_name.is_empty() or model.faction_name == location.faction_name):
+			result.append(model)
+	return result
+
+
 ## What buying `model` here would cost, or why it cannot be done. Changes nothing.
 func quote_ship(model: ShipStats, trade_in: bool) -> ShipResult:
 	var location := _get_location()
 	if location == null:
 		return ShipResult.refused("You must be docked to buy a ship.")
-	if not location.shipyard_ships.has(model):
+	if not get_ships_for_sale(location).has(model):
+		if location.shipyard_ships.has(model):
+			return ShipResult.refused("The %s is only sold by %s." % [model.display_name, model.faction_name])
 		return ShipResult.refused("This shipyard does not sell the %s." % model.display_name)
 	var result := ShipResult.new()
 	result.trade_in_value = get_active().model.price if trade_in else 0

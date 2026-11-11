@@ -13,6 +13,10 @@ extends Resource
 ## Model name shown in shipyards and the HUD, e.g. "Shuttle".
 @export var display_name: String = ""
 @export_multiline var description: String = ""
+## The faction this ship belongs to, as plain text until factions exist (the
+## Federation is "TestFaction_1" for now). A ship with a faction can only be
+## bought at a shipyard of a location owned by that faction. Empty = any shipyard.
+@export var faction_name: String = ""
 ## Purchase price in credits. Also what the model is worth as a trade-in.
 @export var price: int = 0
 

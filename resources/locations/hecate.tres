@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/moon.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+
+[resource]
+script = ExtResource("1")
+id = &"hecate"
+display_name = "Hecate"
+faction_name = "TestFaction_1"
+population = 40000
+planet_type = ExtResource("2")
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel"), ExtResource("c_machinery")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])
+size = 190.0

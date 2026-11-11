@@ -29,7 +29,8 @@ func _ready() -> void:
 func start(system: StarSystem, player: Node2D) -> void:
 	_system = system
 	_player = player
-	_locations = system.get_inhabited_nodes()
+	_locations.assign(system.get_inhabited_nodes().filter(
+			func(node: InhabitedNode) -> bool: return node.data != null and node.data.is_dockable()))
 	if config == null:
 		push_warning("%s: no TrafficConfig assigned; no traffic." % system.name)
 		return

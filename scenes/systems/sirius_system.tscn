@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/persephone.tres" id="loc_persephone"]
+[ext_resource type="Resource" path="res://resources/locations/hecate.tres" id="loc_hecate"]
+[ext_resource type="Resource" path="res://resources/locations/sirius_gate.tres" id="loc_sirius_gate"]
+
+[node name="SiriusSystem" instance=ExtResource("1")]
+system_id = &"sirius"
+system_name = "Sirius"
+
+[node name="Persephone" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-1000, -300)
+data = ExtResource("loc_persephone")
+
+[node name="Hecate" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-1000, 450)
+data = ExtResource("loc_hecate")
+
+[node name="SiriusGate" parent="Objects" index="2" instance=ExtResource("3")]
+position = Vector2(1500, 600)
+data = ExtResource("loc_sirius_gate")

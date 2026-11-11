@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/daedalus.tres" id="loc_daedalus"]
+[ext_resource type="Resource" path="res://resources/locations/atlas.tres" id="loc_atlas"]
+[ext_resource type="Resource" path="res://resources/locations/atlas_ring.tres" id="loc_atlas_ring"]
+
+[node name="BarnardsStarSystem" instance=ExtResource("1")]
+system_id = &"barnards_star"
+system_name = "Barnard's Star"
+
+[node name="Daedalus" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-800, 300)
+data = ExtResource("loc_daedalus")
+
+[node name="Atlas" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(1100, -400)
+data = ExtResource("loc_atlas")
+
+[node name="AtlasRing" parent="Objects" index="2" instance=ExtResource("3")]
+position = Vector2(1100, 100)
+data = ExtResource("loc_atlas_ring")

@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/elysium.tres" id="loc_elysium"]
+[ext_resource type="Resource" path="res://resources/locations/lethe.tres" id="loc_lethe"]
+[ext_resource type="Resource" path="res://resources/locations/styx_platform.tres" id="loc_styx_platform"]
+
+[node name="EpsilonEridaniSystem" instance=ExtResource("1")]
+system_id = &"epsilon_eridani"
+system_name = "Epsilon Eridani"
+
+[node name="Elysium" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(200, -900)
+data = ExtResource("loc_elysium")
+
+[node name="Lethe" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-350, -900)
+data = ExtResource("loc_lethe")
+
+[node name="StyxPlatform" parent="Objects" index="2" instance=ExtResource("3")]
+position = Vector2(1500, 300)
+data = ExtResource("loc_styx_platform")

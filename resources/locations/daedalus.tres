@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/terrestrial.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+
+[resource]
+script = ExtResource("1")
+id = &"daedalus"
+display_name = "Daedalus"
+faction_name = "TestFaction_1"
+population = 90000
+planet_type = ExtResource("2")
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_food")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_machinery")])
+size = 170.0

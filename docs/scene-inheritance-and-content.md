@@ -504,7 +504,7 @@ Run the project, or check the scripts without opening the editor:
 
 ## Permanent ids
 
-Content that can appear in a save file needs a permanent unique `id`: set `id` on every new location (`InhabitedData`), commodity (`Commodity`) and ship (`ShipStats`), and `system_id` on every new star system scene (and add the system to `resources/universe/system_catalog.tres`). Never change an id once saves exist. See [save-system.md](save-system.md).
+Content that can appear in a save file needs a permanent unique `id`: set `id` on every new location (`InhabitedData`), commodity (`Commodity`) and ship (`ShipStats`), and `system_id` on every new star system scene (and add it to `resources/universe/galaxy.tres` with a map position and links, see [galaxy.md](galaxy.md)). Never change an id once saves exist. See [save-system.md](save-system.md).
 
 ## Ship models and locations' services
 

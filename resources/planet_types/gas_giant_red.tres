@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PlanetType" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_type.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/planets/GasGiantRed.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Gas Giant (Red)"
+texture = ExtResource("2")

@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/talos.tres" id="loc_talos"]
+[ext_resource type="Resource" path="res://resources/locations/minos.tres" id="loc_minos"]
+
+[node name="ProcyonSystem" instance=ExtResource("1")]
+system_id = &"procyon"
+system_name = "Procyon"
+
+[node name="Talos" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-400, -200)
+data = ExtResource("loc_talos")
+
+[node name="Minos" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(1300, 700)
+data = ExtResource("loc_minos")

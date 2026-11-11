@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/federation_capital_ship.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"federation_capital_ship"
+display_name = "Federation Capital Ship"
+description = "The largest ship in Federation service. Where it goes, the fleet follows."
+faction_name = "TestFaction_1"
+price = 3000000
+texture = ExtResource("2")
+sprite_scale = 0.8
+thrust = 140.0
+turn_rate = 0.9
+max_speed = 330.0
+cargo_capacity = 1000

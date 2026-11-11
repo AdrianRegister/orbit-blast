@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/hera.tres" id="loc_hera"]
+[ext_resource type="Resource" path="res://resources/locations/argo_station.tres" id="loc_argo_station"]
+
+[node name="AlphaCentauriSystem" instance=ExtResource("1")]
+system_id = &"alpha_centauri"
+system_name = "Alpha Centauri"
+
+[node name="Hera" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(-300, 100)
+data = ExtResource("loc_hera")
+
+[node name="ArgoStation" parent="Objects" index="1" instance=ExtResource("3")]
+position = Vector2(900, -500)
+data = ExtResource("loc_argo_station")

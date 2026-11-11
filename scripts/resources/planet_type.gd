@@ -12,3 +12,6 @@ extends Resource
 ## Settlement-screen background for inhabited planets of this type. Used when a
 ## planet's own data has no `picture` set.
 @export var settlement_picture: Texture2D
+
+## True for moons. A system may only contain a moon if it also has a planet.
+@export var is_moon: bool = false

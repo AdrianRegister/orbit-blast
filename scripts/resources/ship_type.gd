@@ -10,6 +10,8 @@ enum Category { CIVILIAN, MILITARY }
 ## The ship model: name, sprite and base flight numbers.
 @export var stats: ShipStats
 ## Lets the traffic system split its population between civilian and military later.
+## Military ships spawn as traffic but are never sold to the player until faction
+## reputation exists: they are simply not listed by any shipyard.
 @export var category: Category = Category.CIVILIAN
 ## How likely this type is picked relative to the others in a TrafficConfig.
 @export_range(0.0, 100.0) var spawn_weight: float = 1.0

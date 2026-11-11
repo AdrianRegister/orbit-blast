@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
 [ext_resource type="Resource" path="res://resources/ships/interceptor_stats.tres" id="sy_interceptor"]
 [ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
+[ext_resource type="Resource" path="res://resources/ships/light_frigate_stats.tres" id="sy_light_frigate"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_1.tres" id="up_manoeuvre_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
@@ -25,8 +26,8 @@ faction_name = "TestFaction_1"
 population = 4500
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery")])
-size = 80.0
+size = 180.0
 market = ExtResource("market")
 contract_offers = Array[ExtResource("cos")]([ExtResource("co_0"), ExtResource("co_1")])
-shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_interceptor"), ExtResource("sy_shuttle")])
+shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_interceptor"), ExtResource("sy_shuttle"), ExtResource("sy_light_frigate")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_manoeuvre_1"), ExtResource("up_manoeuvre_2"), ExtResource("up_cargo_bay")])

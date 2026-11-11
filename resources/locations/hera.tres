@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/desert.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
+[ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
+[ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
+[ext_resource type="Resource" path="res://resources/upgrades/engine_2.tres" id="up_engine_2"]
+
+[resource]
+script = ExtResource("1")
+id = &"hera"
+display_name = "Hera"
+faction_name = "TestFaction_1"
+population = 3200000
+planet_type = ExtResource("2")
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_fuel")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_food")])
+size = 520.0
+outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1"), ExtResource("up_engine_2")])

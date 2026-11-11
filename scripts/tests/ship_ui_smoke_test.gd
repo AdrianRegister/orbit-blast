@@ -64,7 +64,7 @@ func _init() -> void:
 	await process_frame
 	_check(shipyard.visible, "the shipyard opens")
 	var ships_table: Tree = shipyard.get_node("%Table")
-	_check(ships_table.get_root().get_child_count() == 2, "Earth sells two ships")
+	_check(ships_table.get_root().get_child_count() == 3, "Earth sells three ships")
 	var freighter_row := ships_table.get_root().get_child(1)
 	freighter_row.select(ShipyardScreen.Column.SHIP)
 	ships_table.item_selected.emit()

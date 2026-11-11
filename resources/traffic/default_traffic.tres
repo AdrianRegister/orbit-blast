@@ -5,8 +5,13 @@
 [ext_resource type="Resource" path="res://resources/ship_types/shuttle.tres" id="3"]
 [ext_resource type="Resource" path="res://resources/ship_types/freighter.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/ship_types/interceptor.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/ship_types/bulk_freighter.tres" id="t_bulk_freighter"]
+[ext_resource type="Resource" path="res://resources/ship_types/light_frigate.tres" id="t_light_frigate"]
+[ext_resource type="Resource" path="res://resources/ship_types/federation_frigate.tres" id="t_federation_frigate"]
+[ext_resource type="Resource" path="res://resources/ship_types/federation_cruiser.tres" id="t_federation_cruiser"]
+[ext_resource type="Resource" path="res://resources/ship_types/federation_capital_ship.tres" id="t_federation_capital_ship"]
 
 [resource]
 script = ExtResource("1")
 max_ships = 8
-ship_types = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4"), ExtResource("5")])
+ship_types = Array[ExtResource("2")]([ExtResource("3"), ExtResource("4"), ExtResource("5"), ExtResource("t_bulk_freighter"), ExtResource("t_light_frigate"), ExtResource("t_federation_frigate"), ExtResource("t_federation_cruiser"), ExtResource("t_federation_capital_ship")])

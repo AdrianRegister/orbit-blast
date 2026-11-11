@@ -4,9 +4,16 @@ extends Node2D
 ## inherit star_system.tscn and add their objects under the `Objects` node.
 ## Nothing here needs to change to create a new system.
 
-## Permanent unique id, e.g. &"sol". Save files and the SystemCatalog use it.
+## Permanent unique id, e.g. &"sol". Save files and the Galaxy use it.
 @export var system_id: StringName = &""
 @export var system_name: String = ""
+## How far from the system centre (in pixels) a ship must be to make a jump.
+## Ships arriving from another
+## system appear on this circle.
+@export var jump_radius: float = 2000.0
+
+## Most objects (planets, moons, stations) a system may contain.
+const MAX_OBJECTS := 3
 
 @onready var _objects: Node2D = $Objects
 @onready var _ships: Node2D = $Ships
@@ -46,3 +53,34 @@ func start_traffic(player: Node2D) -> void:
 func restart_traffic(player: Node2D) -> void:
 	_traffic.reset()
 	_traffic.start(self, player)
+
+
+## Human-readable problems with this system; empty when it is sound. Works on a
+## system that is not in the tree. Rules: at least one planet, at most
+## MAX_OBJECTS objects, and a moon only together with a planet.
+func validate() -> Array[String]:
+	var problems: Array[String] = []
+	if system_id == &"":
+		problems.append("system_id is empty")
+	if system_name.is_empty():
+		problems.append("system_name is empty")
+	var objects := get_node("Objects").get_children()
+	var planets := 0
+	var moons := 0
+	var count := 0
+	for object in objects:
+		if not object is SpaceObject:
+			continue
+		count += 1
+		var data = object.get("data")
+		if data is PlanetData and data.planet_type != null and data.planet_type.is_moon:
+			moons += 1
+		elif data is PlanetData:
+			planets += 1
+	if planets == 0:
+		problems.append("a system needs at least one planet")
+	if moons > 0 and planets == 0:
+		problems.append("a moon needs a planet in the same system")
+	if count > MAX_OBJECTS:
+		problems.append("a system may hold at most %d objects (has %d)" % [MAX_OBJECTS, count])
+	return problems

@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
 [ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
 [ext_resource type="Resource" path="res://resources/ships/freighter_stats.tres" id="sy_freighter"]
+[ext_resource type="Resource" path="res://resources/ships/bulk_freighter_stats.tres" id="sy_bulk_freighter"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
@@ -33,5 +34,5 @@ imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_
 size = 450.0
 market = ExtResource("market")
 contract_offers = Array[ExtResource("cos")]([ExtResource("co_0"), ExtResource("co_1"), ExtResource("co_2")])
-shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_shuttle"), ExtResource("sy_freighter")])
+shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_shuttle"), ExtResource("sy_freighter"), ExtResource("sy_bulk_freighter")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1"), ExtResource("up_engine_2"), ExtResource("up_manoeuvre_1")])

@@ -60,7 +60,7 @@ func setup(ships: ShipManager, economy: EconomyManager) -> void:
 ## Opens the shipyard of the docked target. Does nothing if it sells no ships.
 func open(target: Targetable) -> void:
 	_location = target.details as InhabitedData
-	if _location == null or _location.shipyard_ships.is_empty():
+	if _location == null or _ships.get_ships_for_sale(_location).is_empty():
 		return
 	_title_label.text = "%s SHIPYARD" % target.target_name.to_upper()
 	_message_label.text = ""
@@ -85,7 +85,7 @@ func _build_table() -> void:
 	_table.clear()
 	_selected = null
 	var root := _table.create_item()
-	for model in _location.shipyard_ships:
+	for model in _ships.get_ships_for_sale(_location):
 		var item := _table.create_item(root)
 		var specs := ShipSpecs.compute(model)
 		item.set_text(Column.SHIP, model.display_name)

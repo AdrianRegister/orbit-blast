@@ -8,6 +8,14 @@ var stats: ShipSpecs
 
 @onready var _sprite: Sprite2D = $Sprite2D
 
+## Speed (px/s) and acceleration (px/s^2) of a warp jump. Purely a visual effect.
+const WARP_SPEED := 9000.0
+const WARP_ACCELERATION := 6000.0
+
+## True from pressing J until the jump completes: the controls are ignored and
+## the ship accelerates to warp speed along its heading.
+var warping: bool = false
+
 ## False while docked: the ship stops dead and ignores the flight controls.
 var flight_enabled: bool = true
 
@@ -31,7 +39,20 @@ func set_flight_enabled(enabled: bool) -> void:
 		velocity = Vector2.ZERO
 
 
+func begin_warp() -> void:
+	warping = true
+
+
+func end_warp() -> void:
+	warping = false
+
+
 func _physics_process(delta: float) -> void:
+	if warping:
+		velocity += Vector2.from_angle(rotation) * WARP_ACCELERATION * delta
+		velocity = velocity.limit_length(WARP_SPEED)
+		move_and_slide()
+		return
 	if stats == null or not flight_enabled:
 		return
 

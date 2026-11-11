@@ -11,6 +11,18 @@ extends Node
 @export var starting_credits: int = 500000
 ## Flavour text shown when a cargo delivery completes.
 @export var delivery_flavour: FlavourPool
+## The galaxy: which systems exist, where they are and how they connect.
+@export var galaxy: Galaxy
+
+## Seconds between pressing J and the flash: the ship accelerates to warp speed.
+const WARP_DURATION := 2.0
+## Colours of the navicomputer's status line.
+const NAV_OK := Color(0.4, 0.9, 0.5)
+const NAV_BAD := Color(1.0, 0.45, 0.4)
+const NAV_BUSY := Color(0.5, 0.85, 1.0)
+
+## Speed (px/s) a ship drifts inward at when it arrives by jump, at most.
+const ARRIVAL_SPEED := 120.0
 
 var player_data: PlayerData
 
@@ -27,12 +39,17 @@ var _naming_first_ship: bool = false
 @onready var _settlement: SettlementScreen = $SettlementScreen
 @onready var _economy: EconomyManager = $Economy
 @onready var _ships: ShipManager = $Ships
+@onready var _travel: TravelManager = $Travel
 @onready var _contracts: ContractManager = $Contracts
 @onready var _trading: TradingScreen = $TradingScreen
 @onready var _missions: MissionComputerScreen = $MissionComputerScreen
 @onready var _shipyard: ShipyardScreen = $ShipyardScreen
 @onready var _outfitters: OutfittersScreen = $OutfittersScreen
 @onready var _name_prompt: NamePrompt = $NamePrompt
+@onready var _map: GalaxyMapScreen = $GalaxyMapScreen
+@onready var _flash: JumpFlash = $JumpFlash
+
+var _warp_timer: Timer
 @onready var _popup: EventPopup = $EventPopup
 @onready var _saves: SaveManager = $Save
 @onready var _pause: PauseMenu = $PauseMenu
@@ -42,15 +59,26 @@ func _ready() -> void:
 	player_data = PlayerData.new()
 	player_data.credits = starting_credits
 	_hud.track_ship(_ship)
+	_hud.set_nav_system(_system)
 	_system.start_traffic(_ship)
 	if not _system.system_name.is_empty():
 		_hud.set_system_name(_system.system_name)
 	_targeting.target_changed.connect(_hud.set_target)
+	_targeting.set_origin(_ship)
 
 	_economy.credits_changed.connect(_hud.set_credits)
 	_economy.cargo_changed.connect(_update_cargo_hud)
 	_economy.setup(player_data)
 	_ships.setup(_economy, player_data, _get_docked_location)
+	_travel.setup(galaxy, func() -> StringName: return _system.system_id)
+	_map.setup(galaxy, _travel, get_jump_check)
+	_map.destination_selected.connect(_on_map_destination_selected)
+	_warp_timer = Timer.new()
+	_warp_timer.one_shot = true
+	_warp_timer.timeout.connect(_flash.flash)
+	add_child(_warp_timer)
+	_flash.peak_reached.connect(_on_flash_peak)
+	_map.closed.connect(func() -> void: get_tree().paused = false)
 	_ships.active_ship_changed.connect(_ship.apply_ship)
 	_ships.start_new_game(starting_ship_stats)
 	_update_cargo_hud()
@@ -82,6 +110,8 @@ func _ready() -> void:
 	_saves.register_section(&"fleet", _ships)
 	_saves.register_section(&"contracts", _contracts)
 	_saves.register_section(&"player", PlayerSection.new(self))
+	_saves.register_section(&"galaxy", _travel, false)  # after the player: it needs the current system
+	_travel.discovery_changed.connect(_saves.request_autosave)
 	_contracts.contracts_changed.connect(_saves.request_autosave)
 	_ships.fleet_changed.connect(_saves.request_autosave)
 	_economy.transaction_completed.connect(func(_quote: TradeQuote) -> void: _saves.request_autosave())
@@ -161,13 +191,12 @@ func get_docked_target() -> Targetable:
 func restore_player(system_id: StringName, ship_position: Vector2,
 		ship_rotation: float, ship_velocity: Vector2, docked_at: StringName,
 		registry: ContentRegistry) -> void:
-	_trading.close()
-	_missions.close()
-	_shipyard.close()
-	_outfitters.close()
+	_warp_timer.stop()
+	_ship.end_warp()
+	_flash.cancel()
+	_close_screens()
 	_name_prompt.visible = false
 	_naming_first_ship = false
-	_settlement.close()
 	_popup.clear()
 	_targeting.select(null)
 	_docking.reset()
@@ -197,12 +226,89 @@ func _get_docked_location() -> InhabitedData:
 	return target.details as InhabitedData if target != null else null
 
 
+func _close_screens() -> void:
+	_trading.close()
+	_missions.close()
+	_shipyard.close()
+	_outfitters.close()
+	_settlement.close()
+
+
+## Whether the player could jump to a system right now, without doing it. Used
+## by the galaxy map to enable its Jump button and say why not.
+func get_jump_check(target_id: StringName) -> JumpCheck:
+	var distance := _ship.global_position.distance_to(_system.global_position)
+	return _travel.check_jump(target_id, distance, _docking.docked_target != null)
+
+
+func _on_map_destination_selected(target_id: StringName) -> void:
+	_map.close()  # also resumes the game
+	_travel.set_destination(target_id)
+
+
+## The J key: starts the jump to the selected destination if the travel rules
+## allow it. The ship accelerates to warp speed, and after WARP_DURATION seconds
+## the screen flashes and the new system is loaded behind the flash. If a rule
+## stops it, the navicomputer says why. Returns the check.
+func try_jump() -> JumpCheck:
+	if _ship.warping:
+		return JumpCheck.new()
+	var destination := _travel.get_destination()
+	var check: JumpCheck
+	if destination == &"":
+		check = JumpCheck.new()
+		check.reason = "Select a destination on the galaxy map (M)."
+	else:
+		check = get_jump_check(destination)
+	if not check.ok:
+		_hud.show_navigation_message(check.reason)
+		return check
+	_ship.begin_warp()
+	_warp_timer.start(WARP_DURATION)
+	return check
+
+
+## The screen is fully white: swap systems now, unseen.
+func _on_flash_peak() -> void:
+	if not _ship.warping:
+		return
+	var result := jump_to(_travel.get_destination())
+	if not result.ok:
+		_ship.end_warp()
+		_hud.show_navigation_message(result.reason)
+
+
+## Jumps to a linked system if the travel rules allow it, and returns the
+## check either way (check.ok says whether it happened). The old system and its
+## traffic are unloaded, the new one is loaded and the ship keeps the heading it
+## left with, appearing on the opposite edge of the system (leave pointing up and
+## you enter from the bottom, flying up). Credits, cargo, contracts and the ship
+## are untouched.
+func jump_to(target_id: StringName) -> JumpCheck:
+	var check := get_jump_check(target_id)
+	if not check.ok:
+		return check
+	_ship.end_warp()
+	_travel.clear_destination()
+	_close_screens()
+	_targeting.select(null)
+	_swap_system(galaxy.get_scene(target_id))
+	var heading := Vector2.from_angle(_ship.rotation)
+	_ship.global_position = _system.global_position - heading * _system.jump_radius
+	_ship.velocity = heading * minf(_ship.stats.max_speed * 0.3, ARRIVAL_SPEED)
+	_system.start_traffic(_ship)
+	_travel.discover(target_id)
+	_saves.request_autosave()
+	return check
+
+
 func _swap_system(scene: PackedScene) -> void:
 	remove_child(_system)
 	_system.free()
 	_system = scene.instantiate()
 	add_child(_system)
 	move_child(_system, 0)  # keep it drawn behind the ship
+	_hud.set_nav_system(_system)
 	if not _system.system_name.is_empty():
 		_hud.set_system_name(_system.system_name)
 
@@ -221,9 +327,33 @@ func _find_location_target(location_id: StringName) -> Targetable:
 ## Esc opens the pause menu when nothing else has used the key (the trading and
 ## mission screens and the event popup consume it first).
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("jump"):
+		try_jump()
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("galaxy_map") and _can_open_map():
+		_open_map()
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("ui_cancel") and not _pause.visible:
 		_open_pause()
 		get_viewport().set_input_as_handled()
+
+
+## The map opens only when nothing else is on screen that would want the key.
+func _can_open_map() -> bool:
+	if _ship.warping:
+		return false
+	for screen: CanvasLayer in [_pause, _trading, _missions, _shipyard, _outfitters, _name_prompt, _popup, _map]:
+		if screen.visible:
+			return false
+	return true
+
+
+## Freezes the game and shows the galaxy map; closing it resumes.
+func _open_map() -> void:
+	get_tree().paused = true
+	_map.open()
 
 
 ## Freezes the game (the ship keeps its speed) and shows the menu.
@@ -274,6 +404,34 @@ func _on_game_state_changed(new_state: GameStateManager.State, _previous: GameSt
 	_targeting.set_process_unhandled_input(flying)
 
 
+## Keeps the navicomputer in step with the ship: the selected destination, how
+## far the ship is from the system centre and whether J would work.
+func _update_navigation() -> void:
+	if not is_instance_valid(_system):
+		return
+	var distance := _ship.global_position.distance_to(_system.global_position)
+	var required := _system.jump_radius
+	var destination := _travel.get_destination()
+	var summary := galaxy.get_summary(destination) if destination != &"" else null
+	var status := ""
+	var colour := Color.WHITE
+	if summary != null:
+		var check := get_jump_check(destination)
+		if _ship.warping:
+			status = "JUMPING..."
+			colour = NAV_BUSY
+		elif check.ok:
+			status = "JUMP OK - PRESS J"
+			colour = NAV_OK
+		elif distance < required:
+			status = "TOO CLOSE TO CENTRE"
+			colour = NAV_BAD
+		else:
+			status = check.reason
+			colour = NAV_BAD
+	_hud.set_navigation(summary.system_name if summary != null else "", distance, required, status, colour)
+
+
 func _update_cargo_hud() -> void:
 	var cargo: CargoHold = _economy.get_cargo()
 	_hud.set_cargo(cargo.get_used(), cargo.capacity, _economy.get_cargo_lines())
@@ -294,17 +452,14 @@ func _on_docked(target: Targetable) -> void:
 func _refresh_location_buttons(target: Targetable) -> void:
 	var location := target.details as InhabitedData
 	_settlement.set_mission_computer_enabled(location != null and _contracts.has_contracts_for(location))
-	_settlement.set_shipyard_enabled(location != null and not location.shipyard_ships.is_empty())
+	_settlement.set_shipyard_enabled(location != null and not _ships.get_ships_for_sale(location).is_empty())
 	_settlement.set_outfitters_enabled(location != null and not location.outfitter_upgrades.is_empty())
 
 
-## The name of the star system a location is in, or "" if it is not in the
-## loaded system. A galaxy lookup replaces this once there are several systems.
+## The name of the star system a location is in, or "" if it is in none.
 func _get_system_name_of(location: InhabitedData) -> String:
-	for node in _system.get_inhabited_nodes():
-		if node.data == location:
-			return _system.system_name
-	return ""
+	var summary := galaxy.get_summary(galaxy.system_of_location(location.id))
+	return summary.system_name if summary != null else ""
 
 
 ## Tells the player about a finished contract in a popup, with a random line of
@@ -344,6 +499,7 @@ func _on_undocked(_target: Targetable) -> void:
 
 
 func _process(_delta: float) -> void:
+	_update_navigation()
 	_camera.global_position = _ship.global_position
 	# The HUD covers the right edge of the window. Shift the view right by half
 	# the panel width so the ship sits in the middle of the remaining play area.

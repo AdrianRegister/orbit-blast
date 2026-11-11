@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/federation_frigate.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"federation_frigate"
+display_name = "Federation Frigate"
+description = "The backbone of the Federation fleet: a well-armoured escort with a respectable turn of speed."
+faction_name = "TestFaction_1"
+price = 350000
+texture = ExtResource("2")
+sprite_scale = 0.3
+thrust = 380.0
+turn_rate = 3.4
+max_speed = 600.0
+cargo_capacity = 80

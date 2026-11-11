@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/arctic.tres" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="sss"]
+[ext_resource type="Resource" path="res://resources/ships/freighter_stats.tres" id="sy_freighter"]
+[ext_resource type="Resource" path="res://resources/ships/shuttle_stats.tres" id="sy_shuttle"]
+[ext_resource type="Resource" path="res://resources/ships/bulk_freighter_stats.tres" id="sy_bulk_freighter"]
+
+[resource]
+script = ExtResource("1")
+id = &"talos"
+display_name = "Talos"
+faction_name = "TestFaction_1"
+population = 1700000
+planet_type = ExtResource("2")
+exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery")])
+imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])
+size = 440.0
+shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_freighter"), ExtResource("sy_shuttle"), ExtResource("sy_bulk_freighter")])

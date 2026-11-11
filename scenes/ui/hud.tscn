@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/stat_bar.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/info_row.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/cargo_list.tscn" id="5"]
+[ext_resource type="Script" path="res://scripts/ui/nav_map.gd" id="6"]
 
 [node name="Hud" type="CanvasLayer" unique_id=273135714]
 script = ExtResource("1")
@@ -119,6 +120,52 @@ unique_name_in_owner = true
 layout_mode = 2
 
 [node name="Separator4" type="HSeparator" parent="Panel/Layout" unique_id=1478377553]
+layout_mode = 2
+
+[node name="NavHeader" type="Label" parent="Panel/Layout"]
+layout_mode = 2
+theme_type_variation = &"HeaderLabel"
+text = "NAVICOMPUTER"
+
+[node name="NavPanel" type="PanelContainer" parent="Panel/Layout"]
+layout_mode = 2
+theme_type_variation = &"InsetPanel"
+
+[node name="Nav" type="VBoxContainer" parent="Panel/Layout/NavPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NavMap" type="Control" parent="Panel/Layout/NavPanel/Nav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+script = ExtResource("6")
+
+[node name="NavDestinationLabel" type="Label" parent="Panel/Layout/NavPanel/Nav"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="NavCentreRow" parent="Panel/Layout/NavPanel/Nav" instance=ExtResource("4")]
+unique_name_in_owner = true
+layout_mode = 2
+caption = "FROM CENTRE"
+
+[node name="NavStatusLabel" type="Label" parent="Panel/Layout/NavPanel/Nav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+autowrap_mode = 3
+
+[node name="NavMessageLabel" type="Label" parent="Panel/Layout/NavPanel/Nav"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
+autowrap_mode = 3
+
+[node name="SeparatorNav" type="HSeparator" parent="Panel/Layout"]
 layout_mode = 2
 
 [node name="TargetHeader" type="Label" parent="Panel/Layout" unique_id=222359395]

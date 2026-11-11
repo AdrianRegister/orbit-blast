@@ -195,9 +195,17 @@ func _init() -> void:
 
 	# --- Star system: saved id decides which system is loaded.
 	var second := _make_second_system()
-	var catalog := SystemCatalog.new()
-	catalog.systems = {&"sol": load("res://scenes/systems/sol_system.tscn"), &"quiet": second}
-	_saves.set_registry(ContentRegistry.new(catalog))
+	var galaxy := Galaxy.new()
+	for scene in [load("res://scenes/systems/sol_system.tscn"), second]:
+		var entry := GalaxySystem.new()
+		entry.scene = scene
+		galaxy.systems.append(entry)
+	galaxy.systems[1].map_position = Vector2(100, 0)
+	var link := SystemLink.new()
+	link.a = &"sol"
+	link.b = &"quiet"
+	galaxy.links.append(link)
+	_saves.set_registry(ContentRegistry.new(galaxy))
 	_write_doc_with(func(d: Dictionary) -> void:
 		d["player"]["system"] = "quiet"
 		d["player"]["mode"] = "space"
@@ -259,7 +267,7 @@ func _dock(place: String) -> void:
 
 
 func _make_second_system() -> PackedScene:
-	var system: StarSystem = load("res://scenes/systems/star_system.tscn").instantiate()
+	var system: StarSystem = load("res://scenes/systems/sol_system.tscn").instantiate()  # a valid system (it needs a planet)
 	system.system_id = &"quiet"
 	system.system_name = "Quiet"
 	var packed := PackedScene.new()

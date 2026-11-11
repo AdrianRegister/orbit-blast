@@ -21,12 +21,17 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/shipyard_screen.tscn" id="19"]
 [ext_resource type="PackedScene" path="res://scenes/ui/outfitters_screen.tscn" id="20"]
 [ext_resource type="PackedScene" path="res://scenes/ui/name_prompt.tscn" id="21"]
+[ext_resource type="Script" path="res://scripts/galaxy/travel_manager.gd" id="22"]
+[ext_resource type="PackedScene" path="res://scenes/ui/galaxy_map_screen.tscn" id="24"]
+[ext_resource type="PackedScene" path="res://scenes/ui/jump_flash.tscn" id="25"]
+[ext_resource type="Resource" path="res://resources/universe/galaxy.tres" id="23"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
 starting_ship_stats = ExtResource("4")
 starting_credits = 500000
 delivery_flavour = ExtResource("15")
+galaxy = ExtResource("23")
 
 [node name="StarSystem" parent="." instance=ExtResource("2")]
 
@@ -45,6 +50,9 @@ script = ExtResource("10")
 
 [node name="Ships" type="Node" parent="."]
 script = ExtResource("18")
+
+[node name="Travel" type="Node" parent="."]
+script = ExtResource("22")
 
 [node name="Contracts" type="Node" parent="."]
 script = ExtResource("12")
@@ -72,3 +80,7 @@ script = ExtResource("8")
 [node name="OutfittersScreen" parent="." instance=ExtResource("20")]
 
 [node name="NamePrompt" parent="." instance=ExtResource("21")]
+
+[node name="GalaxyMapScreen" parent="." instance=ExtResource("24")]
+
+[node name="JumpFlash" parent="." instance=ExtResource("25")]

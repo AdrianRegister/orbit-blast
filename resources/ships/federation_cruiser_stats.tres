@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/federation_cruiser.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"federation_cruiser"
+display_name = "Federation Cruiser"
+description = "A heavy warship that keeps order on the Federation trade lanes. Slow to turn, hard to stop."
+faction_name = "TestFaction_1"
+price = 900000
+texture = ExtResource("2")
+sprite_scale = 0.5
+thrust = 240.0
+turn_rate = 2.0
+max_speed = 450.0
+cargo_capacity = 300

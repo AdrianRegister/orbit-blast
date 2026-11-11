@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/locations/aurelia.tres" id="loc_aurelia"]
+[ext_resource type="Resource" path="res://resources/locations/oberon.tres" id="loc_oberon"]
+
+[node name="TauCetiSystem" instance=ExtResource("1")]
+system_id = &"tau_ceti"
+system_name = "Tau Ceti"
+
+[node name="Aurelia" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(600, 500)
+data = ExtResource("loc_aurelia")
+
+[node name="Oberon" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(-1300, -300)
+data = ExtResource("loc_oberon")

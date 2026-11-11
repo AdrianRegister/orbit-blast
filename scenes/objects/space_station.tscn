@@ -2,6 +2,11 @@
 
 [ext_resource type="PackedScene" path="res://scenes/objects/inhabited_node.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/objects/space_station.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/planets/SpaceStation_1.png" id="3"]
 
 [node name="SpaceStation" instance=ExtResource("1")]
 script = ExtResource("2")
+texture = ExtResource("3")
+
+[node name="Sprite2D" type="Sprite2D" parent="." index="0"]
+texture_filter = 1

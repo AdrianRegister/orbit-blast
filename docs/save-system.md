@@ -103,7 +103,7 @@ SaveManager (node in main.tscn)
 | `SaveMigrations` | `scripts/save/save_migrations.gd` | Upgrades old saves one version at a time |
 | `SaveData` | `scripts/save/save_data.gd` | Helpers for checking values read from JSON |
 | `ContentRegistry` | `scripts/save/content_registry.gd` | Turns ids back into Resources (commodities, locations, ship stats, systems) |
-| `SystemCatalog` | `scripts/save/system_catalog.gd`, `resources/universe/system_catalog.tres` | System id to scene |
+| `Galaxy` | `scripts/galaxy/galaxy.gd`, `resources/universe/galaxy.tres` | System id to scene, map position and links (see [galaxy.md](galaxy.md)) |
 | `PlayerSection` | `scripts/save/player_section.gd` | The `player` section |
 | `ContractFactory` | `scripts/missions/contract_factory.gd` | Contract type name to class |
 
@@ -139,7 +139,7 @@ Loading is **validate everything, then apply**.
 1. **Read:** `savegame.json`; if unusable, `savegame.json.bak`.
 2. **Migrate** old versions to the current one (section 11).
 3. **Validate** every registered section against the data and the registry: shapes and types, ids that resolve, quantities that make sense, and cross-checks (every active delivery contract has its cargo lot of the right size and every lot has an active contract; cargo within capacity; stock only for goods a market trades; unique contract ids below `next_id`; a contract's status matches the list it is in). If anything fails, loading stops here and the running game is unchanged.
-4. **Apply**, in order: economy (credits, cargo, markets), contracts, then the player (`Main.restore_player`): every screen and popup is closed, the saved star system is loaded if it differs from the current one (from the `SystemCatalog`), the ship's position, heading and velocity are restored, NPC traffic is cleared and started again, and if the player was docked, the docked state and settlement screen are restored.
+4. **Apply**, in order: economy (credits, cargo, markets), contracts, then the player (`Main.restore_player`): every screen and popup is closed, the saved star system is loaded if it differs from the current one (from the `Galaxy`), the ship's position, heading and velocity are restored, NPC traffic is cleared and started again, and if the player was docked, the docked state and settlement screen are restored.
 
 Loading **replaces** state, it never adds to it, so loading twice gives the same game. Re-docking after a load uses `DockingManager.restore_docked()`, which does not emit `docked`, so no delivery is made, no reward paid and no autosave triggered by the restore.
 
@@ -181,12 +181,12 @@ Ids are what the save file stands on. **Once a release can write saves, never ch
 | Commodity | `Commodity.id` | `food` |
 | Location | `InhabitedData.id` | `earth`, `victory_i` |
 | Ship | `ShipStats.id` | `shuttle` |
-| Star system | `StarSystem.system_id` and the `SystemCatalog` | `sol` |
+| Star system | `StarSystem.system_id` and the `Galaxy` | `sol` |
 | Contract | `Contract.id`, `contract_<n>` (counter saved as `next_id`) | `contract_3` |
 
 Ids must be unique and non-empty. `ContentRegistry.problems` reports duplicates and missing ids, and `InhabitedData.validate()` reports an empty location id. Display names can change freely; ids cannot.
 
-New locations, commodities and ship stats are found by the registry automatically from their folders (`resources/locations/`, `resources/commodities/`, `resources/ships/`). A new star system must also be added to `resources/universe/system_catalog.tres`.
+New locations, commodities and ship stats are found by the registry automatically from their folders (`resources/locations/`, `resources/commodities/`, `resources/ships/`). A new star system must also be added to `resources/universe/galaxy.tres`.
 
 ---
 
@@ -239,3 +239,7 @@ Manual check: start a game, trade, accept a contract, quit to the menu, press Co
 ## Fleet and save version 2
 
 Version 2 added the `fleet` section (see [ships-and-upgrades.md](ships-and-upgrades.md)): `next_id`, `active` and a list of ships with `id`, `model`, `name`, `upgrades` and `flags`. `ShipManager` is the section provider and is registered after the economy so the hold takes the active ship's capacity. The `player` section no longer stores `ship`. Migration 1 to 2 turns the old `player.ship` into a fleet of one ship named after its model. The cargo validation no longer requires cargo to fit the capacity: the capacity comes from the active ship and an old save may hold more than the ship now carries, so such cargo is kept instead of the save being refused. When the main menu starts a new game, the starting ship is named before autosave begins.
+
+## Galaxy section
+
+The optional `galaxy` section stores the discovered system ids (`{"discovered": [...]}`). It is applied after the player so the current system is known, and a save without it defaults to Sol plus the current system. See [galaxy.md](galaxy.md).

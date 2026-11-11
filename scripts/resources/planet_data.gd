@@ -6,6 +6,15 @@ extends InhabitedData
 @export var planet_type: PlanetType
 
 
+## False for bodies that cannot be landed on, such as gas giants. An undockable
+## body must be uninhabited and offer no services.
+@export var dockable: bool = true
+
+
+func is_dockable() -> bool:
+	return dockable
+
+
 ## The planet's own picture if set, otherwise its type's settlement picture.
 func get_picture() -> Texture2D:
 	if picture != null:
@@ -19,4 +28,7 @@ func validate() -> Array[String]:
 		problems.append("planet_type is not set")
 	elif planet_type.texture == null:
 		problems.append("planet_type '%s' has no texture" % planet_type.display_name)
+	if not dockable:
+		if population > 0 or market != null or not contract_offers.is_empty() 				or not shipyard_ships.is_empty() or not outfitter_upgrades.is_empty():
+			problems.append("an undockable body must have no population, market, contracts or services")
 	return problems

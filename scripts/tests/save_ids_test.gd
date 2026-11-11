@@ -17,9 +17,9 @@ func _init() -> void:
 		_check(registry.ship_stats(id) != null and registry.ship_stats(id).id == id, "ship '%s' resolves" % id)
 	_check(registry.commodity(&"nonsense") == null and registry.location(&"") == null, "unknown ids give null")
 
-	_check(registry.has_system(&"sol") and registry.system_scene(&"sol") != null, "system 'sol' is in the catalog")
+	_check(registry.has_system(&"sol") and registry.system_scene(&"sol") != null, "system 'sol' is in the galaxy")
 	var sol: StarSystem = registry.system_scene(&"sol").instantiate()
-	_check(sol.system_id == &"sol", "the Sol scene carries the id the catalog uses")
+	_check(sol.system_id == &"sol", "the Sol scene carries the id the galaxy uses")
 	sol.free()
 
 	# Every location placed in Sol has a registered id.

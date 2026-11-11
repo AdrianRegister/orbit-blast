@@ -209,3 +209,7 @@ The movement, brackets and look of the ships are best checked by running the gam
 ## 11. Saving
 
 NPC ships are not saved. After a load, `StarSystem.restart_traffic()` removes every NPC and starts the traffic again from scratch (`TrafficManager.reset()`), so loading never duplicates ships. See [save-system.md](save-system.md).
+
+## Selecting the nearest ship
+
+The **R** key (`target_nearest_ship`) selects the NPC ship closest to the player (`TargetingManager.select_nearest`, measured from the ship given to `set_origin`). T still cycles through ships one by one. R does nothing when there is no ship to select. Covered by `target_nearest_test.gd`.

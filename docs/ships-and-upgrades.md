@@ -131,3 +131,11 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 ## 12. Current limits
 
 No hangar or fleet screens (kept ships are stored but unreachable), no per-ship cargo, no combat equipment, no running costs, no ship selling other than trade-in, and shipyard stock does not depend on faction or reputation yet. Prices and percentages are first guesses.
+
+## 13. Factions, military ships and the ship roster
+
+`ShipStats.faction_name` says which faction a model belongs to (plain text until factions exist; the Federation is `TestFaction_1`). A model with a faction can only be bought at a shipyard of a location owned by that faction: `ShipManager.get_ships_for_sale(location)` filters the location's `shipyard_ships` by it, the shipyard screen and the settlement button use that list, and `quote_ship` refuses with "only sold by <faction>". Military ships (`ShipType.category = MILITARY`) spawn as NPC traffic but are not listed by any shipyard, so the player cannot buy them; when faction reputation exists, adding them to a Federation shipyard's list is all it takes.
+
+Roster: Shuttle, Interceptor, Freighter, Light Frigate, Bulk Freighter (no faction), and the Federation Frigate, Cruiser and Capital Ship (`federation_` sprites; Federation, military). All eight are in `resources/traffic/default_traffic.tres`. Prices and flight numbers of the new ships are first guesses.
+
+Space stations are now drawn from a sprite (`SpaceStation.texture`, set in `space_station.tscn`); like planets, the location's `size` is the sprite's width in pixels.

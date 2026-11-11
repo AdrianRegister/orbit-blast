@@ -1,0 +1,97 @@
+[gd_resource type="Resource" script_class="Galaxy" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/galaxy.gd" id="g"]
+[ext_resource type="Script" path="res://scripts/galaxy/galaxy_system.gd" id="gs"]
+[ext_resource type="Script" path="res://scripts/galaxy/system_link.gd" id="sl"]
+[ext_resource type="PackedScene" path="res://scenes/systems/sol_system.tscn" id="sc_sol"]
+[ext_resource type="PackedScene" path="res://scenes/systems/alpha_centauri_system.tscn" id="sc_alpha_centauri"]
+[ext_resource type="PackedScene" path="res://scenes/systems/barnards_star_system.tscn" id="sc_barnards_star"]
+[ext_resource type="PackedScene" path="res://scenes/systems/sirius_system.tscn" id="sc_sirius"]
+[ext_resource type="PackedScene" path="res://scenes/systems/tau_ceti_system.tscn" id="sc_tau_ceti"]
+[ext_resource type="PackedScene" path="res://scenes/systems/procyon_system.tscn" id="sc_procyon"]
+[ext_resource type="PackedScene" path="res://scenes/systems/epsilon_eridani_system.tscn" id="sc_epsilon_eridani"]
+
+[sub_resource type="Resource" id="sys_sol"]
+script = ExtResource("gs")
+scene = ExtResource("sc_sol")
+map_position = Vector2(0, 0)
+start_discovered = true
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="sys_alpha_centauri"]
+script = ExtResource("gs")
+scene = ExtResource("sc_alpha_centauri")
+map_position = Vector2(-260, -130)
+start_discovered = false
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="sys_barnards_star"]
+script = ExtResource("gs")
+scene = ExtResource("sc_barnards_star")
+map_position = Vector2(-330, -330)
+start_discovered = false
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="sys_sirius"]
+script = ExtResource("gs")
+scene = ExtResource("sc_sirius")
+map_position = Vector2(10, -200)
+start_discovered = false
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="sys_tau_ceti"]
+script = ExtResource("gs")
+scene = ExtResource("sc_tau_ceti")
+map_position = Vector2(60, -420)
+start_discovered = false
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="sys_procyon"]
+script = ExtResource("gs")
+scene = ExtResource("sc_procyon")
+map_position = Vector2(250, -120)
+start_discovered = false
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="sys_epsilon_eridani"]
+script = ExtResource("gs")
+scene = ExtResource("sc_epsilon_eridani")
+map_position = Vector2(340, -310)
+start_discovered = false
+faction_name = "TestFaction_1"
+
+[sub_resource type="Resource" id="link_sol_alpha_centauri"]
+script = ExtResource("sl")
+a = &"sol"
+b = &"alpha_centauri"
+
+[sub_resource type="Resource" id="link_sol_sirius"]
+script = ExtResource("sl")
+a = &"sol"
+b = &"sirius"
+
+[sub_resource type="Resource" id="link_sol_procyon"]
+script = ExtResource("sl")
+a = &"sol"
+b = &"procyon"
+
+[sub_resource type="Resource" id="link_alpha_centauri_barnards_star"]
+script = ExtResource("sl")
+a = &"alpha_centauri"
+b = &"barnards_star"
+
+[sub_resource type="Resource" id="link_sirius_tau_ceti"]
+script = ExtResource("sl")
+a = &"sirius"
+b = &"tau_ceti"
+
+[sub_resource type="Resource" id="link_procyon_epsilon_eridani"]
+script = ExtResource("sl")
+a = &"procyon"
+b = &"epsilon_eridani"
+
+[resource]
+script = ExtResource("g")
+systems = Array[ExtResource("gs")]([SubResource("sys_sol"), SubResource("sys_alpha_centauri"), SubResource("sys_barnards_star"), SubResource("sys_sirius"), SubResource("sys_tau_ceti"), SubResource("sys_procyon"), SubResource("sys_epsilon_eridani")])
+links = Array[ExtResource("sl")]([SubResource("link_sol_alpha_centauri"), SubResource("link_sol_sirius"), SubResource("link_sol_procyon"), SubResource("link_alpha_centauri_barnards_star"), SubResource("link_sirius_tau_ceti"), SubResource("link_procyon_epsilon_eridani")])
+fuel_per_unit = 0.1

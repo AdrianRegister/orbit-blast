@@ -139,6 +139,45 @@ func _init() -> void:
 		ids[ship.id] = true
 	_check(ids.size() == player.fleet.ships.size(), "ship ids are unique")
 
+	# --- Factions and military ships.
+	var frigate: ShipStats = load("res://resources/ships/federation_frigate_stats.tres")
+	var registry := ContentRegistry.new()
+	for id in [&"federation_frigate", &"federation_cruiser", &"federation_capital_ship"]:
+		var model := registry.ship_stats(id)
+		_check(model != null and model.validate().is_empty(), "%s exists and validates" % id)
+		_check(model.faction_name == "TestFaction_1", "%s belongs to the Federation" % id)
+		var type: ShipType = load("res://resources/ship_types/%s.tres" % str(id).trim_prefix(""))
+		_check(type.category == ShipType.Category.MILITARY and type.validate().is_empty(), "%s is a military ship type" % id)
+	for id in [&"bulk_freighter", &"light_frigate"]:
+		_check(registry.ship_stats(id) != null and registry.ship_stats(id).validate().is_empty() and registry.ship_stats(id).faction_name == "", "%s exists, validates and has no faction" % id)
+	var in_traffic := {}
+	for type in (load("res://resources/traffic/default_traffic.tres") as TrafficConfig).ship_types:
+		in_traffic[type.stats.id] = type
+	_check(in_traffic.has(&"federation_frigate") and in_traffic.has(&"federation_capital_ship") and in_traffic.has(&"bulk_freighter"), "the new ships spawn as NPC traffic")
+	var galaxy := load("res://resources/universe/galaxy.tres") as Galaxy
+	var sold_anywhere := false
+	for system_id in galaxy.get_system_ids():
+		for location_id in galaxy.get_summary(system_id).location_ids:
+			for model in registry.location(location_id).shipyard_ships:
+				if model.faction_name != "":
+					sold_anywhere = true
+	_check(not sold_anywhere, "no shipyard lists a Federation ship")
+
+	var federation_yard := InhabitedData.new()
+	federation_yard.faction_name = "TestFaction_1"
+	federation_yard.shipyard_ships = [shuttle, frigate]
+	var other_yard := InhabitedData.new()
+	other_yard.faction_name = "SomeoneElse"
+	other_yard.shipyard_ships = [shuttle, frigate]
+	player.credits = 5000000
+	here[0] = other_yard
+	_check(ships.get_ships_for_sale(other_yard) == [shuttle], "a non-Federation shipyard does not offer a Federation ship")
+	result = ships.quote_ship(frigate, false)
+	_check(not result.ok and "only sold by" in result.message, "...and refuses to sell it: %s" % result.message)
+	_check(ships.quote_ship(shuttle, false).ok, "...but sells unaligned ships")
+	here[0] = federation_yard
+	_check(ships.get_ships_for_sale(federation_yard).size() == 2 and ships.quote_ship(frigate, false).ok, "a Federation shipyard that lists it can sell it")
+
 	print("")
 	print("SHIP TESTS: ", "all passed" if _failures == 0 else "%d FAILED" % _failures)
 	quit(1 if _failures > 0 else 0)
