@@ -47,7 +47,7 @@ func faction(id: StringName) -> Faction:
 func factions() -> Array[Faction]:
 	var result: Array[Faction] = []
 	var ids := _factions.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b) -> bool: return str(a) < str(b))  # (StringNames do not sort alphabetically)
 	for id in ids:
 		result.append(_factions[id])
 	return result
@@ -65,7 +65,7 @@ func location(id: StringName) -> InhabitedData:
 func locations() -> Array[InhabitedData]:
 	var result: Array[InhabitedData] = []
 	var ids := _locations.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b) -> bool: return str(a) < str(b))  # (StringNames do not sort alphabetically)
 	for id in ids:
 		result.append(_locations[id])
 	return result
@@ -75,7 +75,7 @@ func locations() -> Array[InhabitedData]:
 func commodities() -> Array[Commodity]:
 	var result: Array[Commodity] = []
 	var ids := _commodities.keys()
-	ids.sort()
+	ids.sort_custom(func(a, b) -> bool: return str(a) < str(b))  # (StringNames do not sort alphabetically)
 	for id in ids:
 		result.append(_commodities[id])
 	return result

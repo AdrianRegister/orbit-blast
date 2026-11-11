@@ -51,6 +51,8 @@ var _travel: TravelManager
 ## Callable() -> Dictionary: system id -> Array of the accepted contracts that
 ## point there. Marked on the map.
 var _objectives: Callable
+## Who owns what; contested systems are marked. Optional.
+var _territory: TerritoryManager
 var _press_position: Vector2 = Vector2.ZERO
 var _pressing: bool = false
 var _dragging: bool = false
@@ -65,10 +67,13 @@ func _ready() -> void:
 	resized.connect(_on_resized)
 
 
-func setup(galaxy: Galaxy, travel: TravelManager, objectives: Callable = Callable()) -> void:
+func setup(galaxy: Galaxy, travel: TravelManager, objectives: Callable = Callable(), territory: TerritoryManager = null) -> void:
 	_galaxy = galaxy
 	_travel = travel
 	_objectives = objectives
+	_territory = territory
+	if _territory != null:
+		_territory.territory_changed.connect(queue_redraw)
 	_travel.discovery_changed.connect(queue_redraw)
 	_travel.scouting_changed.connect(queue_redraw)
 	_travel.destination_changed.connect(queue_redraw)
@@ -259,6 +264,9 @@ func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 		draw_arc(at, MARKER_RADIUS, 0.0, TAU, 24, colour, 2.0, true)
 	if reachable:
 		draw_arc(at, MARKER_RADIUS + 5.0, 0.0, TAU, 32, LINK_REACHABLE, 2.0, true)
+	var control := get_control(id)
+	if control != null and control.is_contested():
+		_draw_contested_ring(at, control)
 	var objectives := get_objectives(id)
 	if not objectives.is_empty():
 		draw_arc(at, MARKER_RADIUS + 9.0, 0.0, TAU, 32, OBJECTIVE, 2.0, true)
@@ -283,6 +291,21 @@ func _draw_system(id: StringName, current: StringName, reachable: bool) -> void:
 			exploring = exploring or contract is ExplorationContract
 		draw_string(font, at + Vector2(MARKER_RADIUS + 12.0, 24.0 if id != current and id != _travel.get_destination() else 42.0),
 				"EXPLORE" if exploring else "DELIVERY", HORIZONTAL_ALIGNMENT_LEFT, -1, font_size - 4, OBJECTIVE)
+
+
+## Who controls a system, if the player can know: discovered systems only.
+func get_control(system_id: StringName) -> SystemControl:
+	if _territory == null or not _travel.is_discovered(system_id):
+		return null
+	return _territory.get_control(system_id)
+
+
+## A ring split into one coloured arc per faction present in a contested system.
+func _draw_contested_ring(at: Vector2, control: SystemControl) -> void:
+	var count := control.factions.size()
+	for i in count:
+		var start := TAU * i / count - PI / 2.0
+		draw_arc(at, MARKER_RADIUS + 5.0, start, start + TAU / count - 0.15, 12, control.factions[i].colour, 3.0, true)
 
 
 func _draw_brackets(at: Vector2, half: float) -> void:

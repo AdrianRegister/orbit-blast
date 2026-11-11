@@ -53,21 +53,13 @@ func get_map_position(id: StringName) -> Vector2:
 	return system.map_position if system != null else Vector2.ZERO
 
 
-## The faction that owns a system, or null if it is unclaimed (or unknown).
-func get_faction(id: StringName) -> Faction:
+## The faction a system is claimed by on the map, or null. This is NOT who owns
+## the system's settlements or controls it: ask the TerritoryManager
+## (get_control) for that.
+func get_claim(id: StringName) -> Faction:
 	_ensure_index()
 	var system: GalaxySystem = _by_id.get(id)
-	return system.faction if system != null else null
-
-
-func get_faction_id(id: StringName) -> StringName:
-	var faction := get_faction(id)
-	return faction.id if faction != null else &""
-
-
-func get_faction_name(id: StringName) -> String:
-	var faction := get_faction(id)
-	return faction.display_name if faction != null else ""
+	return system.claim if system != null else null
 
 
 func is_start_discovered(id: StringName) -> bool:

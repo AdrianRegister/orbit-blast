@@ -44,6 +44,7 @@ var _naming_first_ship: bool = false
 @onready var _economy: EconomyManager = $Economy
 @onready var _ships: ShipManager = $Ships
 @onready var _travel: TravelManager = $Travel
+@onready var _territory: TerritoryManager = $Territory
 @onready var _contracts: ContractManager = $Contracts
 @onready var _trading: TradingScreen = $TradingScreen
 @onready var _missions: MissionComputerScreen = $MissionComputerScreen
@@ -74,8 +75,12 @@ func _ready() -> void:
 	_economy.cargo_changed.connect(_update_cargo_hud)
 	_economy.setup(player_data)
 	_ships.setup(_economy, player_data, _get_docked_location)
+	var content := ContentRegistry.new()
 	_travel.setup(galaxy, func() -> StringName: return _system.system_id)
-	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems)
+	_territory.setup(galaxy, content)
+	_system.set_owner_lookup(_territory.owner_name_of)
+	_ships.set_territory(_territory)
+	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems, _territory)
 	_contracts.contracts_changed.connect(_map.get_map().queue_redraw)
 	_map.destination_selected.connect(_on_map_destination_selected)
 	_warp_timer = Timer.new()
@@ -90,9 +95,9 @@ func _ready() -> void:
 	var contract_context := ContractContext.new()
 	contract_context.galaxy = galaxy
 	contract_context.travel = _travel
+	contract_context.territory = _territory
 	contract_context.rewards = load("res://resources/contracts/reward_rules.tres")
 	contract_context.current_system = func() -> StringName: return _system.system_id
-	var content := ContentRegistry.new()
 	contract_context.registry = content
 	contract_context.max_cargo = content.max_cargo_capacity()
 	_contracts.setup(_economy, contract_context)
@@ -124,6 +129,8 @@ func _ready() -> void:
 	_saves.register_section(&"contracts", _contracts)
 	_saves.register_section(&"player", PlayerSection.new(self))
 	_saves.register_section(&"galaxy", _travel, false)  # after the player: it needs the current system
+	_saves.register_section(&"territory", _territory, false)  # who owns each settlement; absent in older saves
+	_territory.territory_changed.connect(_saves.request_autosave)
 	_travel.discovery_changed.connect(_saves.request_autosave)
 	_contracts.contracts_changed.connect(_saves.request_autosave)
 	_ships.fleet_changed.connect(_saves.request_autosave)
@@ -333,6 +340,7 @@ func _swap_system(scene: PackedScene) -> void:
 	remove_child(_system)
 	_system.free()
 	_system = scene.instantiate()
+	_system.set_owner_lookup(_territory.owner_name_of)
 	add_child(_system)
 	move_child(_system, 0)  # keep it drawn behind the ship
 	_hud.set_nav_system(_system)

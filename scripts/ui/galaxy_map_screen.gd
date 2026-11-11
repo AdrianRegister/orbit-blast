@@ -21,6 +21,7 @@ var _galaxy: Galaxy
 var _travel: TravelManager
 ## Callable(system_id) -> JumpCheck: asks Main whether a jump is possible now.
 var _check_jump: Callable
+var _territory: TerritoryManager
 
 @onready var _map: GalaxyMapView = %MapView
 @onready var _back_button: Button = %BackButton
@@ -37,11 +38,14 @@ func _ready() -> void:
 	_map.system_selected.connect(_show_system)
 
 
-func setup(galaxy: Galaxy, travel: TravelManager, check_jump: Callable, objectives: Callable = Callable()) -> void:
+func setup(galaxy: Galaxy, travel: TravelManager, check_jump: Callable, objectives: Callable = Callable(), territory: TerritoryManager = null) -> void:
 	_galaxy = galaxy
 	_travel = travel
 	_check_jump = check_jump
-	_map.setup(galaxy, travel, objectives)
+	_territory = territory
+	_map.setup(galaxy, travel, objectives, territory)
+	if _territory != null:
+		_territory.territory_changed.connect(_refresh)
 	_travel.discovery_changed.connect(_refresh)
 	_travel.scouting_changed.connect(_refresh)
 	_travel.destination_changed.connect(_refresh)
@@ -97,7 +101,7 @@ func _show_system(id: StringName) -> void:
 	for row in _rows.get_children():
 		_rows.remove_child(row)
 		row.queue_free()
-	_add_row("FACTION", (_galaxy.get_faction_name(id) if _galaxy.get_faction(id) != null else "None") if discovered else "Unknown")
+	_add_row("FACTION", _get_control_text(id) if discovered else "Unknown")
 	var scouted := _travel.is_scouted(id)
 	var progress := _travel.get_scouting_progress(id)
 	_add_row("SCOUTED", "Yes" if scouted else ("%d of %d bodies" % [progress.x, progress.y] if discovered else "No"))
@@ -161,3 +165,12 @@ func _services(summary: SystemSummary) -> String:
 func _on_jump_pressed() -> void:
 	if not _jump_button.disabled:
 		destination_selected.emit(_map.selected_id)
+
+
+## Who controls a system: its owner, "Contested: ..." or "None". Without a
+## territory manager the map's claim is all there is to show.
+func _get_control_text(id: StringName) -> String:
+	if _territory != null:
+		return _territory.get_control(id).get_text()
+	var claim := _galaxy.get_claim(id)
+	return claim.display_name if claim != null else "None"

@@ -91,9 +91,19 @@ func set_selected(selected: bool) -> void:
 	queue_redraw()
 
 
+## Callable(InhabitedData) -> String: who owns this location now. Optional; set by
+## the star system so the "OWNED BY" row follows changes of ownership.
+var owner_name_lookup: Callable
+
+
 ## Rows for the HUD beyond name, type and distance.
 func get_detail_rows() -> Array:
-	return details.get_rows() if details != null else []
+	var rows: Array = details.get_rows() if details != null else []
+	if owner_name_lookup.is_valid() and details is InhabitedData:
+		for row in rows:
+			if row[0] == "OWNED BY":
+				row[1] = owner_name_lookup.call(details)
+	return rows
 
 
 func is_dockable() -> bool:

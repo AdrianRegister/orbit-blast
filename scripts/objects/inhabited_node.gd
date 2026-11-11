@@ -16,6 +16,15 @@ func _ready() -> void:
 		for problem in data.validate():
 			push_error("%s: %s" % [name, problem])
 	super()
+	var system := get_parent().get_parent() as StarSystem if get_parent() != null else null
+	if system != null:
+		set_owner_lookup(system.get_owner_lookup())
+
+
+## Lets the HUD show who owns this location now rather than its starting owner.
+func set_owner_lookup(lookup: Callable) -> void:
+	if is_node_ready():
+		_targetable.owner_name_lookup = lookup
 
 
 func _get_object_name() -> String:

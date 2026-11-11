@@ -182,7 +182,7 @@ func _spawn_arrival() -> bool:
 
 func _create_ship(origin: InhabitedNode, destination: InhabitedNode, position: Vector2) -> NpcShip:
 	var ship: NpcShip = NPC_SCENE.instantiate()
-	var faction: String = origin.data.get_faction_name() if origin != null and origin.data != null else ""
+	var faction: String = _system.get_owner_name(origin.data) if origin != null and origin.data != null else ""
 	ship.setup(_pick_ship_type(), config, _locations, faction, destination, _player)
 	ship.configure_jumping(_system.global_position, _system.jump_radius, _exit_bearings)
 	_system.get_ships_root().add_child(ship)

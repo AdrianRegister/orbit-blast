@@ -10,12 +10,21 @@ var galaxy: Galaxy
 var travel: TravelManager
 ## The game's content (all locations and commodities), for generating contracts.
 var registry: ContentRegistry
+## Who owns each settlement now (and so which faction a contract serves).
+var territory: TerritoryManager
 var rewards: ContractRewards = ContractRewards.new()
 ## The biggest cargo hold any ship model has; offers asking for more than this
 ## are not achievable and are skipped. 0 = do not check.
 var max_cargo: int = 0
 ## Callable() -> StringName: the system the player is in now.
 var current_system: Callable = func() -> StringName: return &""
+
+
+## The id of the faction that owns a location now, or &"" for nobody.
+func owner_id_of(location: InhabitedData) -> StringName:
+	if location == null:
+		return &""
+	return territory.owner_id_of(location) if territory != null else location.faction_id()
 
 
 ## The id of the system a location is in, or &"".

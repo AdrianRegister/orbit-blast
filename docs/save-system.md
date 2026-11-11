@@ -35,6 +35,7 @@ Nothing in the save file refers to scenes, nodes or Resources. It holds plain da
 | Cargo capacity, ordinary cargo, contract cargo (with notes) | `CargoHold` | yes, `economy.cargo` |
 | Market stock of every visited market, plus room for future market state | `Market` | yes, `economy.markets` |
 | Available, active, completed and failed contracts; the next contract id | `ContractManager` | yes, `contracts` |
+| Which settlements have changed hands (only those that differ from their starting owner) | `TerritoryManager` | yes, `territory` (optional) |
 | Star system, ship id, position, heading, velocity, flying or docked, and where | `Main` / `PlayerSection` | yes, `player` |
 | Reserved sections for changes to locations and other world entities | | `world` (empty) and `extensions` (empty) |
 | NPC ships | `TrafficManager` | **no**, regenerated on load |

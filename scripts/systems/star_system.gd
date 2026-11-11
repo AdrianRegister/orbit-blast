@@ -22,9 +22,32 @@ extends Node2D
 ## Most objects (planets, moons, stations) a system may contain.
 const MAX_OBJECTS := 3
 
+## Callable(InhabitedData) -> String: the name of the faction that owns a
+## location now. Main sets it to the TerritoryManager; without one a location
+## reports its starting owner.
+var _owner_lookup: Callable = func(data: InhabitedData) -> String: return data.get_faction_name()
+
 @onready var _objects: Node2D = $Objects
 @onready var _ships: Node2D = $Ships
 @onready var _traffic: TrafficManager = $Traffic
+
+
+## Gives the system a way to ask who owns a location now (see above). Applies to
+## the locations already in the system and to what the traffic reports.
+func set_owner_lookup(lookup: Callable) -> void:
+	_owner_lookup = lookup
+	if is_node_ready():
+		for node in get_inhabited_nodes():
+			node.set_owner_lookup(lookup)
+
+
+func get_owner_lookup() -> Callable:
+	return _owner_lookup
+
+
+## The name of the faction that owns a location of this system now.
+func get_owner_name(data: InhabitedData) -> String:
+	return _owner_lookup.call(data) if data != null else ""
 
 
 ## Every SpaceObject placed in this system.

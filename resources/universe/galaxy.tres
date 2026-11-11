@@ -102,441 +102,441 @@ script = ExtResource("gs")
 scene = ExtResource("sc_south_manchester")
 map_position = Vector2(-1110, -619)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_rimshot"]
 script = ExtResource("gs")
 scene = ExtResource("sc_rimshot")
 map_position = Vector2(-863, -571)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_lalande_21185"]
 script = ExtResource("gs")
 scene = ExtResource("sc_lalande_21185")
 map_position = Vector2(-926, -497)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_agate"]
 script = ExtResource("gs")
 scene = ExtResource("sc_agate")
 map_position = Vector2(-616, -497)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_narcissus"]
 script = ExtResource("gs")
 scene = ExtResource("sc_narcissus")
 map_position = Vector2(-961, -325)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_kerella"]
 script = ExtResource("gs")
 scene = ExtResource("sc_kerella")
 map_position = Vector2(-741, -372)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_sirius"]
 script = ExtResource("gs")
 scene = ExtResource("sc_sirius")
 map_position = Vector2(-494, -437)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_glimmer"]
 script = ExtResource("gs")
 scene = ExtResource("sc_glimmer")
 map_position = Vector2(-372, -498)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_ngc_1776"]
 script = ExtResource("gs")
 scene = ExtResource("sc_ngc_1776")
 map_position = Vector2(-394, -399)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_codehaven"]
 script = ExtResource("gs")
 scene = ExtResource("sc_codehaven")
 map_position = Vector2(-494, -619)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_homeland"]
 script = ExtResource("gs")
 scene = ExtResource("sc_homeland")
 map_position = Vector2(-224, -372)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_journey_s_end"]
 script = ExtResource("gs")
 scene = ExtResource("sc_journey_s_end")
 map_position = Vector2(-616, -251)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_procyon"]
 script = ExtResource("gs")
 scene = ExtResource("sc_procyon")
 map_position = Vector2(-738, -125)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_sibko"]
 script = ExtResource("gs")
 scene = ExtResource("sc_sibko")
 map_position = Vector2(-913, -77)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_rigel"]
 script = ExtResource("gs")
 scene = ExtResource("sc_rigel")
 map_position = Vector2(-653, -1)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_trishka"]
 script = ExtResource("gs")
 scene = ExtResource("sc_trishka")
 map_position = Vector2(-863, 72)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_avalon"]
 script = ExtResource("gs")
 scene = ExtResource("sc_avalon")
 map_position = Vector2(-616, 72)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_metter"]
 script = ExtResource("gs")
 scene = ExtResource("sc_metter")
 map_position = Vector2(-467, -176)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_hjg_0637"]
 script = ExtResource("gs")
 scene = ExtResource("sc_hjg_0637")
 map_position = Vector2(-432, -64)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_canopus"]
 script = ExtResource("gs")
 scene = ExtResource("sc_canopus")
 map_position = Vector2(-319, 23)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_outpost_819"]
 script = ExtResource("gs")
 scene = ExtResource("sc_outpost_819")
 map_position = Vector2(-296, -199)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_034"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_034")
 map_position = Vector2(-1108, -220)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_1367"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_1367")
 map_position = Vector2(-1115, -120)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_capella"]
 script = ExtResource("gs")
 scene = ExtResource("sc_capella")
 map_position = Vector2(60, -556)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_bloodstone"]
 script = ExtResource("gs")
 scene = ExtResource("sc_bloodstone")
 map_position = Vector2(182, -589)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_porto_rillia"]
 script = ExtResource("gs")
 scene = ExtResource("sc_porto_rillia")
 map_position = Vector2(244, -556)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_pollux"]
 script = ExtResource("gs")
 scene = ExtResource("sc_pollux")
 map_position = Vector2(308, -498)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_petra"]
 script = ExtResource("gs")
 scene = ExtResource("sc_petra")
 map_position = Vector2(-125, -521)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_aldebaran"]
 script = ExtResource("gs")
 scene = ExtResource("sc_aldebaran")
 map_position = Vector2(-65, -435)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_nesre_primus"]
 script = ExtResource("gs")
 scene = ExtResource("sc_nesre_primus")
 map_position = Vector2(182, -435)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_eeniar"]
 script = ExtResource("gs")
 scene = ExtResource("sc_eeniar")
 map_position = Vector2(393, -435)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_aral"]
 script = ExtResource("gs")
 scene = ExtResource("sc_aral")
 map_position = Vector2(268, -372)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_rautherion"]
 script = ExtResource("gs")
 scene = ExtResource("sc_rautherion")
 map_position = Vector2(365, -372)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_lesten"]
 script = ExtResource("gs")
 scene = ExtResource("sc_lesten")
 map_position = Vector2(182, -313)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_barnards_star"]
 script = ExtResource("gs")
 scene = ExtResource("sc_barnards_star")
 map_position = Vector2(-100, -300)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_alpha_centauri"]
 script = ExtResource("gs")
 scene = ExtResource("sc_alpha_centauri")
 map_position = Vector2(-174, -268)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_arcturus"]
 script = ExtResource("gs")
 scene = ExtResource("sc_arcturus")
 map_position = Vector2(308, -251)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_tidbinbilla"]
 script = ExtResource("gs")
 scene = ExtResource("sc_tidbinbilla")
 map_position = Vector2(551, -251)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_galvan"]
 script = ExtResource("gs")
 scene = ExtResource("sc_galvan")
 map_position = Vector2(614, -282)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_altair"]
 script = ExtResource("gs")
 scene = ExtResource("sc_altair")
 map_position = Vector2(798, -313)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_tenetria"]
 script = ExtResource("gs")
 scene = ExtResource("sc_tenetria")
 map_position = Vector2(861, -435)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_ngc_1894"]
 script = ExtResource("gs")
 scene = ExtResource("sc_ngc_1894")
 map_position = Vector2(601, -422)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_1948"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_1948")
 map_position = Vector2(502, -571)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_ngc_2019"]
 script = ExtResource("gs")
 scene = ExtResource("sc_ngc_2019")
 map_position = Vector2(627, -564)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_ngc_0946"]
 script = ExtResource("gs")
 scene = ExtResource("sc_ngc_0946")
 map_position = Vector2(762, -579)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_kania"]
 script = ExtResource("gs")
 scene = ExtResource("sc_kania")
 map_position = Vector2(988, -123)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_kon"]
 script = ExtResource("gs")
 scene = ExtResource("sc_kon")
 map_position = Vector2(740, -123)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_naka"]
 script = ExtResource("gs")
 scene = ExtResource("sc_naka")
 map_position = Vector2(432, -123)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_gefjon"]
 script = ExtResource("gs")
 scene = ExtResource("sc_gefjon")
 map_position = Vector2(247, -123)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_wolf_359"]
 script = ExtResource("gs")
 scene = ExtResource("sc_wolf_359")
 map_position = Vector2(246, -64)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_hannaford"]
 script = ExtResource("gs")
 scene = ExtResource("sc_hannaford")
 map_position = Vector2(0, -86)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_lotus"]
 script = ExtResource("gs")
 scene = ExtResource("sc_lotus")
 map_position = Vector2(-122, -126)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_archenar"]
 script = ExtResource("gs")
 scene = ExtResource("sc_archenar")
 map_position = Vector2(-62, -186)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_sol"]
 script = ExtResource("gs")
 scene = ExtResource("sc_sol")
 map_position = Vector2(0, 0)
 start_discovered = true
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_1927"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_1927")
 map_position = Vector2(556, -64)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_murasaki"]
 script = ExtResource("gs")
 scene = ExtResource("sc_murasaki")
 map_position = Vector2(494, 62)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_fomalhaut"]
 script = ExtResource("gs")
 scene = ExtResource("sc_fomalhaut")
 map_position = Vector2(647, 62)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_2421"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_2421")
 map_position = Vector2(-95, -750)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_2637"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_2637")
 map_position = Vector2(-247, -653)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_0193"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_0193")
 map_position = Vector2(213, -774)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_1555"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_1555")
 map_position = Vector2(146, -737)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_011"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_011")
 map_position = Vector2(269, -719)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_020"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_020")
 map_position = Vector2(367, -696)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_koria"]
 script = ExtResource("gs")
@@ -549,196 +549,196 @@ script = ExtResource("gs")
 scene = ExtResource("sc_sanddown")
 map_position = Vector2(-122, 98)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_xante"]
 script = ExtResource("gs")
 scene = ExtResource("sc_xante")
 map_position = Vector2(-728, 269)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_felos"]
 script = ExtResource("gs")
 scene = ExtResource("sc_felos")
 map_position = Vector2(-900, 363)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_hjg_1034"]
 script = ExtResource("gs")
 scene = ExtResource("sc_hjg_1034")
 map_position = Vector2(-554, 368)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_moonrise"]
 script = ExtResource("gs")
 scene = ExtResource("sc_moonrise")
 map_position = Vector2(-395, 269)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_nesre_secundus"]
 script = ExtResource("gs")
 scene = ExtResource("sc_nesre_secundus")
 map_position = Vector2(-463, 121)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_tuatha"]
 script = ExtResource("gs")
 scene = ExtResource("sc_tuatha")
 map_position = Vector2(-432, 461)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_nadir"]
 script = ExtResource("gs")
 scene = ExtResource("sc_nadir")
 map_position = Vector2(-590, 521)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_enlightenment"]
 script = ExtResource("gs")
 scene = ExtResource("sc_enlightenment")
 map_position = Vector2(-248, 246)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_horizon"]
 script = ExtResource("gs")
 scene = ExtResource("sc_horizon")
 map_position = Vector2(-248, 430)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_jenner"]
 script = ExtResource("gs")
 scene = ExtResource("sc_jenner")
 map_position = Vector2(-122, 491)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_tau_ceti"]
 script = ExtResource("gs")
 scene = ExtResource("sc_tau_ceti")
 map_position = Vector2(-62, 183)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_mcmurdo"]
 script = ExtResource("gs")
 scene = ExtResource("sc_mcmurdo")
 map_position = Vector2(185, 183)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_fire"]
 script = ExtResource("gs")
 scene = ExtResource("sc_fire")
 map_position = Vector2(368, 183)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_merrynne"]
 script = ExtResource("gs")
 scene = ExtResource("sc_merrynne")
 map_position = Vector2(75, 220)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_vega"]
 script = ExtResource("gs")
 scene = ExtResource("sc_vega")
 map_position = Vector2(309, 244)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_ngc_1170"]
 script = ExtResource("gs")
 scene = ExtResource("sc_ngc_1170")
 map_position = Vector2(0, 307)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spica"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spica")
 map_position = Vector2(0, 430)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_epsilon_eridani"]
 script = ExtResource("gs")
 scene = ExtResource("sc_epsilon_eridani")
 map_position = Vector2(309, 430)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_obatta"]
 script = ExtResource("gs")
 scene = ExtResource("sc_obatta")
 map_position = Vector2(494, 493)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_tichel"]
 script = ExtResource("gs")
 scene = ExtResource("sc_tichel")
 map_position = Vector2(677, 244)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_spc_050"]
 script = ExtResource("gs")
 scene = ExtResource("sc_spc_050")
 map_position = Vector2(729, 480)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_gateway"]
 script = ExtResource("gs")
 scene = ExtResource("sc_gateway")
 map_position = Vector2(62, 615)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_vemap"]
 script = ExtResource("gs")
 scene = ExtResource("sc_vemap")
 map_position = Vector2(293, 690)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_heraan_cov"]
 script = ExtResource("gs")
 scene = ExtResource("sc_heraan_cov")
 map_position = Vector2(160, 813)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_neirt"]
 script = ExtResource("gs")
 scene = ExtResource("sc_neirt")
 map_position = Vector2(-99, 768)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_unin"]
 script = ExtResource("gs")
 scene = ExtResource("sc_unin")
 map_position = Vector2(883, 435)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="sys_wittor"]
 script = ExtResource("gs")
 scene = ExtResource("sc_wittor")
 map_position = Vector2(751, 701)
 start_discovered = false
-faction = ExtResource("f_faction_1")
+claim = ExtResource("f_faction_1")
 
 [sub_resource type="Resource" id="link_lalande_21185_narcissus"]
 script = ExtResource("sl")

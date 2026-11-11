@@ -26,6 +26,13 @@ var _economy: EconomyManager
 var _player: PlayerData
 ## Returns the InhabitedData the player is docked at, or null in open space.
 var _location_provider: Callable
+## Who owns each location now; without one a location's starting owner counts.
+var _territory: TerritoryManager
+
+
+## Tells the shipyards to judge a location's faction by its current owner.
+func set_territory(territory: TerritoryManager) -> void:
+	_territory = territory
 
 
 func setup(economy: EconomyManager, player: PlayerData, location_provider: Callable) -> void:
@@ -52,6 +59,11 @@ func start_new_game(model: ShipStats) -> OwnedShip:
 	return ship
 
 
+## The id of the faction that owns a location now.
+func _owner_id(location: InhabitedData) -> StringName:
+	return _territory.owner_id_of(location) if _territory != null else location.faction_id()
+
+
 # ----------------------------------------------------------------- buying ships
 
 ## The ships this location's shipyard actually sells to the player: its list,
@@ -62,7 +74,7 @@ func get_ships_for_sale(location: InhabitedData) -> Array[ShipStats]:
 	if location == null:
 		return result
 	for model in location.shipyard_ships:
-		if model != null and (model.faction_id() == &"" or model.faction_id() == location.faction_id()):
+		if model != null and (model.faction_id() == &"" or model.faction_id() == _owner_id(location)):
 			result.append(model)
 	return result
 

@@ -88,9 +88,9 @@ func _make(type: StringName, location: InhabitedData, context: ContractContext) 
 
 func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 	var origin_system := context.system_of(origin)
-	var faction := context.galaxy.get_faction_id(origin_system)
-	if faction == &"" or origin.faction_id() != faction:
-		return null  # unowned places do not send cargo anywhere
+	var faction := context.owner_id_of(origin)
+	if faction == &"":
+		return null  # independent places do not send cargo anywhere
 	var bulk := _rng.randf() < rules.bulk_chance
 	var commodity := _pick_commodity(origin, context, bulk)
 	if commodity == null:
@@ -102,11 +102,12 @@ func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 	if high < low:
 		return null
 	var quantity := _rng.randi_range(low, high)
-	# Same-faction places only, so nobody is sent into someone else's territory.
+	# Same owner only: settlement against settlement, so nobody is sent into
+	# someone else's territory, even in a contested system.
 	var options: Array = []
 	var weights: Array[float] = []
 	for place in _places_within(origin, context, rules.cargo_max_jumps):
-		if context.galaxy.get_faction_id(context.system_of(place)) != faction or place.faction_id() != faction:
+		if context.owner_id_of(place) != faction:
 			continue
 		options.append(place)
 		weights.append(rules.importer_weight if _imports(place, commodity) else 1.0)
@@ -217,7 +218,7 @@ func _make_exploration(origin: InhabitedData, context: ContractContext) -> Contr
 func _systems_within(origin_system: StringName, context: ContractContext, max_jumps: int) -> Array[StringName]:
 	var ids: Array[StringName] = []
 	ids.assign(context.galaxy.get_reachable(origin_system, max_jumps).keys())
-	ids.sort()
+	ids.sort_custom(func(a, b) -> bool: return str(a) < str(b))  # (StringNames do not sort alphabetically)
 	return ids
 
 

@@ -40,6 +40,9 @@ func _context(galaxy: Galaxy = null) -> ContractContext:
 	var travel := TravelManager.new()
 	travel.setup(context.galaxy, func() -> StringName: return &"sol")
 	context.travel = travel
+	var territory := TerritoryManager.new()
+	territory.setup(context.galaxy, _registry)
+	context.territory = territory
 	return context
 
 
@@ -183,8 +186,8 @@ func _problem_with(contract: Contract, origin: InhabitedData, context: ContractC
 		return "quantity %d does not fit any ship" % delivery.quantity
 	if jumps > 4:
 		return "cargo run is %d jumps" % jumps
-	if _galaxy.get_faction_id(destination_system) != _galaxy.get_faction_id(origin_system) or destination.faction_id() != origin.faction_id():
-		return "delivery into another faction's territory"
+	if context.owner_id_of(destination) != context.owner_id_of(origin):
+		return "delivery to another faction's settlement"
 	if delivery.commodity.base_price <= 0:
 		return "cargo is not a trade good"
 	var cap := 45000 if delivery.quantity >= 200 else 20000
@@ -196,38 +199,46 @@ func _problem_with(contract: Contract, origin: InhabitedData, context: ContractC
 # -------------------------------------------------------------- faction rule
 
 func _check_faction_rule() -> void:
-	# Everything in the real galaxy is one faction, so make a second one: Procyon
-	# changes hands.
-	var galaxy: Galaxy = _galaxy.duplicate(true)
-	for system in galaxy.systems:
-		if system.scene.resource_path.ends_with("procyon_system.tscn"):
-			var rival := Faction.new()
-			rival.id = &"faction_2"
-			rival.display_name = "Rival Federation"
-			system.faction = rival
-	var context := _context(galaxy)
-	_check(galaxy.get_faction_name(&"procyon") == "Rival Federation" and galaxy.get_faction_id(&"sol") == &"faction_1", "(setup) Procyon belongs to someone else")
+	# Everything in the real galaxy starts as one faction, so make a second one:
+	# the settlements of Procyon change hands, and Mars is taken from Earth's side
+	# of Sol (a contested system).
+	var rival := Faction.new()
+	rival.id = &"faction_2"
+	rival.display_name = "Rival Federation"
+	var context := _context()
+	var territory := context.territory
 	var procyon_locations: Array[StringName] = []
-	for id in galaxy.get_summary(&"procyon").location_ids:
+	for id in _galaxy.get_summary(&"procyon").location_ids:
 		procyon_locations.append(id)
+		var place := _registry.location(id)
+		if ProceduralContractSource.is_inhabited(place):
+			territory.transfer_settlement(place, rival)
+	var earth := _registry.location(&"earth")
+	var mars := _registry.location(&"mars")
+	territory.transfer_settlement(mars, rival)
+	_check(context.owner_id_of(mars) == &"faction_2" and context.owner_id_of(earth) == &"faction_1", "(setup) Mars and Procyon belong to someone else")
+	_check(territory.get_control(&"sol").is_contested(), "(setup) Sol is now contested")
 	var wrong := 0
 	var cargo_runs := 0
 	var ferries_there := 0
+	var earth_to_mars := 0
 	for seed_value in 12:
 		for location in _inhabited():
 			var source := ProceduralContractSource.new()
 			source.seed_rng(seed_value * 31 + location.id.hash() % 101)
 			for contract in source.generate(location, context, 6, []):
-				var from_procyon := procyon_locations.has(location.id)
 				if contract is FerryContract:
 					if contract.destination != null and procyon_locations.has(contract.destination.id):
 						ferries_there += 1
 				elif contract is CargoDeliveryContract:
 					cargo_runs += 1
-					if from_procyon or procyon_locations.has(contract.destination.id):
+					if context.owner_id_of(contract.origin) != context.owner_id_of(contract.destination):
 						wrong += 1
+					if (contract.origin == earth and contract.destination == mars) or (contract.origin == mars and contract.destination == earth):
+						earth_to_mars += 1
 	_check(cargo_runs > 40, "(setup) plenty of cargo contracts were generated (%d)" % cargo_runs)
-	_check(wrong == 0, "no cargo is ever sent into or out of another faction's system (%d wrong)" % wrong)
+	_check(wrong == 0, "no cargo is ever sent to a settlement of another faction (%d wrong)" % wrong)
+	_check(earth_to_mars == 0, "...not even between two settlements of one contested system")
 	_check(ferries_there > 0, "passengers, unlike cargo, may still travel there (%d)" % ferries_there)
 
 

@@ -27,6 +27,7 @@
 [ext_resource type="Resource" path="res://resources/flavour/exploration_complete.tres" id="26"]
 [ext_resource type="Resource" path="res://resources/flavour/ferry_complete.tres" id="27"]
 [ext_resource type="Resource" path="res://resources/universe/galaxy.tres" id="23"]
+[ext_resource type="Script" path="res://scripts/galaxy/territory_manager.gd" id="28"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
@@ -57,6 +58,9 @@ script = ExtResource("18")
 
 [node name="Travel" type="Node" parent="."]
 script = ExtResource("22")
+
+[node name="Territory" type="Node" parent="."]
+script = ExtResource("28")
 
 [node name="Contracts" type="Node" parent="."]
 script = ExtResource("12")

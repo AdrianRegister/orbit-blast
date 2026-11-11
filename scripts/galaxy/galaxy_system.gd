@@ -11,5 +11,8 @@ extends Resource
 @export var map_position: Vector2 = Vector2.ZERO
 ## True for systems the player knows about from the start of a new game.
 @export var start_discovered: bool = false
-## Owning faction. Null = unclaimed.
-@export var faction: Faction
+## The faction this system belongs to on the map: its territory. It does not say
+## who owns the settlements in it (each settlement owns itself, see
+## TerritoryManager); it only decides the system when it has no settlements, and
+## is the default owner for the settlements generated in it. Null = unclaimed.
+@export var claim: Faction

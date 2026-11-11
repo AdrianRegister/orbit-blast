@@ -378,7 +378,7 @@ func _galaxy_text() -> String:
 		text += "map_position = Vector2(%d, %d)\n" % [roundi(position.x), roundi(position.y)]
 		text += "start_discovered = %s\n" % ("true" if _map["start_discovered"].has(row["id"]) else "false")
 		if row["faction"] != UNCLAIMED:
-			text += "faction = ExtResource(\"f_%s\")\n" % row["faction"]
+			text += "claim = ExtResource(\"f_%s\")\n" % row["faction"]
 		subs.append("SubResource(\"sys_%s\")" % row["id"])
 	var link_subs: Array[String] = []
 	for row in rows:

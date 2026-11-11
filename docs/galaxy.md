@@ -183,3 +183,18 @@ The galaxy follows the Escape Velocity Nova map (`reference_resources/escape_vel
 **Scale.** Neighbour and link lookups use an index; `Galaxy.get_reachable(origin, max_jumps)` is one breadth-first search and is what contract generation uses to find nearby places. The galaxy map only draws names of undiscovered systems when zoomed in, and skips systems that are off screen.
 
 **Now.** The Federation core around Sol (about 90 systems). The remaining regions of the reference map are a later step: more rows in the table, factions for the other territories, name pools for them.
+
+
+## 15. Ownership and contested systems (Phase 2.7)
+
+**Settlements own; systems are derived.** The faction of an inhabited place (planet or station, `InhabitedData.faction`) is the single fact. Who controls a star system is worked out from its settlements, so a system can be contested (Earth Federation, Mars held by someone else) with nothing stored at system level.
+
+- **`TerritoryManager`** (`scripts/galaxy/territory_manager.gd`, a node in `main.tscn`, no Autoload) answers every question about ownership. `owner_of(location)` / `owner_id_of` / `owner_name_of` give the *current* owner: a runtime override if there is one, otherwise the location's own `faction` (its starting owner; static content is never changed while playing). `transfer_settlement(location, faction)` changes hands (null = independent) and announces it with `settlement_owner_changed`, `system_control_changed`, `system_became_contested` and `territory_changed`. Wars will use this one call.
+- **`get_control(system_id) -> SystemControl`** (`scripts/galaxy/system_control.gd`): `UNCLAIMED`, `CONTROLLED` (one faction owns every settlement) or `CONTESTED` (settlements of two or more factions: the system then has **no owner**, `factions` lists who is present). Only settlements count (dockable places with people); independent settlements do not make a system contested; a system with no settlements goes to its **claim**.
+- **`GalaxySystem.claim`** (was `faction`): the faction a system belongs to on the map. It decides systems with no settlements and is the default owner of the settlements generated there (the table's `faction` field). It never says who owns settlements.
+- **Who reads it:** cargo contracts (a delivery must be between settlements with the same current owner, even inside one system; `Contract.get_issuing_faction()`), shipyard faction gating (`ShipManager`), the HUD "OWNED BY" row and NPC ships' faction (through `StarSystem.set_owner_lookup`), and the galaxy map (the FACTION row shows "Contested: A, B"; a contested system gets a ring split in the factions' colours).
+- **Saving:** an optional `territory` section `{"owners": {location id: faction id or ""}}` holds only the settlements that differ from their starting owner; older saves load with every settlement at its starting owner.
+- **To make a contested system today:** edit a settlement's `faction` in its location file (in a `locked` system if it is generated), or call `transfer_settlement` in a test.
+- **For wars:** `SystemControl` has room for a dominant controller of a contested system (for example by military value); military value, strength and operations are not built yet. See `wars_system.md`.
+
+Tests: `scripts/tests/territory_test.gd`.

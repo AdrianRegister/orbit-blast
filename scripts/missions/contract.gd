@@ -35,7 +35,9 @@ var context: ContractContext
 
 ## The faction behind the contract: the faction of the issuing location.
 func get_issuing_faction() -> Faction:
-	return origin.faction if origin != null else null
+	if origin == null:
+		return null
+	return context.territory.owner_of(origin) if context != null and context.territory != null else origin.faction
 
 
 func get_authority_text() -> String:

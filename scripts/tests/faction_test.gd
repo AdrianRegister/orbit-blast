@@ -29,7 +29,7 @@ func _init() -> void:
 				unknown += 1
 	var galaxy: Galaxy = load("res://resources/universe/galaxy.tres")
 	for id in galaxy.get_system_ids():
-		var faction := galaxy.get_faction(id)
+		var faction := galaxy.get_claim(id)
 		if faction != null and registry.faction(faction.id) == null:
 			unknown += 1
 	for ship in ["federation_frigate", "federation_fighter", "federation_heavy_fighter"]:
@@ -40,7 +40,7 @@ func _init() -> void:
 	var earth := registry.location(&"earth")
 	var before := earth.get_faction_name()
 	federation.display_name = "Union"
-	_check(earth.get_faction_name() == "Union" and galaxy.get_faction_name(&"sol") == "Union" and registry.ship_stats(&"federation_frigate").get_faction_name() == "Union", "renaming the faction shows in locations, systems and ships")
+	_check(earth.get_faction_name() == "Union" and galaxy.get_claim(&"sol").display_name == "Union" and registry.ship_stats(&"federation_frigate").get_faction_name() == "Union", "renaming the faction shows in locations, systems and ships")
 	_check(earth.faction_id() == &"faction_1", "...while its id, used for comparisons, is unchanged")
 	federation.display_name = before
 
