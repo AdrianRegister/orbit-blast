@@ -39,6 +39,12 @@ func get_cargo_lines() -> Array:
 	for id in manifest:
 		var commodity: Commodity = _known_commodities.get(id)
 		lines.append([commodity.display_name if commodity != null else str(id), manifest[id]])
+	var lots: Dictionary = _player.cargo.get_lots()
+	for contract_id in lots:
+		var commodity: Commodity = _known_commodities.get(lots[contract_id]["commodity"])
+		var lot_name: String = commodity.display_name if commodity != null else str(lots[contract_id]["commodity"])
+		var note: String = lots[contract_id]["note"]
+		lines.append(["%s (%s)" % [lot_name, note if not note.is_empty() else "contract"], lots[contract_id]["quantity"]])
 	lines.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	return lines
 
@@ -110,6 +116,31 @@ func sell(market: Market, commodity: Commodity, quantity: int) -> TradeQuote:
 	credits_changed.emit(_player.credits)
 	transaction_completed.emit(quote)
 	return quote
+
+
+## Loads cargo supplied by a contract issuer into the hold as a contract lot.
+## `note` is shown after the name in cargo lists, e.g. "contract, Earth in the
+## Sol system". Used by the ContractManager. False (nothing changed) if it does
+## not fit.
+func load_contract_cargo(contract_id: StringName, commodity: Commodity, quantity: int,
+		note: String = "") -> bool:
+	if not _player.cargo.add_lot(contract_id, commodity.id, quantity, note):
+		return false
+	_known_commodities[commodity.id] = commodity
+	return true
+
+
+## Removes a contract's lot from the hold (delivered). True if there was one.
+func unload_contract_cargo(contract_id: StringName) -> bool:
+	return _player.cargo.remove_lot(contract_id)
+
+
+## Pays credits that are not a trade, such as a contract reward.
+func award_credits(amount: int) -> void:
+	if amount <= 0:
+		return
+	_player.credits += amount
+	credits_changed.emit(_player.credits)
 
 
 func _new_quote(is_buy: bool, commodity: Commodity, quantity: int, unit_price: int) -> TradeQuote:

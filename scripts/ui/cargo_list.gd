@@ -26,6 +26,7 @@ func set_cargo(used: int, capacity: int, lines: Array) -> void:
 		var name_label := Label.new()
 		name_label.text = str(line[0])
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # contract lines are long
 		var quantity_label := Label.new()
 		quantity_label.text = NumberFormat.with_commas(line[1])
 		quantity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

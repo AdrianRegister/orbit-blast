@@ -291,3 +291,6 @@ The structure leaves clear places for the planned features:
 | Trade routes | Read `Market` prices through `EconomyManager.get_market()`; no storage changes needed |
 | Saving the game | `PlayerData` (`credits`, `cargo.get_manifest()`) and each `Market`'s stock are the state to serialise |
 | Reputation or taxes | Adjust the total inside `EconomyManager.quote_buy()` / `quote_sell()` |
+
+
+Contract cargo (see [missions.md](missions.md)) is held in the same `CargoHold` as separate lots: it counts toward capacity and appears in the cargo list as "<Name> (contract, <Place> in the <System> system)", but `get_quantity()` ignores it, so it can never be sold.

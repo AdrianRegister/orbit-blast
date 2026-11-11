@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="FlavourPool" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/flavour_pool.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+entries = Array[String](["A team of grungy dockworkers head towards your cargo hold to take charge of the delivery. You hope they won't drop too much cigarette ash onto your clean floors.", "A bored customs droid scans your manifest twice, stamps something, and waves a cargo loader through. \"Another satisfied customer,\" it drones, in a voice that suggests otherwise.", "The dock supervisor at {destination} signs for the shipment with a flourish, then offers you a free coffee. You decline politely after getting a good look at the cup."])

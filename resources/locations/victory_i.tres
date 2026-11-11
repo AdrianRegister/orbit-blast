@@ -6,6 +6,9 @@
 [ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
 [ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
 [ext_resource type="Resource" path="res://resources/markets/victory_i_market.tres" id="market"]
+[ext_resource type="Resource" path="res://resources/contracts/victory_i_fuel_to_earth.tres" id="co_0"]
+[ext_resource type="Resource" path="res://resources/contracts/victory_i_fuel_to_mars.tres" id="co_1"]
+[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="cos"]
 
 [resource]
 script = ExtResource("1")
@@ -16,3 +19,4 @@ exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_machinery")])
 size = 80.0
 market = ExtResource("market")
+contract_offers = Array[ExtResource("cos")]([ExtResource("co_0"), ExtResource("co_1")])

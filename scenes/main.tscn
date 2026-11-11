@@ -11,11 +11,16 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/settlement_screen.tscn" id="9"]
 [ext_resource type="Script" path="res://scripts/economy/economy_manager.gd" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/ui/trading_screen.tscn" id="11"]
+[ext_resource type="Script" path="res://scripts/missions/contract_manager.gd" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/ui/mission_computer_screen.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/ui/event_popup.tscn" id="14"]
+[ext_resource type="Resource" path="res://resources/flavour/contract_delivery.tres" id="15"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
 starting_ship_stats = ExtResource("4")
 starting_credits = 500000
+delivery_flavour = ExtResource("15")
 
 [node name="StarSystem" parent="." instance=ExtResource("2")]
 
@@ -32,6 +37,9 @@ script = ExtResource("7")
 [node name="Economy" type="Node" parent="."]
 script = ExtResource("10")
 
+[node name="Contracts" type="Node" parent="."]
+script = ExtResource("12")
+
 [node name="Docking" type="Node" parent="."]
 script = ExtResource("8")
 
@@ -40,3 +48,7 @@ script = ExtResource("8")
 [node name="SettlementScreen" parent="." instance=ExtResource("9")]
 
 [node name="TradingScreen" parent="." instance=ExtResource("11")]
+
+[node name="MissionComputerScreen" parent="." instance=ExtResource("13")]
+
+[node name="EventPopup" parent="." instance=ExtResource("14")]

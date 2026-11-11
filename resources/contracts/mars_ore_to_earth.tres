@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ContractOffer" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "Ore for Earth foundries"
+description = "Earth foundries are waiting on ore. Deliver it to Earth."
+destination_path = "res://resources/locations/earth.tres"
+commodity = ExtResource("2")
+quantity = 60
+reward = 14000

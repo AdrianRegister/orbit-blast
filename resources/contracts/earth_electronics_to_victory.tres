@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ContractOffer" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/contract_offer.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "Electronics for Victory I"
+description = "Victory I Station needs replacement electronics for its control systems."
+destination_path = "res://resources/locations/victory_i.tres"
+commodity = ExtResource("2")
+quantity = 30
+reward = 15000

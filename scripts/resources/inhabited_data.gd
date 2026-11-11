@@ -38,6 +38,9 @@ extends TargetDetails
 ## Prices and stock are derived from this and the goods lists above.
 @export var market: MarketData
 
+## Cargo delivery contracts this location offers at its mission computer.
+@export var contract_offers: Array[ContractOffer] = []
+
 ## Optional picture for the settlement screen. Empty = the screen's default.
 @export var picture: Texture2D
 
@@ -86,6 +89,12 @@ func validate() -> Array[String]:
 		problems.append("'%s' is both imported and exported" % good.display_name)
 	if market != null:
 		problems.append_array(market.validate())
+	for offer in contract_offers:
+		if offer == null:
+			problems.append("contract_offers has an empty entry")
+		else:
+			for problem in offer.validate(self):
+				problems.append("contract '%s': %s" % [offer.title, problem])
 	return problems
 
 
