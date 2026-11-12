@@ -18,6 +18,18 @@ var ship_name: String = ""
 var upgrades: Array[UpgradeDefinition] = []
 ## Temporary state markers such as FLAG_PREVIOUS_SHIP.
 var flags: Array[StringName] = []
+## The weapons fitted, one entry per mount of the model (null = empty mount).
+var weapons: Array[WeaponDefinition] = []
+## Lasting damage (armour and hull). Shared with the running ship's ShipHealth.
+var condition: ShipCondition = ShipCondition.new()
+
+
+## Fits the model's default weapons and removes all damage: how a ship is as new.
+func reset_loadout() -> void:
+	weapons.clear()
+	for index in model.weapon_mounts.size():
+		weapons.append(model.default_loadout[index] if index < model.default_loadout.size() else null)
+	condition = ShipCondition.new()
 
 
 func has_flag(flag: StringName) -> bool:
@@ -38,6 +50,40 @@ func is_previous() -> bool:
 
 func get_specs() -> ShipSpecs:
 	return ShipSpecs.compute(model, upgrades)
+
+
+## How many copies of `weapon` are fitted.
+func count_weapon(weapon: WeaponDefinition) -> int:
+	var count := 0
+	for fitted in weapons:
+		if fitted != null and fitted.id == weapon.id:
+			count += 1
+	return count
+
+
+## The first empty mount `weapon` fits, or -1 when there is none.
+func find_free_mount(weapon: WeaponDefinition) -> int:
+	for index in model.weapon_mounts.size():
+		if index < weapons.size() and weapons[index] == null and weapon.fits(model.weapon_mounts[index]):
+			return index
+	return -1
+
+
+## The last mount holding `weapon`, or -1 when none does (the copy sold first).
+func find_fitted_mount(weapon: WeaponDefinition) -> int:
+	for index in range(weapons.size() - 1, -1, -1):
+		if weapons[index] != null and weapons[index].id == weapon.id:
+			return index
+	return -1
+
+
+## How many mounts hold a weapon.
+func mounts_used() -> int:
+	var used := 0
+	for fitted in weapons:
+		if fitted != null:
+			used += 1
+	return used
 
 
 func count_installed(upgrade: UpgradeDefinition) -> int:

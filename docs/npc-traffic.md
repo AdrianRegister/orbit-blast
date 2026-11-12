@@ -198,7 +198,7 @@ The movement, brackets and look of the ships are best checked by running the gam
 | Not done yet | Where it plugs in |
 |---|---|
 | Military / civilian population split | `ShipType.category` plus per-category caps in `TrafficConfig` and `TrafficManager` |
-| Combat, weapons, reactions to the player | New states in `NpcShip.State` and a new behaviour step in `_physics_process` |
+| NPC combat, reactions to the player | NPC ships already carry a `Combatant` with their model's weapons and can be destroyed (see [combat.md](combat.md)); they never fire. Add new states in `NpcShip.State` and a new behaviour step in `_physics_process` that drive the same `Combatant` (`set_target`, `fire`) |
 | NPC trading | `NpcShip` docking hook (`_dock()`) and the `EconomyManager` markets |
 | Real factions | Replace the copied `faction_name` string |
 | Jumping between systems | Swap the `StarSystem` node in `Main` and call `start_traffic()` on the new one; the old NPCs are freed with the old system |

@@ -13,6 +13,10 @@ const SPAWN_ATTEMPTS := 12
 
 @export var config: TrafficConfig
 
+## Gives every NPC ship a combat id that is never reused during the session, so
+## a hostile act against one ship is only ever counted once.
+static var _next_combat_id: int = 1
+
 var _system: StarSystem
 var _player: Node2D
 var _locations: Array[InhabitedNode] = []
@@ -184,6 +188,9 @@ func _create_ship(origin: InhabitedNode, destination: InhabitedNode, position: V
 	var ship: NpcShip = NPC_SCENE.instantiate()
 	var faction: String = _system.get_owner_name(origin.data) if origin != null and origin.data != null else ""
 	ship.setup(_pick_ship_type(), config, _locations, faction, destination, _player)
+	ship.combat_id = StringName("npc_%d" % _next_combat_id)
+	_next_combat_id += 1
+	ship.faction_id = _system.get_owner_id(origin.data) if origin != null and origin.data != null else &""
 	ship.configure_jumping(_system.global_position, _system.jump_radius, _exit_bearings)
 	_system.get_ships_root().add_child(ship)
 	ship.global_position = position

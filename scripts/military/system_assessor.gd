@@ -45,7 +45,7 @@ func location_value(location: InhabitedData) -> float:
 	var value := kind * size + location.military_value_bonus
 	if not location.shipyard_ships.is_empty():
 		value += _rules.shipyard_value
-	if not location.outfitter_upgrades.is_empty():
+	if location.has_outfitter():
 		value += _rules.outfitter_value
 	return value
 

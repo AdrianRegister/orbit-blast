@@ -54,7 +54,7 @@ static func from_scene(scene: PackedScene, max_objects: int = StarSystem.MAX_OBJ
 		for good in economy.exports():
 			export_names[good.display_name] = true
 		summary.has_shipyard = summary.has_shipyard or not location.shipyard_ships.is_empty()
-		summary.has_outfitter = summary.has_outfitter or not location.outfitter_upgrades.is_empty()
+		summary.has_outfitter = summary.has_outfitter or location.has_outfitter()
 	summary.imports.assign(import_names.keys())
 	summary.exports.assign(export_names.keys())
 	summary.imports.sort()

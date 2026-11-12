@@ -34,6 +34,8 @@
 [ext_resource type="Script" path="res://scripts/time/game_clock.gd" id="32"]
 [ext_resource type="Script" path="res://scripts/economy/infrastructure_manager.gd" id="33"]
 [ext_resource type="Script" path="res://scripts/galaxy/zone_manager.gd" id="34"]
+[ext_resource type="Script" path="res://scripts/combat/combat_manager.gd" id="35"]
+[ext_resource type="Resource" path="res://resources/locations/earth.tres" id="36"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
@@ -43,6 +45,7 @@ delivery_flavour = ExtResource("15")
 galaxy = ExtResource("23")
 exploration_flavour = ExtResource("26")
 ferry_flavour = ExtResource("27")
+fallback_respawn = ExtResource("36")
 
 [node name="StarSystem" parent="." instance=ExtResource("2")]
 
@@ -79,6 +82,9 @@ script = ExtResource("34")
 
 [node name="Reputation" type="Node" parent="."]
 script = ExtResource("29")
+
+[node name="Combat" type="Node" parent="."]
+script = ExtResource("35")
 
 [node name="Contracts" type="Node" parent="."]
 script = ExtResource("12")

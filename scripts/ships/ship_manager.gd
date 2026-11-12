@@ -22,6 +22,10 @@ signal fleet_changed
 ## shipyard never pays the player to take one.
 @export var minimum_trade_in_price: int = 10000
 
+## Development only (the combat sandbox): shipyards sell every ship in their list,
+## whatever faction it belongs to.
+var ignore_ship_factions: bool = false
+
 var _economy: EconomyManager
 var _player: PlayerData
 ## Returns the InhabitedData the player is docked at, or null in open space.
@@ -74,7 +78,7 @@ func get_ships_for_sale(location: InhabitedData) -> Array[ShipStats]:
 	if location == null:
 		return result
 	for model in location.shipyard_ships:
-		if model != null and (model.faction_id() == &"" or model.faction_id() == _owner_id(location)):
+		if model != null and (ignore_ship_factions or model.faction_id() == &"" or model.faction_id() == _owner_id(location)):
 			result.append(model)
 	return result
 
@@ -178,6 +182,142 @@ func install_upgrade(upgrade: UpgradeDefinition) -> ShipResult:
 	ship.upgrades.append(upgrade)
 	_apply_active()
 	return result
+
+
+# ------------------------------------------------------------------ weapons
+
+## Whether `weapon` can be fitted to the active ship here, and what it costs.
+## Changes nothing.
+func quote_weapon(weapon: WeaponDefinition) -> ShipResult:
+	var location := _get_location()
+	if location == null:
+		return ShipResult.refused("You must be docked to fit weapons.")
+	if not location.outfitter_weapons.has(weapon):
+		return ShipResult.refused("This outfitter does not sell the %s." % weapon.display_name)
+	var ship := get_active()
+	if ship.model.weapon_mounts.is_empty():
+		return ShipResult.refused("The %s has no weapon mounts." % ship.model.display_name)
+	if ship.count_weapon(weapon) >= weapon.max_per_ship:
+		return ShipResult.refused("Already fitted the maximum of %d." % weapon.max_per_ship)
+	if ship.find_free_mount(weapon) < 0:
+		if ship.mounts_used() >= ship.model.weapon_mounts.size():
+			return ShipResult.refused("All %d weapon mounts are in use. Sell a weapon first." % ship.model.weapon_mounts.size())
+		return ShipResult.refused("No free mount fits the %s." % weapon.display_name)
+	if _economy.get_credits() < weapon.price:
+		return ShipResult.refused("Not enough credits (%s CR needed)." % NumberFormat.with_commas(weapon.price))
+	var result := ShipResult.new()
+	result.cost = weapon.price
+	result.ok = true
+	return result
+
+
+## Buys `weapon` and fits it to the first free mount it fits.
+func install_weapon(weapon: WeaponDefinition) -> ShipResult:
+	var result := quote_weapon(weapon)
+	if not result.ok:
+		return result
+	if not _economy.try_spend(result.cost):
+		return ShipResult.refused("Not enough credits.")
+	var ship := get_active()
+	ship.weapons[ship.find_free_mount(weapon)] = weapon
+	_apply_active()
+	return result
+
+
+## What selling one fitted copy of `weapon` pays.
+func get_weapon_sell_value(weapon: WeaponDefinition) -> int:
+	return roundi(weapon.price * DamageRules.shared().weapon_sell_fraction)
+
+
+## Whether a fitted copy of `weapon` can be sold here. `trade_in_value` of the
+## result is what it pays. Changes nothing.
+func quote_sell_weapon(weapon: WeaponDefinition) -> ShipResult:
+	var location := _get_location()
+	if location == null:
+		return ShipResult.refused("You must be docked to sell weapons.")
+	if not location.has_outfitter():
+		return ShipResult.refused("Only an outfitter buys weapons.")
+	if get_active().find_fitted_mount(weapon) < 0:
+		return ShipResult.refused("You have no %s fitted." % weapon.display_name)
+	var result := ShipResult.new()
+	result.trade_in_value = get_weapon_sell_value(weapon)
+	result.ok = true
+	return result
+
+
+## Sells one fitted copy of `weapon` (the last mount holding it).
+func sell_weapon(weapon: WeaponDefinition) -> ShipResult:
+	var result := quote_sell_weapon(weapon)
+	if not result.ok:
+		return result
+	var ship := get_active()
+	ship.weapons[ship.find_fitted_mount(weapon)] = null
+	_economy.award_credits(result.trade_in_value)
+	_apply_active()
+	return result
+
+
+# ------------------------------------------------------------------ repairs
+
+## What repairing `ship`'s armour and hull to full costs (0 when undamaged).
+func get_repair_cost(ship: OwnedShip) -> int:
+	var rules := DamageRules.shared()
+	var specs := ship.get_specs()
+	return ceili(ship.condition.armour_missing(specs.armour) * rules.repair_cost_per_armour
+			+ ship.condition.hull_missing(specs.hull) * rules.repair_cost_per_hull)
+
+
+## Whether the active ship can be repaired here, and what it costs. Only a
+## location with a shipyard repairs ships. Changes nothing.
+func quote_repair() -> ShipResult:
+	var location := _get_location()
+	if location == null:
+		return ShipResult.refused("You must be docked to repair your ship.")
+	if not location.has_shipyard():
+		return ShipResult.refused("Only a shipyard can repair ships.")
+	var cost := get_repair_cost(get_active())
+	if cost <= 0:
+		return ShipResult.refused("Your ship is undamaged.")
+	if _economy.get_credits() < cost:
+		return ShipResult.refused("Not enough credits (%s CR needed)." % NumberFormat.with_commas(cost))
+	var result := ShipResult.new()
+	result.cost = cost
+	result.ok = true
+	return result
+
+
+## Repairs the active ship's armour and hull to full.
+func repair() -> ShipResult:
+	var result := quote_repair()
+	if not result.ok:
+		return result
+	if not _economy.try_spend(result.cost):
+		return ShipResult.refused("Not enough credits.")
+	get_active().condition.repair_fully()
+	_apply_active()
+	return result
+
+
+# ------------------------------------------------------------- destruction
+
+## The active ship was destroyed: it is gone from the fleet, with its weapons and
+## upgrades. The most valuable ship the player still owns (even one stored away)
+## becomes the active ship; with none left they are given a new ship of
+## `fallback_model` so they are never stranded. The cargo must already be gone
+## (EconomyManager.clear_cargo). Returns the new active ship.
+func lose_active_ship(fallback_model: ShipStats) -> OwnedShip:
+	var fleet := _player.fleet
+	fleet.remove(fleet.active_id)
+	var next: OwnedShip = null
+	for candidate: OwnedShip in fleet.ships.values():
+		if next == null or candidate.model.price > next.model.price:
+			next = candidate
+	if next == null:
+		next = fleet.create_ship(fallback_model, fallback_model.display_name)
+	next.set_flag(OwnedShip.FLAG_PREVIOUS_SHIP, false)
+	fleet.active_id = next.id
+	_apply_active()
+	return next
 
 
 # ------------------------------------------------------- switching and naming

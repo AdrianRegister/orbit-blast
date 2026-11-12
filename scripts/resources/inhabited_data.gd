@@ -66,6 +66,10 @@ extends TargetDetails
 ## Upgrades this location's outfitter offers. Empty = no outfitter.
 @export var outfitter_upgrades: Array[UpgradeDefinition] = []
 
+## Weapons this location's outfitter sells. A location with upgrades, weapons or
+## both has an outfitter (see has_outfitter()).
+@export var outfitter_weapons: Array[WeaponDefinition] = []
+
 ## Optional picture for the settlement screen. Empty = the screen's default.
 @export var picture: Texture2D
 
@@ -137,7 +141,20 @@ func validate() -> Array[String]:
 	for upgrade in outfitter_upgrades:
 		if upgrade == null:
 			problems.append("outfitter_upgrades has an empty entry")
+	for weapon in outfitter_weapons:
+		if weapon == null:
+			problems.append("outfitter_weapons has an empty entry")
 	return problems
+
+
+## Whether this location has an outfitter: it sells upgrades, weapons or both.
+func has_outfitter() -> bool:
+	return not outfitter_upgrades.is_empty() or not outfitter_weapons.is_empty()
+
+
+## Whether this location has a shipyard (it sells ships; also where ships are repaired).
+func has_shipyard() -> bool:
+	return not shipyard_ships.is_empty()
 
 
 func _has_good(goods: Array[Commodity], good: Commodity) -> bool:

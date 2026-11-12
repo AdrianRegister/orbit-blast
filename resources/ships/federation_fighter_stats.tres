@@ -3,6 +3,17 @@
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ships/federation_fighter.png" id="2"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+[ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+
+[sub_resource type="Resource" id="mount_0"]
+script = ExtResource("wm")
+offset = Vector2(18, -7)
+
+[sub_resource type="Resource" id="mount_1"]
+script = ExtResource("wm")
+offset = Vector2(18, 7)
 
 [resource]
 script = ExtResource("1")
@@ -17,3 +28,11 @@ thrust = 480.0
 turn_rate = 4.8
 max_speed = 750.0
 cargo_capacity = 5
+shield_capacity = 70.0
+shield_regen = 7.0
+armour = 50.0
+hull = 70.0
+energy_capacity = 100.0
+energy_regen = 18.0
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_light_blaster"), ExtResource("w_light_blaster")])

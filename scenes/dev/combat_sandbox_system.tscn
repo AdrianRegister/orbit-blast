@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/systems/star_system.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
+[ext_resource type="Resource" path="res://resources/dev/sandbox_planet.tres" id="3"]
+
+[node name="CombatSandboxSystem" instance=ExtResource("1")]
+system_id = &"dev_combat_sandbox"
+system_name = "Combat Sandbox"
+traffic_rate = 0.0
+
+[node name="ProvingGround" parent="Objects" index="0" instance=ExtResource("2")]
+position = Vector2(1500, 0)
+data = ExtResource("3")

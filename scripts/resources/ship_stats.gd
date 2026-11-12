@@ -46,6 +46,35 @@ func faction_id() -> StringName:
 ## Base cargo hold size, in units of cargo.
 @export var cargo_capacity: int = 500
 
+## Combat. Shields soak damage first and recharge by themselves; armour and hull
+## only come back through repairs. Hull at zero destroys the ship (see
+## DamageModel). Energy pays for weapon shots and recharges continuously.
+@export var shield_capacity: float = 50.0
+## Shield points regained per second, starting `shield_regen_delay` seconds
+## after the last hit.
+@export var shield_regen: float = 5.0
+@export var shield_regen_delay: float = 4.0
+@export var armour: float = 50.0
+@export var hull: float = 100.0
+@export var energy_capacity: float = 100.0
+@export var energy_regen: float = 15.0
+## Radius of the area a shot can hit, in world pixels. 0 = derive it from the
+## ship's drawn size.
+@export var hit_radius: float = 0.0
+## The places weapons can be fitted, and the weapons a ship of this model has
+## as new. default_loadout is parallel to weapon_mounts (entry N goes in mount
+## N, null = empty); it is also what NPC ships fly with.
+@export var weapon_mounts: Array[WeaponMount] = []
+@export var default_loadout: Array[WeaponDefinition] = []
+
+
+## Radius shots can hit: `hit_radius`, or 40% of the larger side of the ship.
+func get_hit_radius() -> float:
+	if hit_radius > 0.0:
+		return hit_radius
+	var size := get_size()
+	return maxf(size.x, size.y) * 0.4
+
 
 ## The scale to draw the sprite at: display_width spread over the texture's
 ## width, or `sprite_scale` when no display width is set.
@@ -78,4 +107,24 @@ func validate() -> Array[String]:
 		problems.append("thrust, turn_rate and max_speed must be above zero")
 	if cargo_capacity < 0:
 		problems.append("cargo_capacity is negative")
+	if hull <= 0.0:
+		problems.append("hull must be above zero")
+	if shield_capacity < 0.0 or armour < 0.0 or energy_capacity < 0.0:
+		problems.append("shield_capacity, armour and energy_capacity cannot be negative")
+	if shield_regen < 0.0 or shield_regen_delay < 0.0 or energy_regen < 0.0:
+		problems.append("regeneration values cannot be negative")
+	if hit_radius < 0.0:
+		problems.append("hit_radius is negative")
+	if default_loadout.size() > weapon_mounts.size():
+		problems.append("default_loadout has more entries than weapon_mounts")
+	for mount in weapon_mounts:
+		if mount == null:
+			problems.append("weapon_mounts has an empty entry")
+		else:
+			for problem in mount.validate():
+				problems.append("mount: " + problem)
+	for index in default_loadout.size():
+		var weapon := default_loadout[index]
+		if weapon != null and index < weapon_mounts.size() and not weapon.fits(weapon_mounts[index]):
+			problems.append("default_loadout[%d] (%s) does not fit its mount" % [index, weapon.display_name])
 	return problems

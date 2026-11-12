@@ -36,6 +36,6 @@ func validate() -> Array[String]:
 	elif planet_type.texture == null:
 		problems.append("planet_type '%s' has no texture" % planet_type.display_name)
 	if not dockable:
-		if population > 0 or not shipyard_ships.is_empty() or not outfitter_upgrades.is_empty():
+		if population > 0 or not shipyard_ships.is_empty() or has_outfitter():
 			problems.append("an undockable body must have no population or services")
 	return problems

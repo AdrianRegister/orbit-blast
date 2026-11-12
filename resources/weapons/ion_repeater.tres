@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"ion_repeater"
+display_name = "Ion Repeater"
+description = "Rapid ion bursts that tear through shields but barely scratch armour."
+price = 12000
+max_per_ship = 4
+mount_size = 0
+damage = 5.0
+fire_interval = 0.25
+energy_per_shot = 2.0
+projectile_speed = 1000.0
+range = 600.0
+shield_multiplier = 2.0
+armour_multiplier = 0.4
+projectile_color = Color(0.35, 0.8, 1, 1)

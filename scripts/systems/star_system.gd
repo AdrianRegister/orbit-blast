@@ -30,12 +30,18 @@ const ABSOLUTE_MAX_OBJECTS := 6
 ## reports its starting owner.
 var _owner_lookup: Callable = func(data: InhabitedData) -> String: return data.get_faction_name()
 
+## Callable(InhabitedData) -> StringName: the id of the faction that owns a
+## location now ("" = nobody). Main sets it to the TerritoryManager; ships take
+## their faction from it.
+var _owner_id_lookup: Callable = func(data: InhabitedData) -> StringName: return data.faction.id if data.faction != null else &""
+
 ## Callable(InhabitedData) -> Array of [caption, value] rows added to what the HUD
 ## shows for a location (see Targetable.extra_rows_lookup). Main sets it.
 var _extra_rows_lookup: Callable
 
 @onready var _objects: Node2D = $Objects
 @onready var _ships: Node2D = $Ships
+@onready var _projectiles: Node2D = $Projectiles
 @onready var _traffic: TrafficManager = $Traffic
 
 
@@ -69,6 +75,16 @@ func get_owner_name(data: InhabitedData) -> String:
 	return _owner_lookup.call(data) if data != null else ""
 
 
+## Gives the system a way to ask the id of a location's owner (see above).
+func set_owner_id_lookup(lookup: Callable) -> void:
+	_owner_id_lookup = lookup
+
+
+## The id of the faction that owns a location of this system now ("" = nobody).
+func get_owner_id(data: InhabitedData) -> StringName:
+	return _owner_id_lookup.call(data) if data != null else &""
+
+
 ## Every SpaceObject placed in this system.
 func get_space_objects() -> Array[SpaceObject]:
 	var result: Array[SpaceObject] = []
@@ -90,6 +106,12 @@ func get_inhabited_nodes() -> Array[InhabitedNode]:
 ## Parent node of every NPC ship in this system.
 func get_ships_root() -> Node2D:
 	return _ships
+
+
+## Parent node of every shot and combat effect in this system. Freed with the
+## system, so nothing in flight survives a jump.
+func get_projectiles_root() -> Node2D:
+	return _projectiles
 
 
 ## Tells the traffic which directions lead to other systems (unit vectors, from

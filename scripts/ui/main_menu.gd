@@ -13,6 +13,7 @@ var save_path: String = SaveManager.SAVE_PATH
 
 @onready var _new_button: Button = %NewButton
 @onready var _continue_button: Button = %ContinueButton
+@onready var _sandbox_button: Button = %SandboxButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _message_label: Label = %MessageLabel
 @onready var _confirm: Control = %ConfirmNew
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_cancel_button.pressed.connect(_close_confirm)
 	_confirm_button.pressed.connect(func() -> void: _start(false))
 	_continue_button.pressed.connect(_start.bind(true))
+	_sandbox_button.pressed.connect(_on_sandbox_pressed)
 	_quit_button.pressed.connect(get_tree().quit)
 	_refresh_continue()
 	(_continue_button if not _continue_button.disabled else _new_button).grab_focus()
@@ -63,6 +65,13 @@ func _start(continue_game: bool) -> void:
 		main.start_session()
 	else:
 		main.start_new_session()  # asks for the ship's name first
+	queue_free()
+
+
+## Development only: starts the combat sandbox (see CombatSandbox). It never
+## reads or writes the saved game.
+func _on_sandbox_pressed() -> void:
+	get_tree().root.add_child(CombatSandbox.build_main())
 	queue_free()
 
 

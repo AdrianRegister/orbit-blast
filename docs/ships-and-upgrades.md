@@ -130,7 +130,11 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 
 ## 12. Current limits
 
-No hangar or fleet screens (kept ships are stored but unreachable), no per-ship cargo, no combat equipment, no running costs, no ship selling other than trade-in, and shipyard stock does not depend on faction or reputation yet. Prices and percentages are first guesses.
+No hangar or fleet screens (kept ships are stored but unreachable), no per-ship cargo, no running costs, no ship selling other than trade-in, no shield or armour upgrades (see [combat.md](combat.md) for weapons), and shipyard stock does not depend on faction or reputation yet. Prices and percentages are first guesses.
+
+## 12b. Weapons, damage and repairs (Phase 3.1)
+
+Models now also carry combat numbers (shields, armour, hull, energy) and weapon mounts; an `OwnedShip` has `weapons` (one per mount) and a `condition` (armour and hull left). Outfitters sell weapons (`outfitter_weapons`) and buy them back; shipyards repair damaged ships for a fee; a ship destroyed in combat is removed from the fleet (the escape pod). `ShipManager` owns all of it (`quote_weapon`, `install_weapon`, `sell_weapon`, `get_repair_cost`, `repair`, `lose_active_ship`). The fleet save gained optional `weapons`, `armour` and `hull` fields. Everything is described in [combat.md](combat.md).
 
 ## 13. Factions, military ships and the ship roster
 

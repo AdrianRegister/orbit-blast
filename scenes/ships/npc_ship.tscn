@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ships/npc_ship.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/objects/targetable.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/combat/combatant.tscn" id="3"]
 
 [node name="NpcShip" type="Node2D"]
 script = ExtResource("1")
@@ -14,3 +15,5 @@ rotation = 1.5707964
 
 [node name="Targetable" parent="." instance=ExtResource("2")]
 cycle_group = &"targetable_ship"
+
+[node name="Combatant" parent="." instance=ExtResource("3")]

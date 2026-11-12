@@ -31,6 +31,7 @@ var _selected: ShipStats
 @onready var _price_label: Label = %PriceLabel
 @onready var _specs: SpecComparison = %SpecTable
 @onready var _buy_button: Button = %BuyButton
+@onready var _repair_button: Button = %RepairButton
 @onready var _message_label: Label = %MessageLabel
 @onready var _choice: ChoicePopup = %ChoicePopup
 
@@ -47,6 +48,7 @@ func _ready() -> void:
 	_table.item_selected.connect(_on_item_selected)
 	_back_button.pressed.connect(close)
 	_buy_button.pressed.connect(_on_buy_pressed)
+	_repair_button.pressed.connect(_on_repair_pressed)
 	_choice.chosen.connect(_on_choice)
 
 
@@ -117,6 +119,12 @@ func _refresh() -> void:
 	var active := _ships.get_active()
 	_credits_row.set_value("%s CR" % NumberFormat.with_commas(_economy.get_credits()))
 	_ship_row.set_value("%s (%s)" % [active.ship_name, active.model.display_name])
+	# Damaged armour and hull are repaired here, for a fee.
+	var repair_cost := _ships.get_repair_cost(active)
+	_repair_button.visible = repair_cost > 0
+	if repair_cost > 0:
+		_repair_button.text = "REPAIR YOUR SHIP (%s CR)" % NumberFormat.with_commas(repair_cost)
+		_repair_button.disabled = not _ships.quote_repair().ok
 	if _selected == null:
 		_buy_button.disabled = true
 		return
@@ -152,6 +160,15 @@ func _on_buy_pressed() -> void:
 		"KEEP IT  (%s CR)" % NumberFormat.with_commas(keep.cost),
 	]
 	_choice.ask("BUY THE %s" % _selected.display_name.to_upper(), text, options, [not trade.ok, not keep.ok])
+
+
+func _on_repair_pressed() -> void:
+	var result := _ships.repair()
+	if not result.ok:
+		_show_error(result.message)
+		return
+	_message_label.remove_theme_color_override("font_color")
+	_message_label.text = "SHIP REPAIRED FOR %s CR" % NumberFormat.with_commas(result.cost)
 
 
 func _on_choice(index: int) -> void:

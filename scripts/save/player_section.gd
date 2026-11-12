@@ -25,6 +25,8 @@ func save_state() -> Dictionary:
 	if docked_at != null and docked_at.details is InhabitedData:
 		data["mode"] = "docked"
 		data["docked_at"] = str((docked_at.details as InhabitedData).id)
+	if _main.get_last_landed() != &"":
+		data["last_landed"] = str(_main.get_last_landed())
 	return data
 
 
@@ -48,11 +50,15 @@ func validate_state(data: Variant, registry: ContentRegistry, _document: Diction
 				problems.append("player is docked at an unknown location")
 		_:
 			problems.append("player mode must be 'space' or 'docked'")
+	# Optional (saves from before combat have none).
+	if data.has("last_landed") and (not SaveData.is_id(data["last_landed"]) or registry.location(StringName(data["last_landed"])) == null):
+		problems.append("player last landed at an unknown location")
 	return problems
 
 
 func load_state(data: Dictionary, registry: ContentRegistry) -> void:
 	var docked_at: StringName = StringName(data["docked_at"]) if data["mode"] == "docked" else &""
+	_main.set_last_landed(StringName(data.get("last_landed", "")))
 	_main.restore_player(StringName(data["system"]),
 			SaveData.to_vector(data["position"]), float(data["rotation"]),
 			SaveData.to_vector(data["velocity"]), docked_at, registry)

@@ -2,6 +2,13 @@
 
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ships/bulk_freighter.png" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+
+[sub_resource type="Resource" id="mount_0"]
+script = ExtResource("wm")
+type = 1
+arc_degrees = 120.0
 
 [resource]
 script = ExtResource("1")
@@ -15,3 +22,11 @@ thrust = 90.0
 turn_rate = 0.9
 max_speed = 240.0
 cargo_capacity = 650
+shield_capacity = 100.0
+shield_regen = 5.0
+armour = 200.0
+hull = 350.0
+energy_capacity = 120.0
+energy_regen = 12.0
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0")])
+default_loadout = Array[ExtResource("wd")]([])

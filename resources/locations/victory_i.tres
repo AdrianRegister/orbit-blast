@@ -17,6 +17,11 @@
 [ext_resource type="Resource" path="res://resources/upgrades/manoeuvre_2.tres" id="up_manoeuvre_2"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wds"]
+[ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/ion_repeater.tres" id="w_ion_repeater"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/weapons/heavy_blaster.tres" id="w_heavy_blaster"]
 
 [resource]
 script = ExtResource("1")
@@ -29,3 +34,4 @@ imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtReso
 size = 180.0
 shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_interceptor"), ExtResource("sy_shuttle"), ExtResource("sy_light_frigate")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_manoeuvre_1"), ExtResource("up_manoeuvre_2"), ExtResource("up_cargo_bay")])
+outfitter_weapons = Array[ExtResource("wds")]([ExtResource("w_light_blaster"), ExtResource("w_ion_repeater"), ExtResource("w_pulse_cannon"), ExtResource("w_heavy_blaster")])

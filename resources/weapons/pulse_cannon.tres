@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"pulse_cannon"
+display_name = "Pulse Cannon"
+description = "A medium cannon with real punch and a longer reach, at a real cost in energy."
+price = 30000
+max_per_ship = 3
+mount_size = 1
+damage = 22.0
+fire_interval = 0.6
+energy_per_shot = 8.0
+projectile_speed = 1100.0
+range = 850.0
+projectile_color = Color(1, 0.55, 0.2, 1)

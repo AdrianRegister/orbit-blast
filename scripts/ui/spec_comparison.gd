@@ -27,6 +27,11 @@ func show_specs(current: ShipSpecs, after: ShipSpecs) -> void:
 	_add_row("ACCELERATION", current.thrust, after.thrust if after != null else NAN, "%d")
 	_add_row("TURN RATE", current.turn_rate, after.turn_rate if after != null else NAN, "%.1f")
 	_add_row("CARGO", float(current.cargo_capacity), float(after.cargo_capacity) if after != null else NAN, "%d")
+	_add_row("SHIELDS", current.shield_capacity, after.shield_capacity if after != null else NAN, "%d")
+	_add_row("ARMOUR", current.armour, after.armour if after != null else NAN, "%d")
+	_add_row("HULL", current.hull, after.hull if after != null else NAN, "%d")
+	_add_row("ENERGY", current.energy_capacity, after.energy_capacity if after != null else NAN, "%d")
+	_add_row("WEAPON MOUNTS", float(current.weapon_mounts), float(after.weapon_mounts) if after != null else NAN, "%d")
 
 
 func _add_row(title: String, current: float, after: float, format: String) -> void:

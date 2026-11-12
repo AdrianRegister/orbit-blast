@@ -18,6 +18,10 @@
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
 
 [ext_resource type="Resource" path="res://resources/economy/profiles/industrial.tres" id="profile"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wds"]
+[ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/ion_repeater.tres" id="w_ion_repeater"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
 
 [resource]
 script = ExtResource("1")
@@ -30,4 +34,5 @@ exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_food"), ExtResource("c_fuel"), ExtResource("c_medical_supplies"), ExtResource("c_luxury_goods")])
 size = 600.0
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1"), ExtResource("up_engine_2"), ExtResource("up_engine_3")])
+outfitter_weapons = Array[ExtResource("wds")]([ExtResource("w_light_blaster"), ExtResource("w_ion_repeater"), ExtResource("w_pulse_cannon")])
 economy_profile = ExtResource("profile")

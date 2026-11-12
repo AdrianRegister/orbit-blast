@@ -38,6 +38,7 @@ func create_ship(model: ShipStats, ship_name: String) -> OwnedShip:
 	next_id += 1
 	ship.model = model
 	ship.ship_name = ship_name
+	ship.reset_loadout()
 	ships[ship.id] = ship
 	return ship
 
@@ -63,8 +64,18 @@ func save_state() -> Dictionary:
 		var flag_names: Array = []
 		for flag in ship.flags:
 			flag_names.append(str(flag))
-		list.append({"id": str(ship.id), "model": str(ship.model.id), "name": ship.ship_name,
-				"upgrades": upgrade_ids, "flags": flag_names})
+		# One entry per mount, "" for an empty one.
+		var weapon_ids: Array = []
+		for weapon in ship.weapons:
+			weapon_ids.append(str(weapon.id) if weapon != null else "")
+		var entry := {"id": str(ship.id), "model": str(ship.model.id), "name": ship.ship_name,
+				"upgrades": upgrade_ids, "flags": flag_names, "weapons": weapon_ids}
+		# Lasting damage is only written for a damaged ship; absent = undamaged.
+		if ship.condition.armour >= 0.0:
+			entry["armour"] = ship.condition.armour
+		if ship.condition.hull >= 0.0:
+			entry["hull"] = ship.condition.hull
+		list.append(entry)
 	return {"next_id": next_id, "active": str(active_id), "ships": list}
 
 
@@ -110,6 +121,7 @@ static func validate_state(data: Variant, registry: ContentRegistry) -> Array[St
 				else:
 					installed.append(upgrade)
 			problems.append_array(_validate_upgrade_rules(str(id), installed))
+		problems.append_array(_validate_combat_state(str(id), entry, model, registry))
 		seen[id] = entry
 	if not problems.is_empty():
 		return problems
@@ -120,6 +132,42 @@ static func validate_state(data: Variant, registry: ContentRegistry) -> Array[St
 		problems.append("the active ship is not in the fleet")
 	elif (seen[active].get("flags", []) as Array).has(str(OwnedShip.FLAG_PREVIOUS_SHIP)):
 		problems.append("the active ship is marked as a previous ship")
+	return problems
+
+
+## The optional combat part of a saved ship: the weapons fitted (one entry per
+## mount, "" for an empty mount) and the armour and hull left. Saves from before
+## combat have none of it, and the ship then has its default weapons, undamaged.
+static func _validate_combat_state(ship_id: String, entry: Dictionary, model: ShipStats, registry: ContentRegistry) -> Array[String]:
+	var problems: Array[String] = []
+	if entry.has("weapons"):
+		var saved = entry["weapons"]
+		if not saved is Array:
+			problems.append("ship '%s' weapons is not a list" % ship_id)
+		elif model != null:
+			if saved.size() != model.weapon_mounts.size():
+				problems.append("ship '%s' has %d weapon entries for %d mounts" % [ship_id, saved.size(), model.weapon_mounts.size()])
+			else:
+				var counts := {}
+				for index in saved.size():
+					var weapon_id = saved[index]
+					if weapon_id is String and weapon_id.is_empty():
+						continue
+					var weapon: WeaponDefinition = registry.weapon(StringName(weapon_id)) if SaveData.is_id(weapon_id) else null
+					if weapon == null:
+						problems.append("ship '%s' has an unknown weapon" % ship_id)
+					elif not weapon.fits(model.weapon_mounts[index]):
+						problems.append("ship '%s' has '%s' in a mount it does not fit" % [ship_id, weapon.id])
+					else:
+						counts[weapon.id] = counts.get(weapon.id, 0) + 1
+						if counts[weapon.id] > weapon.max_per_ship:
+							problems.append("ship '%s' has too many '%s' weapons" % [ship_id, weapon.id])
+	if entry.has("armour"):
+		if not SaveData.is_number(entry["armour"]) or entry["armour"] < 0.0 or (model != null and entry["armour"] > model.armour):
+			problems.append("ship '%s' armour is not a number within the ship's armour" % ship_id)
+	if entry.has("hull"):
+		if not SaveData.is_number(entry["hull"]) or entry["hull"] <= 0.0 or (model != null and entry["hull"] > model.hull):
+			problems.append("ship '%s' hull is not above zero and within the ship's hull" % ship_id)
 	return problems
 
 
@@ -148,10 +196,19 @@ func load_state(data: Dictionary, registry: ContentRegistry) -> void:
 		ship.id = StringName(entry["id"])
 		ship.model = registry.ship_stats(StringName(entry["model"]))
 		ship.ship_name = entry["name"]
+		ship.reset_loadout()
 		for upgrade_id in entry["upgrades"]:
 			ship.upgrades.append(registry.upgrade(StringName(upgrade_id)))
 		for flag in entry.get("flags", []):
 			ship.flags.append(StringName(flag))
+		if entry.has("weapons"):
+			for index in entry["weapons"].size():
+				var weapon_id: String = entry["weapons"][index]
+				ship.weapons[index] = registry.weapon(StringName(weapon_id)) if not weapon_id.is_empty() else null
+		if entry.has("armour"):
+			ship.condition.armour = float(entry["armour"])
+		if entry.has("hull"):
+			ship.condition.hull = float(entry["hull"])
 		ships[ship.id] = ship
 	active_id = StringName(data["active"])
 	next_id = int(data["next_id"])

@@ -20,11 +20,18 @@ extends Node2D
 ##   DEPARTING   - has finished its visits (or has none to make) and is flying out
 ##                 of the system.
 ##   WARPING     - jumping out: accelerating away until it is gone.
+##   WANDERING   - drifting between random points around a centre, never docking
+##                 or leaving (the combat sandbox's target ship).
 ##
 ## Jumping obeys the player's rule: a ship only starts to warp once it is at
 ## least the system's jump radius from the system centre.
 
-enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING }
+enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING, WANDERING }
+
+## A wandering ship cruises at this fraction of its top speed, and picks its
+## next point once it is within this distance (pixels) of the current one.
+const WANDER_SPEED_FRACTION := 0.6
+const WANDER_ARRIVE_DISTANCE := 150.0
 
 ## Docking needs the ship slower than this (pixels per second).
 const DOCK_SPEED := 10.0
@@ -56,8 +63,13 @@ var destination: InhabitedNode
 var state: State = State.TRAVELLING
 var velocity: Vector2 = Vector2.ZERO
 var details: NpcShipDetails
+## Who this ship is in combat: a unique id (so each hostile act is only counted
+## once) and the faction it belongs to ("" = none). Set before adding to the tree.
+var combat_id: StringName = &""
+var faction_id: StringName = &""
 
 var _config: TrafficConfig
+var _destroyed: bool = false
 var _system_centre: Vector2 = Vector2.ZERO
 var _jump_radius: float = 0.0
 ## Directions out of the system a ship can leave by (towards neighbouring
@@ -68,10 +80,14 @@ var _destinations: Array[InhabitedNode] = []
 var _player: Node2D
 var _visits_left: int = 1
 var _dock_time_left: float = 0.0
+var _wander_centre: Vector2 = Vector2.ZERO
+var _wander_radius: float = 0.0
+var _wander_target: Vector2 = Vector2.ZERO
 
 @onready var _visual: Node2D = $Visual
 @onready var _sprite: Sprite2D = $Visual/Sprite2D
 @onready var _targetable: Targetable = $Targetable
+@onready var _combatant: Combatant = $Combatant
 
 
 ## Call before adding the ship to the tree.
@@ -112,6 +128,16 @@ func begin_arrival(heading: Vector2) -> void:
 	_set_state(State.ARRIVING)
 
 
+## Makes the ship drift aimlessly between random points within `radius` of
+## `centre`, forever: it never docks, jumps or leaves. Call before adding it to
+## the tree.
+func begin_wandering(centre: Vector2, radius: float) -> void:
+	_wander_centre = centre
+	_wander_radius = radius
+	_wander_target = _pick_wander_point()
+	state = State.WANDERING
+
+
 ## The player's jump rule applied to this ship: far enough from the system centre.
 func can_jump() -> bool:
 	return _jump_radius > 0.0 and global_position.distance_to(_system_centre) >= _jump_radius
@@ -125,9 +151,30 @@ func _ready() -> void:
 	details.faction_name = faction_name
 	_targetable.configure(ship_type.display_name, "Ship (%s)" % ship_type.display_name,
 			ship_type.get_size(), true, details)
-	if state != State.DEPARTING and state != State.ARRIVING:
+	# Combat: NPCs carry their model's default weapons and the full damage model.
+	# They do not fire yet; combat AI will drive the same Combatant later.
+	_combatant.combat_id = combat_id
+	_combatant.faction_id = faction_id
+	_combatant.setup(ship_type.stats, ShipSpecs.compute(ship_type.stats), ship_type.stats.default_loadout,
+			null, get_heading, func() -> Vector2: return velocity)
+	_combatant.destroyed.connect(_on_destroyed)
+	if state == State.WANDERING:
+		_set_state(State.WANDERING)
+	elif state != State.DEPARTING and state != State.ARRIVING:
 		_set_state(State.TRAVELLING)
 	_face(velocity.angle() if velocity.length() > 1.0 else _direction_to_destination().angle())
+
+
+## Hull reached zero: the ship is gone as far as the game is concerned. (The
+## explosion and the reports are the CombatManager's job.)
+func _on_destroyed(_victim: Combatant, _attacker: Combatant) -> void:
+	if _destroyed:
+		return
+	_destroyed = true
+	_targetable.set_enabled(false)  # clears the player's selection
+	set_physics_process(false)
+	visible = false
+	queue_free()
 
 
 func _physics_process(delta: float) -> void:
@@ -144,6 +191,8 @@ func _physics_process(delta: float) -> void:
 			_depart(delta)
 		State.WARPING:
 			_warp(delta)
+		State.WANDERING:
+			_wander(delta)
 
 
 ## The heading the ship is currently facing, in radians (0 = facing right).
@@ -241,6 +290,28 @@ func _depart(delta: float) -> void:
 		_begin_warp()
 
 
+## Cruises toward the current wander point (turning and thrusting like every
+## other ship) and picks a new one on arrival.
+func _wander(delta: float) -> void:
+	var stats: ShipStats = ship_type.stats
+	var to_target := _wander_target - global_position
+	if to_target.length() < WANDER_ARRIVE_DISTANCE:
+		_wander_target = _pick_wander_point()
+		to_target = _wander_target - global_position
+	var error: Vector2 = to_target.normalized() * stats.max_speed * WANDER_SPEED_FRACTION - velocity
+	if error.length() > STEER_DEADZONE:
+		_turn_toward(error.angle(), delta)
+		if absf(angle_difference(get_heading(), error.angle())) < THRUST_ANGLE:
+			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
+	velocity = velocity.limit_length(stats.max_speed)
+	global_position += velocity * delta
+
+
+## A random point in the wander circle.
+func _pick_wander_point() -> Vector2:
+	return _wander_centre + Vector2.from_angle(randf() * TAU) * _wander_radius * sqrt(randf())
+
+
 func _begin_warp() -> void:
 	_targetable.set_enabled(false)  # it is gone as far as targeting is concerned
 	if velocity.length() > 1.0:
@@ -297,6 +368,8 @@ func _set_state(new_state: State) -> void:
 			details.status = "Leaving the system" if destination != null else "Passing through the system"
 		State.WARPING:
 			details.status = "Jumping out"
+		State.WANDERING:
+			details.status = "Drifting around the system"
 	state_changed.emit(state)
 
 

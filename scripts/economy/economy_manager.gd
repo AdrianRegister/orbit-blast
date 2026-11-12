@@ -173,6 +173,12 @@ func unload_contract_cargo(contract_id: StringName) -> bool:
 	return _player.cargo.remove_lot(contract_id)
 
 
+## Empties the hold: the ship that carried the cargo was destroyed. Contracts
+## whose cargo this was must be failed too (ContractManager.fail_lost_cargo_contracts).
+func clear_cargo() -> void:
+	_player.cargo.clear()
+
+
 ## Pays credits that are not a trade, such as a contract reward.
 func award_credits(amount: int) -> void:
 	if amount <= 0:

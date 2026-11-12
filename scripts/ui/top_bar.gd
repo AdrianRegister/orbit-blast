@@ -15,6 +15,11 @@ func _ready() -> void:
 	_factions_button.pressed.connect(factions_requested.emit)
 
 
+## Hides the Factions button (the combat sandbox has no factions screen).
+func hide_factions_button() -> void:
+	_factions_button.visible = false
+
+
 ## Shows the current calendar day at the far right of the bar.
 func set_day(day: int) -> void:
 	_day_label.text = "DAY %d" % day

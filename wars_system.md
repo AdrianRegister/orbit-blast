@@ -280,6 +280,10 @@ Settlement ownership is authoritative and system control is derived from it (`Te
 
 Phase 2.9 built the read access and the foundations a war needs, without any war: system classes (critical, economic and military centres, military output, rural, frontier), faction zones and centres of power that follow ownership (conquering a capital or critical system makes a mini-core), damage to locations that lowers production and recovers by itself, military value per location and system (`SystemAssessor`), and military goods and markets that anyone can trade. See `docs/system_classes.md` section 11 for where each is read. Still not built: wars, campaigns, operations, blockades, defenders and news.
 
+### Status (ship combat foundations in place)
+
+Phase 3.1 built the ship-level combat a war will rely on, without any war or NPC fighting: weapons and mounts as data, projectiles, the layered damage model (shields, armour, hull), destruction with a `DestructionReport` (victim, attacker, factions, system, day), the player's escape pod, repairs, and a `Combatant` interface that player input and, later, AI and formations drive. `ship_destroyed` and `DestructionReport` are the hook for fleet losses; a ship's stats, defences and loadout are plain data from which a combat rating can be derived for the abstract battle model. NPC ships carry weapons and can be destroyed but never fire. Still not built: NPC combat AI, squadrons and formations, convoys and escorts, fleet engagements, and wars themselves. See `docs/combat.md` section 11.
+
 ### Status (faction identity and reputation in place)
 
 Factions carry colours, texts, `military_strength` (arbitrary for now) and `relations` that are separate from the player's reputation; reputation is tracked per faction with a central interface (`ReputationManager.meets`, standings), military contracts can award it, and hostile acts have an integration point. See `docs/factions.md`.

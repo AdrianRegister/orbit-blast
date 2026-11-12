@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"heavy_blaster"
+display_name = "Heavy Blaster"
+description = "A capital-grade weapon. Slow, hungry and devastating; a tenth of each shot ignores shields."
+price = 90000
+max_per_ship = 2
+mount_size = 2
+damage = 60.0
+fire_interval = 1.1
+energy_per_shot = 20.0
+projectile_speed = 1200.0
+range = 1000.0
+shield_bypass = 0.1
+projectile_color = Color(1, 0.3, 0.25, 1)

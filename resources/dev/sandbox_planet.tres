@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/terrestrial.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/economy/profiles/commercial.tres" id="profile"]
+
+[resource]
+script = ExtResource("1")
+id = &"dev_sandbox_planet"
+planet_type = ExtResource("2")
+display_name = "Proving Ground"
+population = 1000000
+size = 450.0
+economy_profile = ExtResource("profile")

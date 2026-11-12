@@ -7,6 +7,8 @@ extends CharacterBody2D
 var stats: ShipSpecs
 
 @onready var _sprite: Sprite2D = $Sprite2D
+## The ship's combat side: defences, weapons and hit area.
+@onready var combatant: Combatant = $Combatant
 
 ## Speed (px/s) and acceleration (px/s^2) of a warp jump. Purely a visual effect.
 const WARP_SPEED := 9000.0
@@ -23,14 +25,25 @@ var flight_enabled: bool = true
 func _ready() -> void:
 	# Top-down space: there is no floor or wall concept for movement.
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING
+	combatant.is_player = true
+	combatant.combat_id = &"player"
+	# Shows where to aim to hit the selected ship.
+	var lead := LeadIndicator.new()
+	lead.combatant = combatant
+	add_child(lead)
 
 
-## Becomes the given ship: its flight numbers and its model's sprite. Used at
-## the start, after a purchase or ship switch, and after loading a save.
+## Becomes the given ship: its flight numbers, its model's sprite, and its
+## defences and weapons (shields and energy start full; armour and hull follow
+## the ship's saved condition). Used at the start, after a purchase or ship
+## switch, and after loading a save.
 func apply_ship(ship: OwnedShip) -> void:
 	stats = ship.get_specs()
 	_sprite.texture = ship.model.texture
 	_sprite.scale = Vector2.ONE * ship.model.get_scale()
+	if combatant != null:  # (not yet in the scene tree: nothing to set up)
+		combatant.setup(ship.model, stats, ship.weapons, ship.condition,
+				func() -> float: return rotation, func() -> Vector2: return velocity)
 
 
 func set_flight_enabled(enabled: bool) -> void:
@@ -73,3 +86,7 @@ func _physics_process(delta: float) -> void:
 
 	velocity = velocity.limit_length(stats.max_speed)
 	move_and_slide()
+
+	# Space: fire every weapon that is ready.
+	if Input.is_action_pressed("fire_primary"):
+		combatant.fire()

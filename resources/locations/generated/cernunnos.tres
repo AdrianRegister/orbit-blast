@@ -6,6 +6,9 @@
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wds"]
+[ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
 
 [resource]
 script = ExtResource("1")
@@ -16,3 +19,4 @@ faction = ExtResource("faction_1")
 population = 4319000
 size = 466.0
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1")])
+outfitter_weapons = Array[ExtResource("wds")]([ExtResource("w_light_blaster"), ExtResource("w_pulse_cannon")])

@@ -21,7 +21,8 @@ var _context: ContractContext = ContractContext.new()
 var _available: Dictionary = {}  # InhabitedData -> Array[Contract]
 var _active: Array[Contract] = []
 var _completed: Array[Contract] = []
-## Nothing fails a contract yet; kept so saves already have the list when it does.
+## Contracts that can no longer be completed (the player's ship, with the cargo,
+## was destroyed). Saved with the rest.
 var _failed: Array[Contract] = []
 var _next_id: int = 1
 
@@ -238,6 +239,26 @@ func _try_complete(contract: Contract) -> void:
 		_economy.unload_contract_cargo(delivery.id)
 		delivery.quantity_in_hold = 0
 	_finish(contract)
+
+
+## The ship carrying the cargo was destroyed: every accepted delivery or ferry
+## contract (its cargo or passengers are gone) fails, with no reward. Exploration
+## contracts carry nothing and stay. Call before emptying the hold. Returns how
+## many failed.
+func fail_lost_cargo_contracts() -> int:
+	var count := 0
+	for contract in _active.duplicate():
+		var delivery := contract as CargoDeliveryContract
+		if delivery == null:
+			continue
+		delivery.status = Contract.Status.FAILED
+		delivery.quantity_in_hold = 0
+		_active.erase(delivery)
+		_failed.append(delivery)
+		count += 1
+	if count > 0:
+		contracts_changed.emit()
+	return count
 
 
 ## Completes an accepted contract and pays it. The status changes first and a

@@ -13,6 +13,7 @@ const COMMODITY_DIR := "res://resources/commodities/"
 const LOCATION_DIR := "res://resources/locations/"
 const SHIP_STATS_DIR := "res://resources/ships/"
 const UPGRADE_DIR := "res://resources/upgrades/"
+const WEAPON_DIR := "res://resources/weapons/"
 const SYSTEM_CLASS_DIR := "res://resources/system_classes/"
 const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 
@@ -24,6 +25,7 @@ var _commodities: Dictionary = {}  # StringName -> Commodity
 var _locations: Dictionary = {}  # StringName -> InhabitedData
 var _ship_stats: Dictionary = {}  # StringName -> ShipStats
 var _upgrades: Dictionary = {}  # StringName -> UpgradeDefinition
+var _weapons: Dictionary = {}  # StringName -> WeaponDefinition
 var _system_classes: Dictionary = {}  # StringName -> SystemClass
 var _galaxy: Galaxy
 
@@ -35,6 +37,7 @@ func _init(galaxy: Galaxy = null) -> void:
 	_index(LOCATION_DIR, _locations, "location", "id")
 	_index(SHIP_STATS_DIR, _ship_stats, "ship", "id")
 	_index(UPGRADE_DIR, _upgrades, "upgrade", "id")
+	_index(WEAPON_DIR, _weapons, "weapon", "id")
 	_index(SYSTEM_CLASS_DIR, _system_classes, "system class", "id")
 	_galaxy = galaxy if galaxy != null else load(GALAXY_PATH) as Galaxy
 	if _galaxy == null:
@@ -91,6 +94,40 @@ func ship_stats(id: StringName) -> ShipStats:
 
 func upgrade(id: StringName) -> UpgradeDefinition:
 	return _upgrades.get(id)
+
+
+func weapon(id: StringName) -> WeaponDefinition:
+	return _weapons.get(id)
+
+
+## Every ship model, cheapest first (ties by id).
+func all_ship_stats() -> Array[ShipStats]:
+	var result: Array[ShipStats] = []
+	result.assign(_sorted_by_price(_ship_stats.values()))
+	return result
+
+
+## Every upgrade, cheapest first (ties by id).
+func all_upgrades() -> Array[UpgradeDefinition]:
+	var result: Array[UpgradeDefinition] = []
+	result.assign(_sorted_by_price(_upgrades.values()))
+	return result
+
+
+## Every weapon, cheapest first (ties by id).
+func all_weapons() -> Array[WeaponDefinition]:
+	var result: Array[WeaponDefinition] = []
+	result.assign(_sorted_by_price(_weapons.values()))
+	return result
+
+
+func _sorted_by_price(items: Array) -> Array:
+	var sorted := items.duplicate()
+	sorted.sort_custom(func(a, b) -> bool:
+		if a.price != b.price:
+			return a.price < b.price
+		return str(a.id) < str(b.id))
+	return sorted
 
 
 ## The description of a system for the map and for contracts; null if unknown.

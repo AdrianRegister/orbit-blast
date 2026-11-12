@@ -245,6 +245,10 @@ Manual check: start a game, trade, accept a contract, quit to the menu, press Co
 
 Version 2 added the `fleet` section (see [ships-and-upgrades.md](ships-and-upgrades.md)): `next_id`, `active` and a list of ships with `id`, `model`, `name`, `upgrades` and `flags`. `ShipManager` is the section provider and is registered after the economy so the hold takes the active ship's capacity. The `player` section no longer stores `ship`. Migration 1 to 2 turns the old `player.ship` into a fleet of one ship named after its model. The cargo validation no longer requires cargo to fit the capacity: the capacity comes from the active ship and an old save may hold more than the ship now carries, so such cargo is kept instead of the save being refused. When the main menu starts a new game, the starting ship is named before autosave begins.
 
+## Combat additions (Phase 3.1, no version bump)
+
+All optional, so older saves load unchanged. Per ship in the `fleet` section: `weapons` (one weapon id per mount of the model, `""` for an empty mount), and `armour` and `hull` (the points left, only written for a damaged ship). Without them a ship has its model's default weapons and is undamaged. Validation checks that each weapon id exists, fits its mount and respects `max_per_ship`, that the list length equals the model's mount count, and that armour and hull are within the model's numbers (hull above zero). Shields and energy are never saved. The `player` section gained `last_landed` (a location id, optional): where the escape pod takes a destroyed player. Delivery contracts that fail when the player's ship is destroyed are stored in the existing `contracts.failed` list. See [combat.md](combat.md).
+
 ## Galaxy section
 
 The optional `galaxy` section stores the discovered system ids (`{"discovered": [...]}`). It is applied after the player so the current system is known, and a save without it defaults to Sol plus the current system. See [galaxy.md](galaxy.md).

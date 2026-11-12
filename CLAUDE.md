@@ -7,7 +7,7 @@ trading and combat game inspired by Escape Velocity.
 
 ## Current Development Phase
 
-Phase 3 – Combat and military gameplay (next; not started)
+Phase 3 – Combat and military gameplay. Phase 3.1 (combat foundations) is built: weapons and mounts, projectiles, the layered damage model, destruction and the player's escape pod, repairs, and the HUD (docs/combat.md). NPC combat AI, formations, convoys and wars are not started.
 
 Phase 2 is complete. Phases 2.2 to 2.9 are done (ships and upgrades, galaxy map and travel, expanded and procedural contracts, the EV Nova galaxy, settlement ownership and contested systems, factions and reputation, the advanced economy). Each has a document in docs/ describing how it works; read the relevant one before changing that system.
 
@@ -50,6 +50,7 @@ Phase 2.9 built the foundations the war system will use, without any war: the ga
 - Who owns a settlement comes from TerritoryManager, and a system's control is derived from its settlements. Reputation comes from ReputationManager. Do not read `faction` fields directly for current ownership.
 - A location's `population` is its economic weight, tuned against the whole economy: never rescale it to make a place feel bigger. The population the player reads comes from PopulationDisplay (a scale by location, profile or system class, see docs/system_classes.md section 12).
 - Damage to planets and stations comes from InfrastructureManager and only lowers production; it recovers by itself and is never permanent. Military value comes from SystemAssessor. Neither reads reputation.
+- Combat goes through a ship's `Combatant` (player and NPC alike) and the `CombatManager`; damage rules are pure functions in `DamageModel`, tuned by `resources/combat/damage_rules.tres` and the weapon files (docs/combat.md). Hostile acts are reported to reputation by the `CombatManager`, nowhere else.
 - Contracts come from a ContractSource (procedural today). Tunable numbers live in resources (resources/contracts/), not in code. Civilian contracts never change reputation.
 
 ## Galaxy content

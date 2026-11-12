@@ -78,6 +78,14 @@ func add_lot(contract_id: StringName, commodity_id: StringName, quantity: int, n
 	return true
 
 
+## Empties the hold completely: ordinary cargo and every contract lot (the ship
+## that carried it was destroyed).
+func clear() -> void:
+	_manifest.clear()
+	_lots.clear()
+	changed.emit()
+
+
 func remove_lot(contract_id: StringName) -> bool:
 	if not _lots.has(contract_id):
 		return false

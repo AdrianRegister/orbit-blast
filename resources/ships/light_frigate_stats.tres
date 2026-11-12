@@ -2,6 +2,20 @@
 
 [ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ships/light_frigate.png" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+[ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+
+[sub_resource type="Resource" id="mount_0"]
+script = ExtResource("wm")
+offset = Vector2(25, 0)
+
+[sub_resource type="Resource" id="mount_1"]
+script = ExtResource("wm")
+type = 1
+size = 1
+arc_degrees = 110.0
 
 [resource]
 script = ExtResource("1")
@@ -15,3 +29,11 @@ thrust = 320.0
 turn_rate = 3.2
 max_speed = 520.0
 cargo_capacity = 60
+shield_capacity = 120.0
+shield_regen = 8.0
+armour = 100.0
+hull = 160.0
+energy_capacity = 140.0
+energy_regen = 20.0
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_light_blaster"), ExtResource("w_pulse_cannon")])

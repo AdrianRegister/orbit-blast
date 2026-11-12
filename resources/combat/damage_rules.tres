@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DamageRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/damage_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+armour_damage_reduction = 0.25
+armour_bleed_through = 0.0
+shield_regen_on_land = true
+repair_cost_per_armour = 20.0
+repair_cost_per_hull = 40.0
+weapon_sell_fraction = 0.5

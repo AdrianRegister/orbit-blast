@@ -357,6 +357,9 @@ func _location_text(body: Dictionary, row: Dictionary) -> String:
 			text += "[ext_resource type=\"Script\" path=\"res://scripts/resources/upgrade_definition.gd\" id=\"uds\"]\n"
 			text += "[ext_resource type=\"Resource\" path=\"res://resources/upgrades/cargo_bay.tres\" id=\"up_cargo_bay\"]\n"
 			text += "[ext_resource type=\"Resource\" path=\"res://resources/upgrades/engine_1.tres\" id=\"up_engine_1\"]\n"
+			text += "[ext_resource type=\"Script\" path=\"res://scripts/resources/weapon_definition.gd\" id=\"wds\"]\n"
+			text += "[ext_resource type=\"Resource\" path=\"res://resources/weapons/light_blaster.tres\" id=\"w_light_blaster\"]\n"
+			text += "[ext_resource type=\"Resource\" path=\"res://resources/weapons/pulse_cannon.tres\" id=\"w_pulse_cannon\"]\n"
 	text += "\n[resource]\nscript = ExtResource(\"1\")\n"
 	text += "id = &\"%s\"\ndisplay_name = \"%s\"\n" % [body["id"], body["name"]]
 	if not is_station:
@@ -372,6 +375,7 @@ func _location_text(body: Dictionary, row: Dictionary) -> String:
 		text += "shipyard_ships = Array[ExtResource(\"sss\")]([ExtResource(\"sy_shuttle\"), ExtResource(\"sy_interceptor\")])\n"
 	if body["outfitter"]:
 		text += "outfitter_upgrades = Array[ExtResource(\"uds\")]([ExtResource(\"up_cargo_bay\"), ExtResource(\"up_engine_1\")])\n"
+		text += "outfitter_weapons = Array[ExtResource(\"wds\")]([ExtResource(\"w_light_blaster\"), ExtResource(\"w_pulse_cannon\")])\n"
 	return text
 
 

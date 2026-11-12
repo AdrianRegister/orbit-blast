@@ -17,6 +17,18 @@ extends Node
 @export var ferry_flavour: FlavourPool
 ## The galaxy: which systems exist, where they are and how they connect.
 @export var galaxy: Galaxy
+## Where a destroyed player's escape pod takes them when they have never landed
+## anywhere yet (normally it is the last place they landed).
+@export var fallback_respawn: InhabitedData
+
+## Development only: the combat sandbox (see CombatSandbox). The game runs in
+## one isolated system with nothing saved, no jumping or galaxy map, no contracts
+## and no reputation consequences. Set before the node enters the tree.
+var sandbox_mode: bool = false
+
+## Seconds between the player's ship being destroyed and the screen flashing
+## to the escape pod's arrival.
+const POD_DELAY := 2.0
 
 ## Seconds between pressing J and the flash: the ship accelerates to warp speed.
 const WARP_DURATION := 2.0
@@ -36,6 +48,14 @@ var _population_display: PopulationDisplay
 ## True from a new game starting until the player has named the first ship.
 var _naming_first_ship: bool = false
 
+## The last location the player landed at (see get_last_landed()).
+var _last_landed: StringName = &""
+
+var _content: ContentRegistry
+## True from the player's ship being destroyed until the escape pod has landed.
+var _pod_in_progress: bool = false
+var _autosave_before_pod: bool = false
+
 @onready var _ship: PlayerShip = $PlayerShip
 @onready var _camera: Camera2D = $Camera2D
 @onready var _system: StarSystem = $StarSystem
@@ -52,6 +72,7 @@ var _naming_first_ship: bool = false
 @onready var _territory: TerritoryManager = $Territory
 @onready var _zones: ZoneManager = $Zones
 @onready var _reputation: ReputationManager = $Reputation
+@onready var _combat: CombatManager = $Combat
 @onready var _top_bar: TopBar = $TopBar
 @onready var _factions_screen: FactionScreen = $FactionScreen
 @onready var _contracts: ContractManager = $Contracts
@@ -74,10 +95,13 @@ func _ready() -> void:
 	player_data.credits = starting_credits
 	_hud.track_ship(_ship)
 	_hud.set_nav_system(_system)
+	_combat.set_player(_ship.combatant)
+	_combat.set_system(_system)
 	_begin_traffic(false)
 	if not _system.system_name.is_empty():
 		_hud.set_system_name(_system.system_name)
 	_targeting.target_changed.connect(_hud.set_target)
+	_targeting.target_changed.connect(_combat.on_target_changed)
 	_targeting.set_origin(_ship)
 
 	_economy.credits_changed.connect(_hud.set_credits)
@@ -87,6 +111,7 @@ func _ready() -> void:
 	_economy.set_infrastructure(_infrastructure)
 	_ships.setup(_economy, player_data, _get_docked_location)
 	var content := ContentRegistry.new()
+	_content = content
 	_travel.setup(galaxy, func() -> StringName: return _system.system_id)
 	_territory.setup(galaxy, content)
 	var military_rules: MilitaryValueRules = load("res://resources/military/military_value_rules.tres")
@@ -95,7 +120,11 @@ func _ready() -> void:
 	_zones.setup(galaxy, _territory, assessor, content, _clock)
 	_population_display = PopulationDisplay.new(galaxy, load("res://resources/economy/population_display_rules.tres"))
 	_reputation.setup(_territory)
+	_combat.setup(_reputation, content.faction, _clock)
+	_combat.ship_destroyed.connect(_on_ship_destroyed)
+	_combat.player_destroyed.connect(_on_player_destroyed)
 	_system.set_owner_lookup(_territory.owner_name_of)
+	_system.set_owner_id_lookup(_territory.owner_id_of)
 	_system.set_extra_rows_lookup(_extra_target_rows)
 	_ships.set_territory(_territory)
 	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems, _territory)
@@ -175,6 +204,9 @@ func _ready() -> void:
 	_economy.transaction_completed.connect(func(_quote: TradeQuote) -> void: _saves.request_autosave())
 	_docking.docked.connect(func(_target: Targetable) -> void: _saves.request_autosave())
 	_docking.undocked.connect(func(_target: Targetable) -> void: _saves.request_autosave())
+
+	if sandbox_mode:
+		_enter_sandbox_mode()
 
 	_pause.resume_requested.connect(_close_pause)
 	_pause.save_requested.connect(_on_pause_save_requested)
@@ -274,8 +306,113 @@ func restore_player(system_id: StringName, ship_position: Vector2,
 			push_warning("Saved dock location '%s' is not in this system; resuming in space." % docked_at)
 		else:
 			_docking.restore_docked(target)
+			_last_landed = docked_at
 			_settlement.open(target)
 			_refresh_location_buttons(target)
+
+
+## Turns off everything that would leak out of (or into) the sandbox: reputation
+## (no hostile act is ever charged), contracts, the faction restriction on ships
+## for sale, saving, the galaxy map and jumping (see try_jump, _can_open_map and
+## the pause menu handlers).
+func _enter_sandbox_mode() -> void:
+	_combat.setup(null, _content.faction, _clock)
+	_ships.ignore_ship_factions = true
+	_contracts.set_source(ContractSource.new())
+	_top_bar.hide_factions_button()
+
+
+## Another ship was destroyed: tell the player when they were the one who did it.
+func _on_ship_destroyed(report: DestructionReport) -> void:
+	if report.attacker_is_player:
+		_hud.show_combat_message("TARGET DESTROYED", Color(0.4, 0.9, 0.5))
+
+
+## The player's ship was destroyed. Everything is frozen (flight, targeting,
+## saving, jumping, the pause menu) while it blows up; then the screen flashes
+## and the escape pod arrives (respawn_in_escape_pod).
+func _on_player_destroyed(_report: DestructionReport) -> void:
+	if _pod_in_progress:
+		return
+	_pod_in_progress = true
+	_autosave_before_pod = _saves.autosave_enabled
+	_saves.autosave_enabled = false  # nothing may save the ship that no longer exists
+	_warp_timer.stop()
+	_ship.end_warp()
+	_ship.set_flight_enabled(false)
+	_ship.visible = false
+	_targeting.select(null)
+	_targeting.set_process_unhandled_input(false)
+	_hud.show_combat_message("SHIP DESTROYED", Color(0.9, 0.3, 0.3))
+	await get_tree().create_timer(POD_DELAY).timeout
+	if not _pod_in_progress:
+		return
+	_flash.peak_reached.connect(respawn_in_escape_pod, CONNECT_ONE_SHOT)
+	_flash.flash()
+
+
+## True while the player's ship is being destroyed and the pod has not landed yet.
+func is_escape_pod_active() -> bool:
+	return _pod_in_progress
+
+
+## The escape pod lands. The destroyed ship (with its weapons and upgrades) and
+## all cargo are lost, so delivery and ferry contracts fail; the player's most
+## valuable remaining ship (or, with none, a new basic ship) is now theirs, and
+## they wake docked at the last place they landed. Credits and reputation are
+## kept. The game is saved straight away, so the loss cannot be undone by
+## reloading an earlier autosave.
+func respawn_in_escape_pod() -> void:
+	var lost_name := _ships.get_active().ship_name
+	var failed_contracts := _contracts.fail_lost_cargo_contracts()
+	_economy.clear_cargo()
+	var replacement := _ships.lose_active_ship(starting_ship_stats)
+
+	var location_id := _respawn_location_id()
+	_ship.visible = true
+	if location_id != &"":
+		# A place the galaxy does not know (the sandbox's) is in the current system.
+		var system_id := galaxy.system_of_location(location_id)
+		if system_id == &"":
+			system_id = _system.system_id
+		restore_player(system_id, Vector2.ZERO, 0.0, Vector2.ZERO, location_id, _content)
+		var target := _find_location_target(location_id)
+		if target != null:
+			_ship.global_position = target.global_position
+	else:
+		push_warning("No place to respawn: the player has never landed and no fallback is set.")
+	# Docked: flight and targeting stay off. If the pod could not dock anywhere,
+	# the player is flying again.
+	var flying := _game_state.state == GameStateManager.State.FLYING
+	_ship.set_flight_enabled(flying)
+	_targeting.set_process_unhandled_input(flying)
+
+	var place := "safety"
+	var docked_at := _find_location_target(location_id) if location_id != &"" else null
+	if docked_at != null:
+		place = docked_at.target_name
+	var details: Array = [["LOST", lost_name], ["CARGO", "All lost"]]
+	if failed_contracts > 0:
+		details.append(["CONTRACTS FAILED", str(failed_contracts)])
+	details.append(["NOW FLYING", "%s (%s)" % [replacement.ship_name, replacement.model.display_name]])
+	_popup.show_event("SHIP DESTROYED",
+			"Your ship was destroyed. Your escape pod was picked up and taken to %s." % place, details)
+
+	_pod_in_progress = false
+	_saves.autosave_enabled = _autosave_before_pod
+	if _autosave_before_pod:
+		_saves.save_game()
+
+
+## Where the escape pod goes: the last place the player landed, or the fallback.
+func _respawn_location_id() -> StringName:
+	if _last_landed != &"" and (_content.location(_last_landed) != null or _last_landed == _fallback_id()):
+		return _last_landed
+	return _fallback_id()
+
+
+func _fallback_id() -> StringName:
+	return fallback_respawn.id if fallback_respawn != null else &""
 
 
 ## The location the player is docked at, or null in open space.
@@ -323,7 +460,10 @@ func _on_map_destination_selected(target_id: StringName) -> void:
 ## the screen flashes and the new system is loaded behind the flash. If a rule
 ## stops it, the navicomputer says why. Returns the check.
 func try_jump() -> JumpCheck:
-	if _ship.warping:
+	if _ship.warping or _pod_in_progress:
+		return JumpCheck.new()
+	if sandbox_mode:
+		_hud.show_navigation_message("Jumping is disabled in the sandbox.")
 		return JumpCheck.new()
 	var destination := _travel.get_destination()
 	var check: JumpCheck
@@ -380,9 +520,11 @@ func _swap_system(scene: PackedScene) -> void:
 	_system.free()
 	_system = scene.instantiate()
 	_system.set_owner_lookup(_territory.owner_name_of)
+	_system.set_owner_id_lookup(_territory.owner_id_of)
 	_system.set_extra_rows_lookup(_extra_target_rows)
 	add_child(_system)
 	move_child(_system, 0)  # keep it drawn behind the ship
+	_combat.set_system(_system)
 	_hud.set_nav_system(_system)
 	if not _system.system_name.is_empty():
 		_hud.set_system_name(_system.system_name)
@@ -402,6 +544,8 @@ func _find_location_target(location_id: StringName) -> Targetable:
 ## Esc opens the pause menu when nothing else has used the key (the trading and
 ## mission screens and the event popup consume it first).
 func _unhandled_input(event: InputEvent) -> void:
+	if _pod_in_progress:
+		return  # the ship is being destroyed: no jumping, maps, or pause menu (and so no saving)
 	if event.is_action_pressed("jump"):
 		try_jump()
 		get_viewport().set_input_as_handled()
@@ -421,7 +565,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## The map opens only when nothing else is on screen that would want the key.
 func _can_open_map() -> bool:
-	if _ship.warping:
+	if _ship.warping or sandbox_mode:  # (the sandbox is not on the galaxy map)
 		return false
 	for screen: CanvasLayer in [_pause, _trading, _missions, _shipyard, _outfitters, _name_prompt, _popup, _map, _factions_screen]:
 		if screen.visible:
@@ -465,10 +609,16 @@ func _pause_status(text: String, is_error: bool) -> void:
 
 
 func _on_pause_save_requested() -> void:
+	if sandbox_mode:
+		_pause.show_status("SAVING IS DISABLED IN THE SANDBOX", true)
+		return
 	_saves.save_game()  # the saved / save_failed signals report the outcome
 
 
 func _on_pause_load_requested() -> void:
+	if sandbox_mode:
+		_pause.show_status("LOADING IS DISABLED IN THE SANDBOX", true)
+		return
 	var result := _saves.load_game()
 	if result["ok"]:
 		_close_pause()
@@ -537,15 +687,28 @@ func _on_trading_requested() -> void:
 ## Runs after the settlement screen has opened: deliveries are made first, so
 ## the mission button reflects the contracts as they now stand.
 func _on_docked(target: Targetable) -> void:
+	var location := target.details as InhabitedData
+	if location != null:
+		_last_landed = location.id
 	_contracts.on_docked(target)
 	_refresh_location_buttons(target)
+
+
+## The id of the last location the player landed at ("" = none yet). Saved with
+## the player; a destroyed player's escape pod takes them back there.
+func get_last_landed() -> StringName:
+	return _last_landed
+
+
+func set_last_landed(location_id: StringName) -> void:
+	_last_landed = location_id
 
 
 func _refresh_location_buttons(target: Targetable) -> void:
 	var location := target.details as InhabitedData
 	_settlement.set_mission_computer_enabled(location != null and _contracts.has_contracts_for(location))
 	_settlement.set_shipyard_enabled(location != null and not _ships.get_ships_for_sale(location).is_empty())
-	_settlement.set_outfitters_enabled(location != null and not location.outfitter_upgrades.is_empty())
+	_settlement.set_outfitters_enabled(location != null and location.has_outfitter())
 
 
 ## The name of the star system a location is in, or "" if it is in none.

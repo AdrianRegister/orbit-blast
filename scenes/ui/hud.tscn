@@ -10,6 +10,17 @@
 [node name="Hud" type="CanvasLayer" unique_id=273135714]
 script = ExtResource("1")
 
+[node name="DamageFlash" type="ColorRect" parent="."]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.9, 0.12, 0.1, 0.35)
+
 [node name="Panel" type="PanelContainer" parent="." unique_id=111193089]
 anchors_preset = -1
 anchor_left = 0.8
@@ -59,6 +70,12 @@ layout_mode = 2
 caption = "SHIELD"
 fill_color = Color(0.3, 0.5, 0.75, 1)
 
+[node name="ArmourBar" parent="Panel/Layout" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+caption = "ARMOUR"
+fill_color = Color(0.85, 0.65, 0.25, 1)
+
 [node name="HullBar" parent="Panel/Layout" unique_id=650162376 instance=ExtResource("3")]
 unique_name_in_owner = true
 layout_mode = 2
@@ -102,6 +119,38 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_alignment = 2
+autowrap_mode = 3
+
+[node name="FireRow" type="HBoxContainer" parent="Panel/Layout"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="Panel/Layout/FireRow"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+text = "FIRE"
+
+[node name="FireValue" type="Label" parent="Panel/Layout/FireRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_alignment = 2
+
+[node name="CooldownBar" type="ProgressBar" parent="Panel/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+show_percentage = false
+
+[node name="CombatMessage" type="Label" parent="Panel/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.3, 0.3, 1)
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Separator3" type="HSeparator" parent="Panel/Layout" unique_id=1336754609]
 layout_mode = 2
@@ -209,6 +258,36 @@ caption = "TYPE"
 unique_name_in_owner = true
 layout_mode = 2
 caption = "DISTANCE"
+
+[node name="RangeRow" parent="Panel/Layout/TargetPanel/TargetInfo" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+caption = "RANGE"
+
+[node name="TargetDefences" type="VBoxContainer" parent="Panel/Layout/TargetPanel/TargetInfo"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TargetShieldBar" parent="Panel/Layout/TargetPanel/TargetInfo/TargetDefences" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+caption = "SHIELD"
+fill_color = Color(0.3, 0.5, 0.75, 1)
+
+[node name="TargetArmourBar" parent="Panel/Layout/TargetPanel/TargetInfo/TargetDefences" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+caption = "ARMOUR"
+fill_color = Color(0.85, 0.65, 0.25, 1)
+
+[node name="TargetHullBar" parent="Panel/Layout/TargetPanel/TargetInfo/TargetDefences" instance=ExtResource("3")]
+unique_name_in_owner = true
+layout_mode = 2
+caption = "HULL"
+fill_color = Color(0.9, 0.16, 0.2, 1)
 
 [node name="Separator" type="HSeparator" parent="Panel/Layout/TargetPanel/TargetInfo" unique_id=1475719035]
 layout_mode = 2
