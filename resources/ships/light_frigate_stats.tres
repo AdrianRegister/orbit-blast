@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
 [ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/light_frigate.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -22,6 +23,7 @@ script = ExtResource("1")
 id = &"light_frigate"
 display_name = "Light Frigate"
 description = "A small independent warship pressed into every kind of work, from escort duty to courier runs."
+ship_class = ExtResource("cls")
 price = 180000
 texture = ExtResource("2")
 display_width = 125

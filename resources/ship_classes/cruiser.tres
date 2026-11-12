@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ShipClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/ship_classes/warship.tres" id="parent"]
+
+[resource]
+script = ExtResource("1")
+id = &"cruiser"
+display_name = "Cruiser"
+description = "A heavy warship that holds the line in a battle group."
+parent = ExtResource("parent")
+tier = 3

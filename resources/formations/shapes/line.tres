@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="FormationShape" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_zone_rule.gd" id="2"]
+
+[sub_resource type="Resource" id="rule_0"]
+script = ExtResource("2")
+zone = 2
+filter = 0
+
+[sub_resource type="Resource" id="rule_1"]
+script = ExtResource("2")
+zone = 6
+filter = 4
+
+[resource]
+script = ExtResource("1")
+id = &"line"
+display_name = "Line"
+description = "Ships abreast, the leader in the middle. Every ship can point its guns at the same side, but the ends are exposed and it turns slowly."
+layout = 1
+spacing = 120.0
+angle_degrees = 90.0
+zone_rules = Array[ExtResource("2")]([SubResource("rule_0"), SubResource("rule_1")])

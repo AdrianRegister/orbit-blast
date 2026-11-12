@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ShipClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"warship"
+display_name = "Warship"
+description = "Any ship built to fight. An abstract class: it has no ships of its own, so rules can say any warship."

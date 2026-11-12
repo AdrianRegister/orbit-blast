@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/ship_classes/interceptor.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -19,6 +20,7 @@ script = ExtResource("1")
 id = &"interceptor"
 display_name = "Interceptor"
 description = "Fast and nimble, with barely enough room for a lunch box. Built to get somewhere first."
+ship_class = ExtResource("cls")
 price = 90000
 texture = ExtResource("2")
 display_width = 50

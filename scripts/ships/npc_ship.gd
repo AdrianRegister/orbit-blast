@@ -22,16 +22,28 @@ extends Node2D
 ##   WARPING     - jumping out: accelerating away until it is gone.
 ##   WANDERING   - drifting between random points around a centre, never docking
 ##                 or leaving (the combat sandbox's target ship).
+##   IN_FORMATION - a member of a Formation, holding station on its slot (see
+##                 Formation). The leader of a formation is not in this state: it
+##                 keeps whatever route state it has, flown at the formation's
+##                 speed and turn limits, and its members follow it.
 ##
 ## Jumping obeys the player's rule: a ship only starts to warp once it is at
 ## least the system's jump radius from the system centre.
 
-enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING, WANDERING }
+enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING, WANDERING, IN_FORMATION }
 
 ## A wandering ship cruises at this fraction of its top speed, and picks its
 ## next point once it is within this distance (pixels) of the current one.
 const WANDER_SPEED_FRACTION := 0.6
 const WANDER_ARRIVE_DISTANCE := 150.0
+## A wandering ship picks its next point ahead of it: within this angle (radians)
+## of its heading and at least this far away, trying this many times.
+const WANDER_CONE := 1.4
+const WANDER_MIN_LEG := 300.0
+const WANDER_ATTEMPTS := 12
+## A ship released from a formation with nowhere to go wanders within this
+## distance of the system centre.
+const WANDER_FALLBACK_RADIUS := 700.0
 
 ## Docking needs the ship slower than this (pixels per second).
 const DOCK_SPEED := 10.0
@@ -68,6 +80,21 @@ var details: NpcShipDetails
 var combat_id: StringName = &""
 var faction_id: StringName = &""
 
+## The formation this ship is a member of (it follows that formation's leader),
+## or null. A leader is not a member of its own formation.
+var formation: Formation
+## The formation this ship leads, or null. A ship can be a member of one
+## formation and lead another (a squadron's leader inside a battle group).
+var led_formation: Formation
+## Limits a formation puts on its LEADER so every member can keep up: the top
+## speed and turn rate it may use. Infinite (no limit) for everyone else.
+var formation_speed_cap: float = INF
+var formation_turn_cap: float = INF
+## Also limits on a leader: the hardest it may accelerate (px/s^2) and start or
+## stop turning (rad/s^2), so members can keep pace (see FormationSteering).
+var formation_thrust_cap: float = INF
+var formation_turn_accel_cap: float = INF
+
 var _config: TrafficConfig
 var _destroyed: bool = false
 var _system_centre: Vector2 = Vector2.ZERO
@@ -80,9 +107,16 @@ var _destinations: Array[InhabitedNode] = []
 var _player: Node2D
 var _visits_left: int = 1
 var _dock_time_left: float = 0.0
+## How fast the ship is turning now (rad/s); only a formation leader's changes
+## gradually (see _turn_toward).
+var _turn_rate: float = 0.0
 var _wander_centre: Vector2 = Vector2.ZERO
 var _wander_radius: float = 0.0
 var _wander_target: Vector2 = Vector2.ZERO
+## A fixed loop of points to fly around instead of picking them at random (see
+## begin_patrol), and which one is next.
+var _patrol: Array[Vector2] = []
+var _patrol_index: int = 0
 
 @onready var _visual: Node2D = $Visual
 @onready var _sprite: Sprite2D = $Visual/Sprite2D
@@ -116,7 +150,7 @@ func configure_jumping(centre: Vector2, jump_radius: float, exit_bearings: Array
 func begin_departure(direction: Vector2) -> void:
 	_exit_direction = direction.normalized()
 	_face(_exit_direction.angle())
-	velocity = _exit_direction * ship_type.stats.max_speed * 0.8
+	velocity = _exit_direction * effective_max_speed() * 0.8
 	_set_state(State.DEPARTING)
 
 
@@ -138,9 +172,169 @@ func begin_wandering(centre: Vector2, radius: float) -> void:
 	state = State.WANDERING
 
 
+## Makes the ship fly around the given points in order, forever (a fixed route, so
+## tests and demos are repeatable). Like wandering, it never docks or leaves.
+## Call before adding it to the tree.
+func begin_patrol(points: Array[Vector2]) -> void:
+	_patrol = points.duplicate()
+	_patrol_index = 0
+	_wander_target = _patrol[0]
+	state = State.WANDERING
+
+
 ## The player's jump rule applied to this ship: far enough from the system centre.
 func can_jump() -> bool:
 	return _jump_radius > 0.0 and global_position.distance_to(_system_centre) >= _jump_radius
+
+
+# ------------------------------------------------------------- formations
+
+## Becomes a member of `new_formation`: from now on the ship holds station on its
+## slot instead of flying a route. Call before adding the ship to the tree (the
+## formation's own setup comes after, once its ships exist).
+func join_formation(new_formation: Formation) -> void:
+	formation = new_formation
+	state = State.IN_FORMATION
+
+
+## Stops following a formation and carries on alone: a ship with places to go
+## picks a destination; one with none leaves the system if it can, and otherwise
+## wanders around the centre.
+func leave_formation() -> void:
+	formation = null
+	if not _targetable.is_enabled() and state != State.WARPING:
+		_targetable.set_enabled(true)
+	if not _destinations.is_empty():
+		destination = _pick_destination(destination)
+		_set_state(State.TRAVELLING)
+	elif not _exit_bearings.is_empty():
+		_exit_direction = _pick_exit()
+		_set_state(State.DEPARTING)
+	else:
+		begin_wandering(_system_centre, WANDER_FALLBACK_RADIUS)
+		_set_state(State.WANDERING)
+
+
+## Takes over `other`'s journey: its destination, visits, exit and wandering
+## plan, and its state (a ship that was docked carries on to the same place and
+## docks again). Used when a formation's leader is lost and a member takes the
+## lead.
+func take_over_route_from(other: NpcShip) -> void:
+	destination = other.destination
+	_visits_left = other._visits_left
+	_dock_time_left = other._dock_time_left
+	_exit_direction = other._exit_direction
+	_exit_bearings = other._exit_bearings
+	_destinations = other._destinations
+	_wander_centre = other._wander_centre
+	_wander_radius = other._wander_radius
+	_wander_target = other._wander_target
+	_patrol = other._patrol
+	_patrol_index = other._patrol_index
+	formation = null
+	if other.state == State.DOCKED:
+		_visits_left += 1  # it docks (and is counted) again when it gets there
+		_set_state(State.TRAVELLING)
+	else:
+		_set_state(other.state)
+
+
+## The top speed this ship may use now: its own, or the formation's cruise speed
+## when it leads one.
+func effective_max_speed() -> float:
+	return minf(ship_type.stats.max_speed, formation_speed_cap)
+
+
+## The turn rate this ship may use now (the formation's limit when it leads one).
+func effective_turn_rate() -> float:
+	return minf(ship_type.stats.turn_rate, formation_turn_cap)
+
+
+## The thrust this ship may use now (the formation's limit when it leads one).
+func effective_thrust() -> float:
+	return minf(ship_type.stats.thrust, formation_thrust_cap)
+
+
+## Removes every limit a formation put on this ship as its leader.
+func clear_formation_limits() -> void:
+	formation_speed_cap = INF
+	formation_turn_cap = INF
+	formation_thrust_cap = INF
+	formation_turn_accel_cap = INF
+
+
+## Radius of the area that is hit by shots: how much room the ship takes.
+func get_hit_radius() -> float:
+	return ship_type.stats.get_hit_radius()
+
+
+func get_combatant() -> Combatant:
+	return _combatant
+
+
+## Turns the ship to face `angle` at once (radians, 0 = facing right).
+func set_heading(angle: float) -> void:
+	_face(angle)
+
+
+## Rewrites the status line the HUD shows (after the state's own text changed,
+## for example a formation got a new shape).
+func refresh_status() -> void:
+	if details != null:
+		_set_state(state)
+
+
+## Holds station on this ship's slot in its formation: matches the leader's
+## velocity plus a correction toward the slot, flown with the ship's own physics
+## (turn, then thrust along the heading, at most its top speed). When it has
+## nothing to correct it turns to face where the leader faces. While the leader
+## jumps in or out, nothing can fly at warp speeds, so the ship is simply locked
+## to its slot.
+func _follow(delta: float) -> void:
+	if formation == null or not is_instance_valid(formation):
+		leave_formation()
+		return
+	if not formation.has_valid_lead():
+		return  # the leader is gone this frame: the formation decides what happens (promote, or jump out with it)
+	var lead := formation.lead
+	var slot_position := formation.get_slot_world_position(self)
+	if formation.is_slaved():
+		global_position = slot_position
+		velocity = lead.velocity
+		_face(lead.get_heading())
+		if lead.state == State.WARPING and _targetable.is_enabled():
+			_targetable.set_enabled(false)
+		return
+
+	var stats: ShipStats = ship_type.stats
+	var tuning := formation.tuning
+	var error: Vector2 = slot_position - global_position
+	var catching_up: bool = error.length() > formation.catch_up_distance
+	var desired := FormationSteering.follow_velocity(error, formation.get_slot_velocity(self), stats.max_speed, catching_up, tuning)
+	desired = (desired + formation.get_avoidance(self)).limit_length(stats.max_speed)
+	var correction: Vector2 = desired - velocity
+	if correction.length() <= tuning.trim_range:
+		# A small correction: station-keeping thrusters cancel it in any direction (a
+		# ship cannot brake with forward-only engines without turning round), and
+		# the nose stays with the leader.
+		velocity += FormationSteering.trim_delta(correction, tuning.trim_thrust_fraction * stats.thrust, delta)
+		_turn_toward(formation.get_frame_heading(), delta)
+	else:
+		# A big one: main engines. Turn toward it, thrust once facing it.
+		_turn_toward(correction.angle(), delta)
+		if absf(angle_difference(get_heading(), correction.angle())) < THRUST_ANGLE:
+			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
+	velocity = velocity.limit_length(stats.max_speed)
+	global_position += velocity * delta
+
+
+## Steering away from other ships and planets, for a ship that leads a formation
+## (its members already get this in _follow). Zero for everyone else, so ordinary
+## traffic flies exactly as before.
+func _avoidance() -> Vector2:
+	if led_formation == null:
+		return Vector2.ZERO
+	return led_formation.get_avoidance(self)
 
 
 func _ready() -> void:
@@ -158,8 +352,8 @@ func _ready() -> void:
 	_combatant.setup(ship_type.stats, ShipSpecs.compute(ship_type.stats), ship_type.stats.default_loadout,
 			null, get_heading, func() -> Vector2: return velocity)
 	_combatant.destroyed.connect(_on_destroyed)
-	if state == State.WANDERING:
-		_set_state(State.WANDERING)
+	if state == State.WANDERING or state == State.IN_FORMATION:
+		_set_state(state)
 	elif state != State.DEPARTING and state != State.ARRIVING:
 		_set_state(State.TRAVELLING)
 	_face(velocity.angle() if velocity.length() > 1.0 else _direction_to_destination().angle())
@@ -193,6 +387,8 @@ func _physics_process(delta: float) -> void:
 			_warp(delta)
 		State.WANDERING:
 			_wander(delta)
+		State.IN_FORMATION:
+			_follow(delta)
 
 
 ## The heading the ship is currently facing, in radians (0 = facing right).
@@ -207,18 +403,19 @@ func get_heading() -> float:
 ## leave time for that turn.
 func _fly(delta: float) -> void:
 	var stats: ShipStats = ship_type.stats
+	var top_speed: float = effective_max_speed()
 	var to_destination: Vector2 = destination.global_position - global_position
 	var distance: float = to_destination.length()
 	var dock_range: float = destination.get_dock_range()
 	var speed: float = velocity.length()
 
-	var turn_time: float = PI / stats.turn_rate
+	var turn_time: float = PI / effective_turn_rate()
 	var room: float = maxf(distance - dock_range * STOP_FRACTION - speed * turn_time, 0.0)
-	var desired_speed: float = minf(stats.max_speed, sqrt(2.0 * stats.thrust * BRAKE_FACTOR * room))
-	if desired_speed < stats.max_speed and state == State.TRAVELLING:
+	var desired_speed: float = minf(top_speed, sqrt(2.0 * effective_thrust() * BRAKE_FACTOR * room))
+	if desired_speed < top_speed and state == State.TRAVELLING:
 		_set_state(State.APPROACHING)
 
-	var error: Vector2 = to_destination.normalized() * desired_speed - velocity
+	var error: Vector2 = to_destination.normalized() * desired_speed + _avoidance() - velocity
 	var needs_thrust: bool = error.length() > STEER_DEADZONE
 	if needs_thrust:
 		_turn_toward(error.angle(), delta)
@@ -228,8 +425,8 @@ func _fly(delta: float) -> void:
 		_turn_toward(to_destination.angle(), delta)
 
 	if needs_thrust and absf(angle_difference(get_heading(), error.angle())) < THRUST_ANGLE:
-		velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
-	velocity = velocity.limit_length(stats.max_speed)
+		velocity += Vector2.from_angle(get_heading()) * effective_thrust() * delta
+	velocity = velocity.limit_length(top_speed)
 	global_position += velocity * delta
 
 	if distance <= dock_range and velocity.length() < DOCK_SPEED:
@@ -263,10 +460,11 @@ func _finish_visit() -> void:
 ## its first destination as normal.
 func _arrive(delta: float) -> void:
 	var heading := Vector2.from_angle(get_heading())
-	var speed := maxf(velocity.length() - ARRIVAL_DECELERATION * delta, ship_type.stats.max_speed)
+	var top_speed := effective_max_speed()
+	var speed := maxf(velocity.length() - ARRIVAL_DECELERATION * delta, top_speed)
 	velocity = heading * speed
 	global_position += velocity * delta
-	if speed <= ship_type.stats.max_speed:
+	if speed <= top_speed:
 		if destination == null:
 			# Nowhere to land here: carry on across the system and leave.
 			_exit_direction = _pick_exit()
@@ -279,12 +477,13 @@ func _arrive(delta: float) -> void:
 ## the centre (the same rule as the player) it warps away.
 func _depart(delta: float) -> void:
 	var stats: ShipStats = ship_type.stats
-	var error: Vector2 = _exit_direction * stats.max_speed - velocity
+	var top_speed := effective_max_speed()
+	var error: Vector2 = _exit_direction * top_speed + _avoidance() - velocity
 	if error.length() > STEER_DEADZONE:
 		_turn_toward(error.angle(), delta)
 		if absf(angle_difference(get_heading(), error.angle())) < THRUST_ANGLE:
-			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
-	velocity = velocity.limit_length(stats.max_speed)
+			velocity += Vector2.from_angle(get_heading()) * effective_thrust() * delta
+	velocity = velocity.limit_length(top_speed)
 	global_position += velocity * delta
 	if can_jump():
 		_begin_warp()
@@ -294,22 +493,58 @@ func _depart(delta: float) -> void:
 ## other ship) and picks a new one on arrival.
 func _wander(delta: float) -> void:
 	var stats: ShipStats = ship_type.stats
+	var top_speed := effective_max_speed()
 	var to_target := _wander_target - global_position
-	if to_target.length() < WANDER_ARRIVE_DISTANCE:
+	# A formation's leader starts its next leg early enough to round the corner.
+	var arrive := WANDER_ARRIVE_DISTANCE
+	if led_formation != null:
+		arrive = maxf(arrive, velocity.length() / maxf(effective_turn_rate(), 0.1))
+	if to_target.length() < arrive:
 		_wander_target = _pick_wander_point()
 		to_target = _wander_target - global_position
-	var error: Vector2 = to_target.normalized() * stats.max_speed * WANDER_SPEED_FRACTION - velocity
+	if led_formation != null:
+		_cruise_toward(to_target, top_speed * WANDER_SPEED_FRACTION, delta)
+		return
+	var error: Vector2 = to_target.normalized() * top_speed * WANDER_SPEED_FRACTION + _avoidance() - velocity
 	if error.length() > STEER_DEADZONE:
 		_turn_toward(error.angle(), delta)
 		if absf(angle_difference(get_heading(), error.angle())) < THRUST_ANGLE:
-			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
-	velocity = velocity.limit_length(stats.max_speed)
+			velocity += Vector2.from_angle(get_heading()) * effective_thrust() * delta
+	velocity = velocity.limit_length(top_speed)
 	global_position += velocity * delta
 
 
-## A random point in the wander circle.
+## Steady flight toward a point, for a formation's leader: the nose turns toward
+## the point and the ship holds `speed` (thrusting sideways to bend its course
+## while the speed limit trims the rest), so it rounds corners smoothly instead
+## of braking and turning back on itself, which a formation behind it could not
+## follow.
+func _cruise_toward(to_target: Vector2, speed: float, delta: float) -> void:
+	var aim: Vector2 = to_target.normalized() * speed + _avoidance()
+	_turn_toward(aim.angle(), delta)
+	# Always thrusting along the heading: below `speed` it speeds the ship up, and at
+	# `speed` the limit below trims the length, so the thrust only bends the course.
+	velocity += Vector2.from_angle(get_heading()) * effective_thrust() * delta
+	velocity = velocity.limit_length(speed)
+	global_position += velocity * delta
+
+
+## A random point in the wander circle, preferring one the ship can head for
+## without turning round: ahead of it (within WANDER_CONE) and not too close, so
+## it makes smooth legs instead of U-turns (a formation behind it cannot follow
+## a ship that reverses on the spot).
 func _pick_wander_point() -> Vector2:
-	return _wander_centre + Vector2.from_angle(randf() * TAU) * _wander_radius * sqrt(randf())
+	if not _patrol.is_empty():
+		_patrol_index = (_patrol_index + 1) % _patrol.size()
+		return _patrol[_patrol_index]
+	var heading := get_heading() if is_node_ready() else 0.0
+	var candidate := _wander_centre
+	for attempt in WANDER_ATTEMPTS:
+		candidate = _wander_centre + Vector2.from_angle(randf() * TAU) * _wander_radius * sqrt(randf())
+		var leg := candidate - global_position
+		if leg.length() >= WANDER_MIN_LEG and absf(angle_difference(heading, leg.angle())) <= WANDER_CONE:
+			return candidate
+	return candidate
 
 
 func _begin_warp() -> void:
@@ -370,12 +605,27 @@ func _set_state(new_state: State) -> void:
 			details.status = "Jumping out"
 		State.WANDERING:
 			details.status = "Drifting around the system"
+		State.IN_FORMATION:
+			var shape_name := formation.shape.display_name if formation != null and formation.shape != null else ""
+			details.status = "In formation (%s)" % shape_name if not shape_name.is_empty() else "In formation"
 	state_changed.emit(state)
 
 
+## Turns toward `target_angle` at up to the effective turn rate. A formation's
+## leader also has a limit on how fast its turn rate may change (formation_turn_accel_cap),
+## and slows its turn in time to stop on the target without overshooting, so the
+## formation's slots swing smoothly. Anyone else turns at the full rate at once.
 func _turn_toward(target_angle: float, delta: float) -> void:
-	var step: float = ship_type.stats.turn_rate * delta
-	_visual.rotation += clampf(angle_difference(_visual.rotation, target_angle), -step, step)
+	var max_rate := effective_turn_rate()
+	var difference := angle_difference(_visual.rotation, target_angle)
+	var wanted := clampf(difference / delta, -max_rate, max_rate)
+	if formation_turn_accel_cap != INF:
+		var stopping_rate := sqrt(2.0 * formation_turn_accel_cap * absf(difference))
+		wanted = clampf(wanted, -stopping_rate, stopping_rate)
+		_turn_rate = move_toward(_turn_rate, wanted, formation_turn_accel_cap * delta)
+	else:
+		_turn_rate = wanted
+	_visual.rotation += _turn_rate * delta
 
 
 func _face(angle: float) -> void:

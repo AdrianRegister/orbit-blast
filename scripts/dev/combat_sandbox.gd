@@ -38,9 +38,26 @@ const TARGET_RESPAWN_DELAY := 3.0
 
 const TARGET_ID_PREFIX := "sandbox_target_"
 
+## Formations the dev panel can spawn in one go: a name, the ship models, the
+## shape to start with and the kind of group. Add a line to add a preset.
+const GROUP_PRESETS := [
+	{"name": "Squadron: heavy fighter + 3 fighters", "kind": Formation.Kind.SQUADRON, "shape": &"wedge",
+			"ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter", &"federation_fighter"]},
+	{"name": "Battle group: cruiser, 2 frigates, 3 fighters", "kind": Formation.Kind.BATTLE_GROUP, "shape": &"screen",
+			"ships": [&"federation_cruiser", &"federation_frigate", &"federation_frigate", &"federation_fighter", &"federation_fighter", &"federation_fighter"]},
+	{"name": "Convoy: 2 freighters, 3 interceptors, light frigate", "kind": Formation.Kind.CONVOY, "shape": &"convoy",
+			"ships": [&"bulk_freighter", &"freighter", &"interceptor", &"interceptor", &"interceptor", &"light_frigate"]},
+]
+## How far ahead of the player a formation appears, and how far its leader
+## drifts from the system centre.
+const FORMATION_SPAWN_DISTANCE := 900.0
+const FORMATION_WANDER_RADIUS := 700.0
+
 var _main: Main
 var _system: StarSystem
 var _targets_spawned: int = 0
+var _registry: ContentRegistry
+var _panel: SandboxPanel
 
 
 ## A ready-to-add game in sandbox mode. The caller adds it to the scene tree.
@@ -89,7 +106,59 @@ func _start() -> void:
 	_main = get_parent() as Main
 	_system = _main.get_system()
 	(_main.get_node("Combat") as CombatManager).ship_destroyed.connect(_on_ship_destroyed)
+	_registry = ContentRegistry.new()
+	_panel = SandboxPanel.new()
+	_main.add_child(_panel)
+	_panel.setup(self, _registry)
 	spawn_target()
+
+
+## Whether the player is flying (not docked): the panel only shows then.
+func is_flying() -> bool:
+	return (_main.get_node("GameState") as GameStateManager).state == GameStateManager.State.FLYING
+
+
+# ------------------------------------------------------------- formations
+
+## Spawns a formation of the named ship models ahead of the player, in `shape`. Its
+## leader drifts around the centre of the system.
+func spawn_formation(shape: FormationShape, ship_ids: Array, kind: Formation.Kind) -> Formation:
+	var types: Array[ShipType] = []
+	for id in ship_ids:
+		var type := ShipType.new()
+		type.stats = _registry.ship_stats(id)
+		types.append(type)
+	var player := _main.get_player_ship()
+	var at := player.global_position + Vector2.from_angle(player.rotation) * FORMATION_SPAWN_DISTANCE
+	return FleetSpawner.spawn_formation(_system, player, TRAFFIC_CONFIG, kind, shape, types, at,
+			player.rotation, &"", FORMATION_WANDER_RADIUS)
+
+
+## The formation of the ship the player has targeted (as a member or leader).
+func get_selected_formation() -> Formation:
+	var target := (_main.get_node("Targeting") as TargetingManager).current_target
+	var ship: NpcShip = target.get_parent() as NpcShip if target != null else null
+	if ship == null:
+		return null
+	var found: Formation = ship.formation if ship.formation != null else ship.led_formation
+	return found if found != null and is_instance_valid(found) else null
+
+
+## Destroys a ship with one overwhelming hit (null does nothing).
+func kill_ship(ship: NpcShip) -> void:
+	if ship == null or not is_instance_valid(ship):
+		return
+	var hit := Hit.new()
+	hit.damage = 1000000.0
+	ship.get_combatant().take_hit(hit)
+
+
+## Removes every formation and its ships.
+func clear_formations() -> void:
+	for formation in _system.get_formations_root().get_children():
+		for ship in (formation as Formation).get_ships():
+			ship.queue_free()
+		formation.queue_free()
 
 
 ## Puts a new target ship in the system (the old one, if still alive, stays).

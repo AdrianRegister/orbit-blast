@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ShipClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/ship_classes/warship.tres" id="parent"]
+
+[resource]
+script = ExtResource("1")
+id = &"capital_ship"
+display_name = "Capital Ship"
+description = "The largest warship: a fleet's flagship and its heaviest guns."
+parent = ExtResource("parent")
+tier = 4
+capital = true

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ShipClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"shuttle"
+display_name = "Shuttle"
+description = "A small, cheap transport for short hops and a few passengers."

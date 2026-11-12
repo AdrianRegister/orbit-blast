@@ -42,6 +42,7 @@ var _extra_rows_lookup: Callable
 @onready var _objects: Node2D = $Objects
 @onready var _ships: Node2D = $Ships
 @onready var _projectiles: Node2D = $Projectiles
+@onready var _formations: Node = $Formations
 @onready var _traffic: TrafficManager = $Traffic
 
 
@@ -106,6 +107,13 @@ func get_inhabited_nodes() -> Array[InhabitedNode]:
 ## Parent node of every NPC ship in this system.
 func get_ships_root() -> Node2D:
 	return _ships
+
+
+## Parent node of every Formation (squadrons, battle groups, convoys) in this
+## system. Kept apart from the Ships node, whose children are all treated as ships.
+## Freed with the system, so nothing is left behind by a jump.
+func get_formations_root() -> Node:
+	return _formations
 
 
 ## Parent node of every shot and combat effect in this system. Freed with the

@@ -14,6 +14,8 @@ const LOCATION_DIR := "res://resources/locations/"
 const SHIP_STATS_DIR := "res://resources/ships/"
 const UPGRADE_DIR := "res://resources/upgrades/"
 const WEAPON_DIR := "res://resources/weapons/"
+const SHIP_CLASS_DIR := "res://resources/ship_classes/"
+const FORMATION_SHAPE_DIR := "res://resources/formations/shapes/"
 const SYSTEM_CLASS_DIR := "res://resources/system_classes/"
 const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 
@@ -26,6 +28,8 @@ var _locations: Dictionary = {}  # StringName -> InhabitedData
 var _ship_stats: Dictionary = {}  # StringName -> ShipStats
 var _upgrades: Dictionary = {}  # StringName -> UpgradeDefinition
 var _weapons: Dictionary = {}  # StringName -> WeaponDefinition
+var _ship_classes: Dictionary = {}  # StringName -> ShipClass
+var _formation_shapes: Dictionary = {}  # StringName -> FormationShape
 var _system_classes: Dictionary = {}  # StringName -> SystemClass
 var _galaxy: Galaxy
 
@@ -38,6 +42,8 @@ func _init(galaxy: Galaxy = null) -> void:
 	_index(SHIP_STATS_DIR, _ship_stats, "ship", "id")
 	_index(UPGRADE_DIR, _upgrades, "upgrade", "id")
 	_index(WEAPON_DIR, _weapons, "weapon", "id")
+	_index(SHIP_CLASS_DIR, _ship_classes, "ship class", "id")
+	_index(FORMATION_SHAPE_DIR, _formation_shapes, "formation shape", "id")
 	_index(SYSTEM_CLASS_DIR, _system_classes, "system class", "id")
 	_galaxy = galaxy if galaxy != null else load(GALAXY_PATH) as Galaxy
 	if _galaxy == null:
@@ -98,6 +104,33 @@ func upgrade(id: StringName) -> UpgradeDefinition:
 
 func weapon(id: StringName) -> WeaponDefinition:
 	return _weapons.get(id)
+
+
+func ship_class(id: StringName) -> ShipClass:
+	return _ship_classes.get(id)
+
+
+## Every ship class, smallest tier first (ties by id).
+func ship_classes() -> Array[ShipClass]:
+	var result: Array[ShipClass] = []
+	result.assign(_ship_classes.values())
+	result.sort_custom(func(a: ShipClass, b: ShipClass) -> bool:
+		if a.tier != b.tier:
+			return a.tier < b.tier
+		return str(a.id) < str(b.id))
+	return result
+
+
+func formation_shape(id: StringName) -> FormationShape:
+	return _formation_shapes.get(id)
+
+
+## Every formation shape, sorted by id.
+func formation_shapes() -> Array[FormationShape]:
+	var result: Array[FormationShape] = []
+	result.assign(_formation_shapes.values())
+	result.sort_custom(func(a: FormationShape, b: FormationShape) -> bool: return str(a.id) < str(b.id))
+	return result
 
 
 ## Every ship model, cheapest first (ties by id).

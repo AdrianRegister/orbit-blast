@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="FormationTuning" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spacing_gap_factor = 1.3
+station_tolerance_factor = 0.25
+station_tolerance_min = 20.0
+slot_gain = 1.2
+trim_thrust_fraction = 0.5
+trim_range = 260.0
+travel_heading_speed = 20.0
+travel_heading_blend = 40.0
+speed_margin = 0.9
+turn_safety = 0.8
+turn_accel_fraction = 0.4
+thrust_margin = 0.8
+min_turn_cap = 0.2
+catch_up_factor = 3.0
+lost_distance = 2500.0
+lost_time = 20.0
+disabled_hull_fraction = 0.25
+separation_margin = 0.6
+separation_strength = 0.8
+obstacle_margin = 80.0
+obstacle_strength = 0.8

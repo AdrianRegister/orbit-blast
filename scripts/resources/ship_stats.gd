@@ -13,6 +13,10 @@ extends Resource
 ## Model name shown in shipyards and the HUD, e.g. "Shuttle".
 @export var display_name: String = ""
 @export_multiline var description: String = ""
+## What kind of ship this is (fighter, frigate, freighter, ...), a ShipClass
+## resource from resources/ship_classes/. Formations and fleets are built from
+## classes, so every model must name one.
+@export var ship_class: ShipClass
 ## The faction this ship belongs to. A ship with a faction can only be bought at
 ## a shipyard of a location owned by that faction. Null = any shipyard.
 @export var faction: Faction
@@ -97,6 +101,8 @@ func validate() -> Array[String]:
 		problems.append("id is empty")
 	if display_name.is_empty():
 		problems.append("display_name is empty")
+	if ship_class == null:
+		problems.append("ship_class is not set")
 	if texture == null:
 		problems.append("texture is not set")
 	if price < 0:

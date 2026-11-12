@@ -30,6 +30,8 @@ size_scale = 0.8
 
 [node name="Projectiles" type="Node2D" parent="."]
 
+[node name="Formations" type="Node" parent="."]
+
 [node name="Traffic" type="Node" parent="."]
 script = ExtResource("3")
 config = ExtResource("4")

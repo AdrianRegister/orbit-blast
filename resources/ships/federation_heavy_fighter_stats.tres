@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
 [ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/heavy_fighter.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -26,6 +27,7 @@ script = ExtResource("1")
 id = &"federation_heavy_fighter"
 display_name = "Federation Heavy Fighter"
 description = "A fighter with the armour and punch to hold a line. Slower to turn than its lighter cousin, but much harder to kill."
+ship_class = ExtResource("cls")
 faction = ExtResource("faction_1")
 price = 280000
 texture = ExtResource("2")

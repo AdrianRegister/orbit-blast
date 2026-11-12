@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="FormationShape" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_zone_rule.gd" id="2"]
+
+[sub_resource type="Resource" id="rule_0"]
+script = ExtResource("2")
+zone = 3
+filter = 2
+
+[sub_resource type="Resource" id="rule_1"]
+script = ExtResource("2")
+zone = 1
+filter = 0
+
+[sub_resource type="Resource" id="rule_2"]
+script = ExtResource("2")
+zone = 4
+filter = 0
+
+[sub_resource type="Resource" id="rule_3"]
+script = ExtResource("2")
+zone = 2
+filter = 4
+
+[resource]
+script = ExtResource("1")
+id = &"convoy"
+display_name = "Convoy Circle"
+description = "Freighters in the middle, ringed by escorts, the heaviest escorts at the front. Protects cargo ships at the cost of speed."
+layout = 4
+spacing = 130.0
+core_radius_factor = 1.2
+escort_radius_factor = 2.4
+zone_rules = Array[ExtResource("2")]([SubResource("rule_0"), SubResource("rule_1"), SubResource("rule_2"), SubResource("rule_3")])

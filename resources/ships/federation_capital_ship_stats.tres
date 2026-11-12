@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/heavy_blaster.tres" id="w_heavy_blaster"]
 [ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/capital_ship.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -55,6 +56,7 @@ script = ExtResource("1")
 id = &"federation_capital_ship"
 display_name = "Federation Capital Ship"
 description = "The largest ship in Federation service. Where it goes, the fleet follows."
+ship_class = ExtResource("cls")
 faction = ExtResource("faction_1")
 price = 3000000
 texture = ExtResource("2")

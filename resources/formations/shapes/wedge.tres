@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="FormationShape" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_zone_rule.gd" id="2"]
+
+[sub_resource type="Resource" id="rule_0"]
+script = ExtResource("2")
+zone = 2
+filter = 0
+
+[sub_resource type="Resource" id="rule_1"]
+script = ExtResource("2")
+zone = 4
+filter = 4
+
+[resource]
+script = ExtResource("1")
+id = &"wedge"
+display_name = "Wedge"
+description = "A concentrated V with the most powerful ship at the tip of the spear. Hard-hitting ahead, but the tip is exposed and the formation turns slowly."
+layout = 0
+spacing = 110.0
+angle_degrees = 40.0
+zone_rules = Array[ExtResource("2")]([SubResource("rule_0"), SubResource("rule_1")])

@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/ships/freighter.png" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+[ext_resource type="Resource" path="res://resources/ship_classes/freighter.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -15,6 +16,7 @@ script = ExtResource("1")
 id = &"freighter"
 display_name = "Freighter"
 description = "A medium hauler with a large hold. Not built for speed."
+ship_class = ExtResource("cls")
 price = 250000
 texture = ExtResource("2")
 display_width = 175

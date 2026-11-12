@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/ship_classes/shuttle.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -15,6 +16,7 @@ script = ExtResource("1")
 id = &"shuttle"
 display_name = "Shuttle"
 description = "A compact, forgiving transport. Cheap to run, easy to maintain, and everybody has flown one."
+ship_class = ExtResource("cls")
 price = 20000
 texture = ExtResource("2")
 display_width = 75

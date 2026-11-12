@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
 [ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/frigate.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -30,6 +31,7 @@ script = ExtResource("1")
 id = &"federation_frigate"
 display_name = "Federation Frigate"
 description = "The backbone of the Federation fleet: a well-armoured escort with respectable agility and firepower."
+ship_class = ExtResource("cls")
 faction = ExtResource("faction_1")
 price = 350000
 texture = ExtResource("2")

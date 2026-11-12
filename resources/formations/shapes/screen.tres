@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="FormationShape" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_zone_rule.gd" id="2"]
+
+[sub_resource type="Resource" id="rule_0"]
+script = ExtResource("2")
+zone = 5
+filter = 1
+
+[sub_resource type="Resource" id="rule_1"]
+script = ExtResource("2")
+zone = 3
+filter = 0
+
+[resource]
+script = ExtResource("1")
+id = &"screen"
+display_name = "Defensive Screen"
+description = "Light ships spread in a picket line ahead of the larger vessels, to meet threats before they reach the ships behind."
+layout = 3
+spacing = 110.0
+screen_depth_factor = 3.0
+zone_rules = Array[ExtResource("2")]([SubResource("rule_0"), SubResource("rule_1")])

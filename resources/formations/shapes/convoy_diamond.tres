@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="FormationShape" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_zone_rule.gd" id="2"]
+
+[sub_resource type="Resource" id="rule_0"]
+script = ExtResource("2")
+zone = 3
+filter = 2
+
+[sub_resource type="Resource" id="rule_1"]
+script = ExtResource("2")
+zone = 1
+filter = 0
+
+[sub_resource type="Resource" id="rule_2"]
+script = ExtResource("2")
+zone = 4
+filter = 0
+
+[sub_resource type="Resource" id="rule_3"]
+script = ExtResource("2")
+zone = 2
+filter = 4
+
+[resource]
+script = ExtResource("1")
+id = &"convoy_diamond"
+display_name = "Convoy Diamond"
+description = "A diamond with the lead freighter in the middle: freighters fill the sheltered core, escorts take the tip, flanks and rear."
+layout = 2
+spacing = 130.0
+lead_at_core = true
+zone_rules = Array[ExtResource("2")]([SubResource("rule_0"), SubResource("rule_1"), SubResource("rule_2"), SubResource("rule_3")])

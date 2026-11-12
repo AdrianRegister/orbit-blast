@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/heavy_blaster.tres" id="w_heavy_blaster"]
 [ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/cruiser.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
@@ -32,6 +33,7 @@ script = ExtResource("1")
 id = &"federation_cruiser"
 display_name = "Federation Cruiser"
 description = "A heavy warship that keeps order on the Federation trade lanes. Designed to punch large holes into enemy battle lines."
+ship_class = ExtResource("cls")
 faction = ExtResource("faction_1")
 price = 900000
 texture = ExtResource("2")
