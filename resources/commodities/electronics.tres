@@ -8,3 +8,4 @@ id = &"electronics"
 display_name = "Electronics"
 description = "Consumer and industrial electronic components."
 base_price = 220
+civilian_demand = 8.0

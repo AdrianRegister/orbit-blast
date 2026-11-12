@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="EconomyProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/economy_profile.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/economy_profile_good.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/commodities/rare_isotopes.tres" id="c_rare_isotopes"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/industrial_chemicals.tres" id="c_industrial_chemicals"]
+
+[sub_resource type="Resource" id="good_0"]
+script = ExtResource("2")
+commodity = ExtResource("c_ore")
+production = 200.0
+
+[sub_resource type="Resource" id="good_1"]
+script = ExtResource("2")
+commodity = ExtResource("c_rare_isotopes")
+production = 20.0
+
+[sub_resource type="Resource" id="good_2"]
+script = ExtResource("2")
+commodity = ExtResource("c_machinery")
+industrial_demand = 14.0
+
+[sub_resource type="Resource" id="good_3"]
+script = ExtResource("2")
+commodity = ExtResource("c_fuel")
+industrial_demand = 15.0
+
+[sub_resource type="Resource" id="good_4"]
+script = ExtResource("2")
+commodity = ExtResource("c_electronics")
+industrial_demand = 5.0
+
+[sub_resource type="Resource" id="good_5"]
+script = ExtResource("2")
+commodity = ExtResource("c_water")
+industrial_demand = 10.0
+
+[sub_resource type="Resource" id="good_6"]
+script = ExtResource("2")
+commodity = ExtResource("c_industrial_chemicals")
+industrial_demand = 8.0
+
+[resource]
+script = ExtResource("1")
+id = &"mining"
+display_name = "Mining"
+goods = Array[ExtResource("2")]([SubResource("good_0"), SubResource("good_1"), SubResource("good_2"), SubResource("good_3"), SubResource("good_4"), SubResource("good_5"), SubResource("good_6")])
+military_value = 10.0

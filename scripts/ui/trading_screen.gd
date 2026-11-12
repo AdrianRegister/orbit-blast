@@ -8,7 +8,19 @@ extends CanvasLayer
 const NOT_AVAILABLE := "--"
 const ERROR_COLOR := Color(1.0, 0.45, 0.4)
 
-enum Column { COMMODITY, STOCK, BUY, SELL, OWNED }
+enum Column { COMMODITY, STOCK, SUPPLY, BUY, SELL, VS_BASE, OWNED }
+
+## Colour of the supply wording, by Market.Supply. Normal uses the default text colour.
+const SUPPLY_COLORS := {
+	Market.Supply.SCARCE: Color(1.0, 0.45, 0.4),
+	Market.Supply.LOW: Color(1.0, 0.75, 0.35),
+	Market.Supply.PLENTIFUL: Color(0.55, 0.9, 0.55),
+	Market.Supply.GLUT: Color(0.45, 0.85, 1.0),
+}
+const CHEAP_COLOR := Color(0.55, 0.9, 0.55)
+const DEAR_COLOR := Color(1.0, 0.75, 0.35)
+## The price must be at least this far (as a fraction) from the base price to be coloured.
+const PRICE_NOTICE := 0.05
 
 var _economy: EconomyManager
 var _market: Market
@@ -33,7 +45,7 @@ var _items: Dictionary = {}  # StringName -> TreeItem
 
 func _ready() -> void:
 	_table.columns = Column.size()
-	var titles := ["COMMODITY", "IN STOCK", "BUY PRICE", "SELL PRICE", "YOU OWN"]
+	var titles := ["COMMODITY", "IN STOCK", "SUPPLY", "BUY PRICE", "SELL PRICE", "VS BASE PRICE", "YOU OWN"]
 	for column in Column.size():
 		_table.set_column_title(column, titles[column])
 		_table.set_column_expand(column, column == Column.COMMODITY)
@@ -91,7 +103,9 @@ func _build_table() -> void:
 		item.set_text(Column.COMMODITY, commodity.display_name)
 		item.set_tooltip_text(Column.COMMODITY, commodity.description)
 		item.set_metadata(Column.COMMODITY, commodity)
-		for column in [Column.STOCK, Column.BUY, Column.SELL, Column.OWNED]:
+		item.set_tooltip_text(Column.SUPPLY, "How much is in stock compared with what this place normally holds. Scarce goods are dear, plentiful goods cheap.")
+		item.set_tooltip_text(Column.VS_BASE, "How far today's price is from the commodity's base price. Green is cheap to buy here, orange is dear.")
+		for column in [Column.STOCK, Column.SUPPLY, Column.BUY, Column.SELL, Column.VS_BASE, Column.OWNED]:
 			item.set_text_alignment(column, HORIZONTAL_ALIGNMENT_RIGHT)
 		_items[commodity.id] = item
 	var first := root.get_first_child()
@@ -117,11 +131,34 @@ func _refresh() -> void:
 	for commodity in _market.get_commodities():
 		var item: TreeItem = _items[commodity.id]
 		item.set_text(Column.STOCK, NumberFormat.with_commas(_market.get_stock(commodity)))
+		var supply := _market.get_supply_level(commodity)
+		item.set_text(Column.SUPPLY, Market.SUPPLY_NAMES[supply])
+		_set_color(item, Column.SUPPLY, SUPPLY_COLORS.get(supply))
+		var percent := roundi((_market.get_price_factor(commodity) - 1.0) * 100.0)
+		item.set_text(Column.VS_BASE, "%s%d%%" % ["+" if percent > 0 else "", percent])
+		_set_color(item, Column.VS_BASE, _price_color(percent / 100.0))
 		item.set_text(Column.BUY, NumberFormat.with_commas(_market.get_buy_price(commodity)))
 		item.set_text(Column.SELL, NumberFormat.with_commas(_market.get_sell_price(commodity))
 				if _market.accepts(commodity) else NOT_AVAILABLE)
 		item.set_text(Column.OWNED, NumberFormat.with_commas(cargo.get_quantity(commodity.id)))
 	_update_trade_panel()
+
+
+## Sets a cell's text colour, or puts it back to the default when `color` is null.
+func _set_color(item: TreeItem, column: int, color: Variant) -> void:
+	if color == null:
+		item.clear_custom_color(column)
+	else:
+		item.set_custom_color(column, color)
+
+
+## Green for a price well below the base price (good to buy), orange for well above.
+func _price_color(offset: float) -> Variant:
+	if offset <= -PRICE_NOTICE:
+		return CHEAP_COLOR
+	if offset >= PRICE_NOTICE:
+		return DEAR_COLOR
+	return null
 
 
 ## Shows the cost or revenue of the entered quantity, or why it is not allowed.
@@ -131,13 +168,15 @@ func _update_trade_panel() -> void:
 		_set_row(_buy_button, _buy_label, null, "COST")
 		_set_row(_sell_button, _sell_label, null, "REVENUE")
 		return
-	_selected_label.text = _selected.display_name.to_upper()
+	_selected_label.text = "%s     SUPPLY: %s" % [_selected.display_name.to_upper(), Market.SUPPLY_NAMES[_market.get_supply_level(_selected)]]
 	var quantity := _entered_quantity()
-	_set_row(_buy_button, _buy_label, _economy.quote_buy(_market, _selected, quantity), "COST")
-	_set_row(_sell_button, _sell_label, _economy.quote_sell(_market, _selected, quantity), "REVENUE")
+	_set_row(_buy_button, _buy_label, _economy.quote_buy(_market, _selected, quantity), "COST", _market.get_buy_price(_selected))
+	_set_row(_sell_button, _sell_label, _economy.quote_sell(_market, _selected, quantity), "REVENUE", _market.get_sell_price(_selected))
 
 
-func _set_row(button: Button, label: Label, quote: TradeQuote, total_caption: String) -> void:
+## `first_price` is what the next single unit would cost or pay; a larger order
+## is priced unit by unit, so its average differs, and the difference is shown.
+func _set_row(button: Button, label: Label, quote: TradeQuote, total_caption: String, first_price: int = 0) -> void:
 	if quote == null:
 		button.disabled = true
 		label.text = ""
@@ -145,6 +184,11 @@ func _set_row(button: Button, label: Label, quote: TradeQuote, total_caption: St
 	button.disabled = not quote.is_ok()
 	if quote.is_ok():
 		label.text = "TOTAL %s: %s CR" % [total_caption, NumberFormat.with_commas(quote.total)]
+		if quote.quantity > 1 and first_price > 0:
+			var shift := roundi((float(quote.unit_price) / first_price - 1.0) * 100.0)
+			label.text += "     AVERAGE %s CR PER UNIT" % NumberFormat.with_commas(quote.unit_price)
+			if shift != 0:
+				label.text += " (%s%d%% FROM THE FIRST UNIT)" % ["+" if shift > 0 else "", shift]
 		label.remove_theme_color_override("font_color")
 	else:
 		label.text = quote.get_message()
@@ -186,10 +230,8 @@ func _on_max_buy() -> void:
 	if _selected == null:
 		return
 	var cargo := _economy.get_cargo()
-	var price := _market.get_buy_price(_selected)
-	var most: int = mini(_market.get_stock(_selected), cargo.get_free())
-	most = mini(most, floori(float(_economy.get_credits()) / price))
-	_quantity.value = maxi(most, 1)
+	# Each unit costs more than the one before, so ask the market what the credits buy.
+	_quantity.value = maxi(_market.max_buyable(_selected, _economy.get_credits(), cargo.get_free()), 1)
 
 
 func _on_max_sell() -> void:

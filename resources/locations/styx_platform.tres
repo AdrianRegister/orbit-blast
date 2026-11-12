@@ -1,19 +1,16 @@
 [gd_resource type="Resource" script_class="InhabitedData" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
-[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
-[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
-[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+
+[ext_resource type="Resource" path="res://resources/economy/profiles/military.tres" id="profile"]
 
 [resource]
 script = ExtResource("1")
 id = &"styx_platform"
 display_name = "Styx Platform"
 faction = ExtResource("faction_1")
-population = 3000
-exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_machinery")])
-imported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics"), ExtResource("c_fuel")])
+population = 90000
 size = 180.0
+economy_profile = ExtResource("profile")
+military_value_bonus = 20.0

@@ -15,6 +15,7 @@ A faction is one `Faction` resource in `resources/factions/` (`scripts/resources
 | `primary_colour`, `secondary_colour` | Identity colours (the Federation: dark yellow taken from its ship sprites, and white) |
 | `description`, `political_identity`, `background` | Text shown on the Factions screen |
 | `military_strength` | An arbitrary number for now; it will be computed from territory and fleets (see `wars_system.md`) |
+| `capital_system` | The id of the faction's capital system (Federation: `sol`), or empty. Must be an inhabited system whose class can be a centre of power. Zones are measured from it; see [system_classes.md](system_classes.md) |
 | `relations` | `FactionRelation` entries: how this faction regards another (`attitude` -100 to 100, `at_war`) |
 
 To add a faction, add a `.tres` with a new id. `ContentRegistry.factions()` finds it and the Factions screen lists it. **Relations belong to pairs of factions and have nothing to do with the player's reputation**; today there are none (one faction). Like ownership, a runtime layer for relations (changed by wars while playing, and saved) will be added with the wars system; the data shape is here.

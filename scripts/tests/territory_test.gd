@@ -55,6 +55,10 @@ func _check_derivation() -> void:
 	_check(territory.get_control(&"koria").is_controlled_by(_federation), "Koria is Federation territory like the rest")
 	_check(territory.get_control(&"nowhere").status == SystemControl.Status.UNCLAIMED, "an unknown system is simply unclaimed")
 
+	# Sol has a fourth settlement now (Aegis Station). Set it aside, as independent, so the
+	# checks below stay about Earth, Mars and Victory I.
+	territory.transfer_settlement(_registry.location(&"aegis_station"), null)
+
 	# One settlement of another faction: Sol is contested, with no owner.
 	territory.transfer_settlement(mars, _rival)
 	var contested := territory.get_control(&"sol")
@@ -93,6 +97,7 @@ func _check_signals() -> void:
 	var control: Array = []
 	var contested: Array = []
 	var any := [0]
+	territory.transfer_settlement(_registry.location(&"aegis_station"), null)  # set aside: Sol's fourth settlement (see above)
 	territory.settlement_owner_changed.connect(func(id: StringName, old: Faction, new: Faction) -> void: changed.append([id, old, new]))
 	territory.system_control_changed.connect(func(id: StringName) -> void: control.append(id))
 	territory.system_became_contested.connect(func(id: StringName) -> void: contested.append(id))
@@ -109,9 +114,10 @@ func _check_signals() -> void:
 	_check(control == [&"sol", &"sol"] and contested == [&"sol"], "the contest ending is a control change but not a new contest")
 	territory.transfer_settlement(earth, _federation)
 	_check(contested == [&"sol", &"sol"], "a system can become contested again")
-	_check(territory.save_state()["owners"] == {"mars": "faction_2", "victory_i": "faction_2"}, "only settlements that differ from their starting owner are saved")
+	_check(territory.save_state()["owners"] == {"aegis_station": "", "mars": "faction_2", "victory_i": "faction_2"}, "only settlements that differ from their starting owner are saved")
 	territory.transfer_settlement(mars, _federation)
 	territory.transfer_settlement(victory, _federation)
+	territory.transfer_settlement(_registry.location(&"aegis_station"), _federation)
 	_check(territory.save_state()["owners"].is_empty(), "giving a settlement back to its starting owner removes the override")
 
 

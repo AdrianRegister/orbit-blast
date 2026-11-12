@@ -110,7 +110,7 @@ func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 		if context.owner_id_of(place) != faction:
 			continue
 		options.append(place)
-		weights.append(rules.importer_weight if _imports(place, commodity) else 1.0)
+		weights.append(rules.importer_weight if _imports(place, commodity, context) else 1.0)
 	var destination: InhabitedData = _pick_weighted(options, weights)
 	if destination == null:
 		return null
@@ -131,12 +131,12 @@ func _make_cargo(origin: InhabitedData, context: ContractContext) -> Contract:
 
 func _pick_commodity(origin: InhabitedData, context: ContractContext, bulk: bool) -> Commodity:
 	var pool: Array[Commodity] = []
-	for good in origin.exported_goods:
-		if good != null and good.base_price > 0:
+	for good in context.economy.of(origin).exports():
+		if good.base_price > 0 and not good.military:
 			pool.append(good)
 	if pool.is_empty():
 		for good in context.registry.commodities():
-			if good.base_price > 0:
+			if good.base_price > 0 and not good.military:
 				pool.append(good)
 	if bulk:
 		var cheap: Array[Commodity] = []
@@ -149,11 +149,8 @@ func _pick_commodity(origin: InhabitedData, context: ContractContext, bulk: bool
 	return pool[_rng.randi_range(0, pool.size() - 1)]
 
 
-func _imports(place: InhabitedData, commodity: Commodity) -> bool:
-	for good in place.imported_goods:
-		if good != null and good.id == commodity.id:
-			return true
-	return false
+func _imports(place: InhabitedData, commodity: Commodity, context: ContractContext) -> bool:
+	return context.economy.of(place).is_import(commodity)
 
 
 # ------------------------------------------------------------------- ferry

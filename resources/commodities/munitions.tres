@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Commodity" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"munitions"
+display_name = "Munitions"
+description = "Ammunition and ordnance for ships and garrisons."
+base_price = 130
+military = true

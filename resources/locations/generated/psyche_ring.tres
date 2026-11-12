@@ -2,12 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
-[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
-[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
-[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
-[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
-[ext_resource type="Resource" path="res://resources/markets/generated/psyche_ring_market.tres" id="market"]
 
 [resource]
 script = ExtResource("1")
@@ -15,7 +9,4 @@ id = &"psyche_ring"
 display_name = "Psyche Ring"
 faction = ExtResource("faction_1")
 population = 35400
-exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore")])
-imported_goods = Array[ExtResource("cs")]([ExtResource("c_water"), ExtResource("c_fuel"), ExtResource("c_machinery")])
 size = 180.0
-market = ExtResource("market")

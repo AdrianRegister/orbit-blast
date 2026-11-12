@@ -3,12 +3,6 @@
 [ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/planet_types/ocean.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
-[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
-[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
-[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
-[ext_resource type="Resource" path="res://resources/commodities/medical_supplies.tres" id="c_medical_supplies"]
-[ext_resource type="Resource" path="res://resources/markets/generated/thebe_market.tres" id="market"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
@@ -20,8 +14,5 @@ display_name = "Thebe"
 planet_type = ExtResource("2")
 faction = ExtResource("faction_1")
 population = 535600
-exported_goods = Array[ExtResource("cs")]([ExtResource("c_water")])
-imported_goods = Array[ExtResource("cs")]([ExtResource("c_machinery"), ExtResource("c_electronics"), ExtResource("c_medical_supplies")])
 size = 557.0
-market = ExtResource("market")
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1")])

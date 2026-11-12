@@ -33,7 +33,10 @@ Nothing in the save file refers to scenes, nodes or Resources. It holds plain da
 |---|---|---|
 | Credits | `EconomyManager` / `PlayerData` | yes, `economy.credits` |
 | Cargo capacity, ordinary cargo, contract cargo (with notes) | `CargoHold` | yes, `economy.cargo` |
-| Market stock of every visited market, plus room for future market state | `Market` | yes, `economy.markets` |
+| Market stock of every visited market, and the day each was brought up to | `Market` | yes, `economy.markets` |
+| The calendar day | `GameClock` | yes, `clock` (optional; absent in older saves, then day 0) |
+| Damage to planets and stations (only the damaged ones) | `InfrastructureManager` | yes, `infrastructure` (optional) |
+| The day each critical system last changed hands | `ZoneManager` | yes, `zones` (optional) |
 | Available, active, completed and failed contracts; the next contract id | `ContractManager` | yes, `contracts` |
 | Which settlements have changed hands (only those that differ from their starting owner) | `TerritoryManager` | yes, `territory` (optional) |
 | Star system, ship id, position, heading, velocity, flying or docked, and where | `Main` / `PlayerSection` | yes, `player` |
@@ -45,7 +48,7 @@ Nothing in the save file refers to scenes, nodes or Resources. It holds plain da
 
 **NPC ships are regenerated.** They have no persistent state yet (no combat, trading or missions), so saving them would add ids, positions and AI states for nothing. After a load the system gets fresh traffic, as when it is first entered.
 
-**Prices are not stored** because they depend only on static data, the location's goods and the stock. If later features add mutable price state (an event raising food prices, a blockade), `Market.save_state()` already has an `extra` object for it.
+**Prices are not stored** because they depend only on static data, what the settlement makes and uses, and the stock. Markets the player never visited are not stored either: they are recreated from the data, the same every time. If later features add mutable market state (a blockade, damaged infrastructure), it goes in the market's saved data next to the stock. Older saves with whole-number stock, an `extra` object and no `day` still load (see [economy.md](economy.md)).
 
 ---
 
@@ -68,8 +71,9 @@ Nothing in the save file refers to scenes, nodes or Resources. It holds plain da
       "manifest": {"food": 25},
       "lots": {"contract_1": {"commodity": "food", "quantity": 40, "note": "contract, Mars in the Sol system"}}
     },
-    "markets": {"earth": {"stock": {"food": 1200, "electronics": 400}, "extra": {}}}
+    "markets": {"earth": {"stock": {"food": 1200.0, "electronics": 400.5}, "day": 12}}
   },
+  "clock": {"day": 12},
   "contracts": {
     "next_id": 8,
     "generated_locations": ["earth", "mars"],
@@ -139,7 +143,7 @@ Loading is **validate everything, then apply**.
 
 1. **Read:** `savegame.json`; if unusable, `savegame.json.bak`.
 2. **Migrate** old versions to the current one (section 11).
-3. **Validate** every registered section against the data and the registry: shapes and types, ids that resolve, quantities that make sense, and cross-checks (every active delivery contract has its cargo lot of the right size and every lot has an active contract; cargo within capacity; stock only for goods a market trades; unique contract ids below `next_id`; a contract's status matches the list it is in). If anything fails, loading stops here and the running game is unchanged.
+3. **Validate** every registered section against the data and the registry: shapes and types, ids that resolve, quantities that make sense, and cross-checks (every active delivery contract has its cargo lot of the right size and every lot has an active contract; cargo within capacity; stock only for commodities that exist (goods a market does not deal in are ignored); unique contract ids below `next_id`; a contract's status matches the list it is in). If anything fails, loading stops here and the running game is unchanged.
 4. **Apply**, in order: economy (credits, cargo, markets), contracts, then the player (`Main.restore_player`): every screen and popup is closed, the saved star system is loaded if it differs from the current one (from the `Galaxy`), the ship's position, heading and velocity are restored, NPC traffic is cleared and started again, and if the player was docked, the docked state and settlement screen are restored.
 
 Loading **replaces** state, it never adds to it, so loading twice gives the same game. Re-docking after a load uses `DockingManager.restore_docked()`, which does not emit `docked`, so no delivery is made, no reward paid and no autosave triggered by the restore.

@@ -10,13 +10,14 @@
 [ext_resource type="Resource" path="res://resources/commodities/medical_supplies.tres" id="c_medical_supplies"]
 [ext_resource type="Resource" path="res://resources/commodities/luxury_goods.tres" id="c_luxury_goods"]
 [ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/markets/mars_market.tres" id="market"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_2.tres" id="up_engine_2"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_3.tres" id="up_engine_3"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+
+[ext_resource type="Resource" path="res://resources/economy/profiles/industrial.tres" id="profile"]
 
 [resource]
 script = ExtResource("1")
@@ -28,5 +29,5 @@ population = 120000
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_rare_isotopes"), ExtResource("c_water")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_food"), ExtResource("c_fuel"), ExtResource("c_medical_supplies"), ExtResource("c_luxury_goods")])
 size = 600.0
-market = ExtResource("market")
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1"), ExtResource("up_engine_2"), ExtResource("up_engine_3")])
+economy_profile = ExtResource("profile")

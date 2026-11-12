@@ -61,7 +61,11 @@ func _init() -> void:
 	for id in ids:
 		var summary := real.get_summary(id)
 		_check(summary.problems.is_empty(), "%s follows the system rules" % summary.system_name)
-		_check(summary.location_ids.size() >= 1 and summary.location_ids.size() <= 3, "%s has 1-3 objects (%d)" % [summary.system_name, summary.location_ids.size()])
+		var limit := StarSystem.MAX_OBJECTS
+		var system_class := real.get_system_class(id)
+		if system_class != null:
+			limit = system_class.max_objects  # critical systems may hold more
+		_check(summary.location_ids.size() >= 1 and summary.location_ids.size() <= limit, "%s has 1-%d objects (%d)" % [summary.system_name, limit, summary.location_ids.size()])
 		for location_id in summary.location_ids:
 			_check(not all_locations.has(location_id), "location id '%s' is unique across the galaxy" % location_id)
 			all_locations[location_id] = true
@@ -73,7 +77,7 @@ func _init() -> void:
 		_check(location != null, "location '%s' is registered" % location_id)
 		if location != null and not location.is_dockable():
 			gas += 1
-			_check(location.population == 0 and location.market == null, "%s is uninhabited" % location.display_name)
+			_check(location.population == 0, "%s is uninhabited" % location.display_name)
 	_check(gas >= 1, "there is at least one undockable gas giant")
 
 	# Traffic runs wherever there are two places to fly between.

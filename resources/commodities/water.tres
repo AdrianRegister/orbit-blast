@@ -8,3 +8,4 @@ id = &"water"
 display_name = "Water"
 description = "Plain, clean water. Worth more than gold on a barren rock."
 base_price = 20
+civilian_demand = 25.0

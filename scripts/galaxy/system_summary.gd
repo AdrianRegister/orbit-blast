@@ -25,7 +25,8 @@ var problems: Array[String] = []
 
 ## Reads `scene` by instantiating it without adding it to the tree (so nothing
 ## in it starts running) and freeing it again.
-static func from_scene(scene: PackedScene) -> SystemSummary:
+## `max_objects` is how many objects the system may hold (see SystemClass).
+static func from_scene(scene: PackedScene, max_objects: int = StarSystem.MAX_OBJECTS) -> SystemSummary:
 	var summary := SystemSummary.new()
 	var system := scene.instantiate() as StarSystem
 	if system == null:
@@ -47,9 +48,10 @@ static func from_scene(scene: PackedScene) -> SystemSummary:
 			continue
 		if location.population > 0:
 			summary.inhabited = true
-		for good in location.imported_goods:
+		var economy := EconomyModel.shared().of(location)
+		for good in economy.imports():
 			import_names[good.display_name] = true
-		for good in location.exported_goods:
+		for good in economy.exports():
 			export_names[good.display_name] = true
 		summary.has_shipyard = summary.has_shipyard or not location.shipyard_ships.is_empty()
 		summary.has_outfitter = summary.has_outfitter or not location.outfitter_upgrades.is_empty()
@@ -57,6 +59,6 @@ static func from_scene(scene: PackedScene) -> SystemSummary:
 	summary.exports.assign(export_names.keys())
 	summary.imports.sort()
 	summary.exports.sort()
-	summary.problems = system.validate()
+	summary.problems = system.validate(max_objects)
 	system.free()
 	return summary

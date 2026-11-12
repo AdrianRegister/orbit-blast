@@ -29,8 +29,13 @@ const MESSAGES := {
 var is_buy: bool = true
 var commodity: Commodity
 var quantity: int = 0
+## The price of one unit. For a valid trade this is the average over all the
+## units, since each unit is priced after the ones before it moved the stock.
+## For a refused trade it is the price of the next single unit.
 var unit_price: int = 0
-## Credits spent (buy) or earned (sell).
+## Credits spent (buy) or earned (sell). For a refused trade it is only an
+## estimate (the first unit's price times the quantity) unless the refusal is for
+## credits or cargo space, when it is the real cost.
 var total: int = 0
 var reason: Reason = Reason.NONE
 

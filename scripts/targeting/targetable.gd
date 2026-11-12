@@ -95,6 +95,11 @@ func set_selected(selected: bool) -> void:
 ## the star system so the "OWNED BY" row follows changes of ownership.
 var owner_name_lookup: Callable
 
+## Callable(InhabitedData) -> Array of [caption, value] rows added after the
+## location's own rows, for things that change while playing (its damage).
+## Optional; set by the star system.
+var extra_rows_lookup: Callable
+
 
 ## Rows for the HUD beyond name, type and distance.
 func get_detail_rows() -> Array:
@@ -103,7 +108,14 @@ func get_detail_rows() -> Array:
 		for row in rows:
 			if row[0] == "OWNED BY":
 				row[1] = owner_name_lookup.call(details)
+	if extra_rows_lookup.is_valid() and details is InhabitedData:
+		rows.append_array(extra_rows_lookup.call(details))
 	return rows
+
+
+## Tells whoever shows this target (the HUD) that its rows have changed.
+func refresh_info() -> void:
+	info_changed.emit()
 
 
 func is_dockable() -> bool:

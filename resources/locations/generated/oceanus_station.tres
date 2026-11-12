@@ -2,20 +2,15 @@
 
 [ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
-[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
-[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
-[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
-[ext_resource type="Resource" path="res://resources/commodities/medical_supplies.tres" id="c_medical_supplies"]
-[ext_resource type="Resource" path="res://resources/markets/generated/oceanus_station_market.tres" id="market"]
+
+[ext_resource type="Resource" path="res://resources/economy/profiles/arsenal.tres" id="profile"]
 
 [resource]
 script = ExtResource("1")
 id = &"oceanus_station"
 display_name = "Oceanus Station"
 faction = ExtResource("faction_1")
-population = 3200
-exported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])
-imported_goods = Array[ExtResource("cs")]([ExtResource("c_food"), ExtResource("c_water"), ExtResource("c_medical_supplies")])
+population = 250000
 size = 180.0
-market = ExtResource("market")
+economy_profile = ExtResource("profile")
+military_value_bonus = 30.0

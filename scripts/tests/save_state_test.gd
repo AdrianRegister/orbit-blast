@@ -88,8 +88,8 @@ func _init() -> void:
 			func(d: Dictionary) -> void: d["economy"]["cargo"]["manifest"]["food"] = -2)
 	_expect_rejected(game, parsed, "negative cargo capacity",
 			func(d: Dictionary) -> void: d["economy"]["cargo"]["capacity"] = -1)
-	_expect_rejected(game, parsed, "stock for a commodity the market does not trade",
-			func(d: Dictionary) -> void: d["economy"]["markets"]["victory_i"]["stock"]["food"] = 5)
+	_expect_rejected(game, parsed, "stock for a commodity that does not exist",
+			func(d: Dictionary) -> void: d["economy"]["markets"]["victory_i"]["stock"]["unobtainium"] = 5)
 	_expect_rejected(game, parsed, "negative stock",
 			func(d: Dictionary) -> void: d["economy"]["markets"]["earth"]["stock"]["food"] = -1)
 	_expect_rejected(game, parsed, "market of an unknown location",

@@ -12,16 +12,50 @@ signal market_changed(market: Market)
 signal transaction_completed(quote: TradeQuote)
 
 var _player: PlayerData
+var _clock: GameClock
+var _model: EconomyModel
+var _infrastructure: InfrastructureManager
 var _markets: Dictionary = {}  # InhabitedData -> Market
 ## Every commodity seen so far, by id, so the manifest (which stores only
 ## ids) can be shown with proper names.
 var _known_commodities: Dictionary = {}  # StringName -> Commodity
 
 
-func setup(player: PlayerData) -> void:
+## `clock` is the calendar markets follow (without one they stay on day 0) and
+## `model` works out what each settlement makes and uses (default: the game's own).
+func setup(player: PlayerData, clock: GameClock = null, model: EconomyModel = null) -> void:
 	_player = player
+	_clock = clock
+	_model = model if model != null else EconomyModel.shared()
 	_player.cargo.changed.connect(cargo_changed.emit)
 	credits_changed.emit(_player.credits)
+
+
+## Lets damage (see InfrastructureManager) lower what markets produce. A market is
+## brought up to date just before its location's damage changes, so the days that
+## have passed use the old rate. Call once, before any market is made.
+func set_infrastructure(infrastructure: InfrastructureManager) -> void:
+	_infrastructure = infrastructure
+	_infrastructure.damage_about_to_change.connect(_on_damage_about_to_change)
+
+
+func _on_damage_about_to_change(location_id: StringName) -> void:
+	for location in _markets:
+		if location.id == location_id:
+			_markets[location].catch_up()
+
+
+## The share of normal production a location makes on a day (see Market).
+func _production_scale(day: int, location_id: StringName) -> float:
+	return _infrastructure.production_scale(location_id, day) if _infrastructure != null else 1.0
+
+
+func get_model() -> EconomyModel:
+	return _model
+
+
+func _today() -> int:
+	return _clock.day if _clock != null else 0
 
 
 func get_credits() -> int:
@@ -49,14 +83,14 @@ func get_cargo_lines() -> Array:
 	return lines
 
 
-## The persistent market of a location, created on first use. Null if the
-## location has no market configured. The same Market is returned on every
-## visit, so stock changes persist.
+## The persistent market of a location, created on first use. Null if nobody
+## lives there (no economy). The same Market is returned on every visit, so
+## stock changes persist.
 func get_market(location: InhabitedData) -> Market:
-	if location == null or location.market == null:
+	if location == null or not _model.of(location).has_economy():
 		return null
 	if not _markets.has(location):
-		var market := Market.new(location, location.market)
+		var market := Market.new(location, _model, _today, _production_scale.bind(location.id))
 		for commodity in market.get_commodities():
 			_known_commodities[commodity.id] = commodity
 		market.changed.connect(market_changed.emit.bind(market))
@@ -72,10 +106,12 @@ func quote_buy(market: Market, commodity: Commodity, quantity: int) -> TradeQuot
 		quote.reason = TradeQuote.Reason.NOT_SOLD_HERE
 	elif quantity > market.get_stock(commodity):
 		quote.reason = TradeQuote.Reason.INSUFFICIENT_STOCK
-	elif quote.total > _player.credits:
-		quote.reason = TradeQuote.Reason.INSUFFICIENT_CREDITS
-	elif quantity > _player.cargo.get_free():
-		quote.reason = TradeQuote.Reason.INSUFFICIENT_CARGO_SPACE
+	else:
+		_set_total(quote, market.buy_total(commodity, quantity))
+		if quote.total > _player.credits:
+			quote.reason = TradeQuote.Reason.INSUFFICIENT_CREDITS
+		elif quantity > _player.cargo.get_free():
+			quote.reason = TradeQuote.Reason.INSUFFICIENT_CARGO_SPACE
 	return quote
 
 
@@ -87,6 +123,8 @@ func quote_sell(market: Market, commodity: Commodity, quantity: int) -> TradeQuo
 		quote.reason = TradeQuote.Reason.NOT_ACCEPTED
 	elif quantity > _player.cargo.get_quantity(commodity.id):
 		quote.reason = TradeQuote.Reason.INSUFFICIENT_CARGO
+	else:
+		_set_total(quote, market.sell_total(commodity, quantity))
 	return quote
 
 
@@ -160,6 +198,13 @@ func set_cargo_capacity(capacity: int) -> void:
 	_player.cargo.capacity = capacity
 
 
+## Sets the total of a trade whose units are priced one by one; the unit price
+## becomes the average.
+func _set_total(quote: TradeQuote, total: int) -> void:
+	quote.total = total
+	quote.unit_price = roundi(float(total) / quote.quantity)
+
+
 func _new_quote(is_buy: bool, commodity: Commodity, quantity: int, unit_price: int) -> TradeQuote:
 	var quote := TradeQuote.new()
 	quote.is_buy = is_buy
@@ -193,10 +238,10 @@ func validate_state(data: Variant, registry: ContentRegistry, _document: Diction
 		return problems
 	for id in markets:
 		var location := registry.location(StringName(id))
-		if location == null or location.market == null:
+		if location == null or not _model.of(location).has_economy():
 			problems.append("'%s' is not a location with a market" % id)
 			continue
-		problems.append_array(Market.new(location, location.market).validate_state(markets[id]))
+		problems.append_array(Market.validate_state(markets[id], registry))
 	return problems
 
 

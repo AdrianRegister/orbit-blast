@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="InhabitedData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+
+[resource]
+script = ExtResource("1")
+id = &"kerella_junction"
+display_name = "Kerella Junction"
+faction = ExtResource("faction_1")
+population = 250000
+size = 180.0

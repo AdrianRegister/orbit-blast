@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="Commodity" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"armour_plating"
+display_name = "Armour Plating"
+description = "Hull plate and defensive plating, for repair and refit."
+base_price = 240
+military = true

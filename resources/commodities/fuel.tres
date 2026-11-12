@@ -8,3 +8,4 @@ id = &"fuel"
 display_name = "Fuel"
 description = "Refined ship and reactor fuel."
 base_price = 60
+civilian_demand = 10.0

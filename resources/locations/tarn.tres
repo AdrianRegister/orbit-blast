@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PlanetData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/planet_types/terrestrial.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tarn"
+display_name = "Tarn"
+planet_type = ExtResource("2")
+faction = ExtResource("faction_1")
+population = 900000
+size = 340.0

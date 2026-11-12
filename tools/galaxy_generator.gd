@@ -20,11 +20,16 @@ const POOLS_PATH := "res://data/galaxy/name_pools.json"
 const SCENE_DIR := "res://scenes/systems/"
 const GENERATED_SCENE_DIR := "res://scenes/systems/generated/"
 const LOCATION_DIR := "res://resources/locations/generated/"
-const MARKET_DIR := "res://resources/markets/generated/"
 const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 const FACTION_DIR := "res://resources/factions/"
+const CLASS_DIR := "res://resources/system_classes/"
 
-## Archetypes of inhabited places: what they export and import, how many people.
+## Archetypes of inhabited places: which planet types they use and how many people.
+## What a place makes and uses is NOT written to its file: the economy model works
+## it out from the population and planet type (docs/economy.md). The "exports" and
+## "imports" lists below are only used to draw random numbers in the same order as
+## before. Removing the draws would change every name, id and population that is
+## picked after them, and ids must never change.
 const ARCHETYPES := {
 	"farming": {"weight": 3, "exports": ["food", "water"], "imports": ["machinery", "electronics", "medical_supplies"],
 			"population": [40000, 3000000], "planets": ["terrestrial", "jungle", "ocean"]},
@@ -45,6 +50,8 @@ const UNCLAIMED := ""
 var _map: Dictionary
 var _pools: Dictionary
 var _factions: Dictionary = {}  # faction id -> resource path
+var _classes: Dictionary = {}  # system class id -> SystemClass
+var _class_paths: Dictionary = {}  # system class id -> resource path
 var _used_names: Dictionary = {}
 var _files: Dictionary = {}
 
@@ -57,6 +64,12 @@ func _init() -> void:
 			var faction := load(FACTION_DIR + file) as Faction
 			if faction != null:
 				_factions[str(faction.id)] = FACTION_DIR + file
+	for file in DirAccess.get_files_at(CLASS_DIR):
+		if file.ends_with(".tres"):
+			var system_class := load(CLASS_DIR + file) as SystemClass
+			if system_class != null:
+				_classes[str(system_class.id)] = system_class
+				_class_paths[str(system_class.id)] = CLASS_DIR + file
 
 
 ## Problems with the table itself; empty when it is sound.
@@ -76,6 +89,14 @@ func validate() -> Array[String]:
 			problems.append("system '%s' has an unknown faction '%s'" % [id, row["faction"]])
 		if row.get("hand_built", false) and not FileAccess.file_exists("%s%s.tscn" % [SCENE_DIR, row["scene"]]):
 			problems.append("hand built system '%s' has no scene" % id)
+		if row.has("class"):
+			var system_class: SystemClass = _classes.get(row["class"])
+			if system_class == null:
+				problems.append("system '%s' has an unknown class '%s'" % [id, row["class"]])
+			else:
+				# A hand built system's table flag is not reliable; Galaxy.validate checks its scene.
+				for problem in system_class.check_system(row["inhabited"] or row.get("hand_built", false), row["links"].size()):
+					problems.append("system '%s': %s" % [id, problem])
 	for row in _map["systems"]:
 		for other in row["links"]:
 			if not ids.has(other):
@@ -115,6 +136,12 @@ func build() -> Dictionary:
 			var data = load("res://resources/locations/" + file)
 			if data != null and data.get("display_name") != null:
 				_used_names[str(data.display_name).to_lower()] = true
+	# A locked system is not rebuilt, but the names its locations already hold must stay
+	# taken. Otherwise another system would pick one of them, and its locations (and ids)
+	# would change.
+	for row in _map["systems"]:
+		if row.get("locked", false) and not row.get("hand_built", false):
+			_reserve_names_of(row)
 	for row in _map["systems"]:
 		if row.get("hand_built", false) or row.get("locked", false):
 			continue
@@ -124,6 +151,31 @@ func build() -> Dictionary:
 
 
 # -------------------------------------------------------------------- systems
+
+## Marks the names of the locations in a locked system's scene as taken.
+func _reserve_names_of(row: Dictionary) -> void:
+	var path := "%s%s_system.tscn" % [GENERATED_SCENE_DIR, row["id"]]
+	if not FileAccess.file_exists(path):
+		return
+	var suffixes := {}
+	for region in _pools:
+		if _pools[region] is Dictionary:
+			for suffix in _pools[region].get("station_suffixes", []):
+				suffixes[str(suffix).to_lower()] = true
+	var scene_text := FileAccess.get_file_as_string(path)
+	var pattern := RegEx.create_from_string("path=\"(res://resources/locations/[^\"]+\\.tres)\"")
+	for match in pattern.search_all(scene_text):
+		var data = load(match.get_string(1))
+		if data == null or data.get("display_name") == null:
+			continue
+		var name := str(data.display_name).to_lower()
+		_used_names[name] = true
+		# A station is a pool name plus a suffix ("Loki Platform"): generating one takes
+		# the pool name ("Loki") too, so keep that taken as well.
+		var words := name.split(" ")
+		if words.size() > 1 and suffixes.has(words[words.size() - 1]):
+			_used_names[" ".join(words.slice(0, words.size() - 1))] = true
+
 
 func _build_system(row: Dictionary) -> void:
 	var rng := RandomNumberGenerator.new()
@@ -163,8 +215,6 @@ func _build_system(row: Dictionary) -> void:
 		bodies[i]["position"] = Vector2(cos(angle), sin(angle)) * distance
 	for body in bodies:
 		_files[LOCATION_DIR + "%s.tres" % body["id"]] = _location_text(body, row)
-		if body.has("exports"):
-			_files[MARKET_DIR + "%s_market.tres" % body["id"]] = _market_text(body)
 	_files[GENERATED_SCENE_DIR + "%s_system.tscn" % row["id"]] = _scene_text(row, bodies)
 
 
@@ -184,6 +234,7 @@ func _inhabited_body(row: Dictionary, archetype: String, rng: RandomNumberGenera
 	var rules: Dictionary = ARCHETYPES[archetype]
 	var is_station: bool = rules["planets"].is_empty() or rng.randf() < 0.15
 	var name := _next_name(row, rng, is_station)
+	# Drawn only to keep the random sequence unchanged (see ARCHETYPES). Not written.
 	var exports := _pick_some(rules["exports"], rng, 1, mini(2, rules["exports"].size()))
 	var imports: Array = []
 	for good in _pick_some(rules["imports"], rng, 1, mini(3, rules["imports"].size())):
@@ -298,10 +349,6 @@ func _location_text(body: Dictionary, row: Dictionary) -> String:
 	if not barren and faction_id != UNCLAIMED:
 		text += "[ext_resource type=\"Resource\" path=\"%s\" id=\"faction_1\"]\n" % _factions[faction_id]
 	if not barren:
-		text += "[ext_resource type=\"Script\" path=\"res://scripts/resources/commodity.gd\" id=\"cs\"]\n"
-		for good in body["exports"] + body["imports"]:
-			text += "[ext_resource type=\"Resource\" path=\"res://resources/commodities/%s.tres\" id=\"c_%s\"]\n" % [good, good]
-		text += "[ext_resource type=\"Resource\" path=\"%s%s_market.tres\" id=\"market\"]\n" % [MARKET_DIR, body["id"]]
 		if body["shipyard"]:
 			text += "[ext_resource type=\"Script\" path=\"res://scripts/resources/ship_stats.gd\" id=\"sss\"]\n"
 			text += "[ext_resource type=\"Resource\" path=\"res://resources/ships/shuttle_stats.tres\" id=\"sy_shuttle\"]\n"
@@ -320,39 +367,13 @@ func _location_text(body: Dictionary, row: Dictionary) -> String:
 	if faction_id != UNCLAIMED:
 		text += "faction = ExtResource(\"faction_1\")\n"
 	text += "population = %d\n" % body["population"]
-	text += "exported_goods = Array[ExtResource(\"cs\")]([%s])\n" % ", ".join(_ext_list(body["exports"], "c_"))
-	text += "imported_goods = Array[ExtResource(\"cs\")]([%s])\n" % ", ".join(_ext_list(body["imports"], "c_"))
 	text += "size = %d.0\n" % roundi(body["size"])
-	text += "market = ExtResource(\"market\")\n"
 	if body["shipyard"]:
 		text += "shipyard_ships = Array[ExtResource(\"sss\")]([ExtResource(\"sy_shuttle\"), ExtResource(\"sy_interceptor\")])\n"
 	if body["outfitter"]:
 		text += "outfitter_upgrades = Array[ExtResource(\"uds\")]([ExtResource(\"up_cargo_bay\"), ExtResource(\"up_engine_1\")])\n"
 	return text
 
-
-func _ext_list(goods: Array, prefix: String) -> Array[String]:
-	var result: Array[String] = []
-	for good in goods:
-		result.append("ExtResource(\"%s%s\")" % [prefix, good])
-	return result
-
-
-func _market_text(body: Dictionary) -> String:
-	var goods: Array = body["exports"] + body["imports"]
-	var text := "[gd_resource type=\"Resource\" script_class=\"MarketData\" format=3]\n\n"
-	text += "[ext_resource type=\"Script\" path=\"res://scripts/resources/market_data.gd\" id=\"1\"]\n"
-	text += "[ext_resource type=\"Script\" path=\"res://scripts/resources/market_listing.gd\" id=\"2\"]\n"
-	for good in goods:
-		text += "[ext_resource type=\"Resource\" path=\"res://resources/commodities/%s.tres\" id=\"c_%s\"]\n" % [good, good]
-	for i in goods.size():
-		text += "\n[sub_resource type=\"Resource\" id=\"listing_%d\"]\nscript = ExtResource(\"2\")\ncommodity = ExtResource(\"c_%s\")\nbase_stock = %d\n" % [
-				i, goods[i], body["stock"] if body["exports"].has(goods[i]) else maxi(20, body["stock"] / 2)]
-	var subs: Array[String] = []
-	for i in goods.size():
-		subs.append("SubResource(\"listing_%d\")" % i)
-	text += "\n[resource]\nscript = ExtResource(\"1\")\nlistings = Array[ExtResource(\"2\")]([%s])\n" % ", ".join(subs)
-	return text
 
 
 func _galaxy_text() -> String:
@@ -368,6 +389,14 @@ func _galaxy_text() -> String:
 	text += "[ext_resource type=\"Script\" path=\"res://scripts/galaxy/system_link.gd\" id=\"sl\"]\n"
 	for faction_id in _factions:
 		text += "[ext_resource type=\"Resource\" path=\"%s\" id=\"f_%s\"]\n" % [_factions[faction_id], faction_id]
+	var used_classes := {}
+	for row in rows:
+		if row.has("class"):
+			used_classes[row["class"]] = true
+	var class_ids := used_classes.keys()
+	class_ids.sort()
+	for class_id in class_ids:
+		text += "[ext_resource type=\"Resource\" path=\"%s\" id=\"cls_%s\"]\n" % [_class_paths[class_id], class_id]
 	for row in rows:
 		var path := "%s%s.tscn" % [SCENE_DIR, row["scene"]] if row.get("hand_built", false) else "%s%s_system.tscn" % [GENERATED_SCENE_DIR, row["id"]]
 		text += "[ext_resource type=\"PackedScene\" path=\"%s\" id=\"sc_%s\"]\n" % [path, row["id"]]
@@ -379,6 +408,8 @@ func _galaxy_text() -> String:
 		text += "start_discovered = %s\n" % ("true" if _map["start_discovered"].has(row["id"]) else "false")
 		if row["faction"] != UNCLAIMED:
 			text += "claim = ExtResource(\"f_%s\")\n" % row["faction"]
+		if row.has("class"):
+			text += "system_class = ExtResource(\"cls_%s\")\n" % row["class"]
 		subs.append("SubResource(\"sys_%s\")" % row["id"])
 	var link_subs: Array[String] = []
 	for row in rows:

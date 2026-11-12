@@ -68,6 +68,14 @@ func is_start_discovered(id: StringName) -> bool:
 	return system != null and system.start_discovered
 
 
+## What kind of system this is (see SystemClass), or null if it is unclassified or
+## unknown. (Not called get_class: every Object already has a method of that name.)
+func get_system_class(id: StringName) -> SystemClass:
+	_ensure_index()
+	var system: GalaxySystem = _by_id.get(id)
+	return system.system_class if system != null else null
+
+
 ## A description of the system for the map, whether or not it is loaded. Built
 ## once and kept. Null for an unknown id.
 func get_summary(id: StringName) -> SystemSummary:
@@ -196,6 +204,11 @@ func validate() -> Array[String]:
 		elif seen.has(summary.id):
 			problems.append("system id '%s' is used twice" % summary.id)
 		seen[summary.id] = true
+	for system in systems:
+		if system == null or system.system_class == null:
+			continue
+		for problem in system.system_class.validate():
+			problems.append("system class: %s" % problem)
 	var pairs := {}
 	for link in links:
 		if link == null:
@@ -213,6 +226,11 @@ func validate() -> Array[String]:
 		if link.fuel_cost < 0:
 			problems.append("link %s - %s has a negative fuel cost" % [link.a, link.b])
 	var ids := get_system_ids()
+	for id in ids:
+		var system_class := get_system_class(id)
+		if system_class != null:
+			for problem in system_class.check_system(is_inhabited(id), get_neighbours(id).size()):
+				problems.append("system '%s': %s" % [id, problem])
 	for i in ids.size():
 		for j in range(i + 1, ids.size()):
 			if get_map_position(ids[i]).distance_to(get_map_position(ids[j])) < 1.0:
@@ -256,7 +274,7 @@ func _ensure_index() -> void:
 	for system in systems:
 		if system == null or system.scene == null:
 			continue
-		var summary := SystemSummary.from_scene(system.scene)
+		var summary := SystemSummary.from_scene(system.scene, system.object_limit())
 		_entries.append({"system": system, "summary": summary})
 		if summary.id == &"" or _by_id.has(summary.id):
 			continue  # reported by validate(); the first system with an id wins

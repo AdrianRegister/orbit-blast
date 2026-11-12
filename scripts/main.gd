@@ -44,7 +44,10 @@ var _naming_first_ship: bool = false
 @onready var _economy: EconomyManager = $Economy
 @onready var _ships: ShipManager = $Ships
 @onready var _travel: TravelManager = $Travel
+@onready var _clock: GameClock = $Clock
+@onready var _infrastructure: InfrastructureManager = $Infrastructure
 @onready var _territory: TerritoryManager = $Territory
+@onready var _zones: ZoneManager = $Zones
 @onready var _reputation: ReputationManager = $Reputation
 @onready var _top_bar: TopBar = $TopBar
 @onready var _factions_screen: FactionScreen = $FactionScreen
@@ -76,13 +79,20 @@ func _ready() -> void:
 
 	_economy.credits_changed.connect(_hud.set_credits)
 	_economy.cargo_changed.connect(_update_cargo_hud)
-	_economy.setup(player_data)
+	_infrastructure.setup(_clock)
+	_economy.setup(player_data, _clock)
+	_economy.set_infrastructure(_infrastructure)
 	_ships.setup(_economy, player_data, _get_docked_location)
 	var content := ContentRegistry.new()
 	_travel.setup(galaxy, func() -> StringName: return _system.system_id)
 	_territory.setup(galaxy, content)
+	var military_rules: MilitaryValueRules = load("res://resources/military/military_value_rules.tres")
+	var assessor := SystemAssessor.new(galaxy, content, EconomyModel.shared(), military_rules,
+			_infrastructure.get_damage, _infrastructure.production_scale)
+	_zones.setup(galaxy, _territory, assessor, content, _clock)
 	_reputation.setup(_territory)
 	_system.set_owner_lookup(_territory.owner_name_of)
+	_system.set_extra_rows_lookup(_extra_target_rows)
 	_ships.set_territory(_territory)
 	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems, _territory)
 	_contracts.contracts_changed.connect(_map.get_map().queue_redraw)
@@ -121,6 +131,8 @@ func _ready() -> void:
 
 	_docking.setup(_targeting, _ship, _game_state)
 	_docking.docking_denied.connect(_hud.show_target_message)
+	# The day passes before the settlement screen opens, so it shows today's figures.
+	_docking.docked.connect(func(_target: Targetable) -> void: _clock.advance(_clock.days_per_landing, &"landing"))
 	_docking.docked.connect(_settlement.open)
 	_docking.docked.connect(_on_docked)
 	_docking.undocked.connect(_on_undocked)
@@ -129,6 +141,16 @@ func _ready() -> void:
 
 	# Saving. Sections are applied in this order: money and cargo first, then
 	# contracts (which are checked against the cargo), then where the player is.
+	_saves.register_section(&"clock", _clock, false)  # the calendar day; absent in older saves
+	_clock.day_advanced.connect(func(_day: int, _elapsed: int) -> void: _saves.request_autosave())
+	_clock.day_advanced.connect(func(day: int, _elapsed: int) -> void: _top_bar.set_day(day))
+	_clock.clock_reset.connect(func() -> void: _top_bar.set_day(_clock.day))
+	_saves.register_section(&"infrastructure", _infrastructure, false)  # damage to locations; absent in older saves
+	_infrastructure.damage_changed.connect(func(_id: StringName, _damage: float) -> void: _saves.request_autosave())
+	# What the target panel shows for a damaged location follows damage and recovery.
+	_infrastructure.damage_changed.connect(func(_id: StringName, _damage: float) -> void: _hud.refresh_target())
+	_infrastructure.damage_reset.connect(_hud.refresh_target)
+	_clock.day_advanced.connect(func(_day: int, _elapsed: int) -> void: _hud.refresh_target())
 	_saves.register_section(&"economy", _economy)
 	_saves.register_section(&"fleet", _ships)
 	_saves.register_section(&"contracts", _contracts)
@@ -136,6 +158,7 @@ func _ready() -> void:
 	_saves.register_section(&"galaxy", _travel, false)  # after the player: it needs the current system
 	_saves.register_section(&"territory", _territory, false)  # who owns each settlement; absent in older saves
 	_territory.territory_changed.connect(_saves.request_autosave)
+	_saves.register_section(&"zones", _zones, false)  # when critical systems changed hands; absent in older saves
 	_saves.register_section(&"reputation", _reputation, false)  # the player's standing with each faction; absent in older saves
 	_reputation.reputation_changed.connect(func(_faction: StringName, _old: int, _new: int) -> void: _saves.request_autosave())
 	_contracts.contract_completed.connect(_reputation.apply_contract)
@@ -334,6 +357,7 @@ func jump_to(target_id: StringName) -> JumpCheck:
 	if not check.ok:
 		return check
 	_ship.end_warp()
+	_clock.advance(_clock.jump_days(galaxy.get_jump_cost(_system.system_id, target_id)), &"jump")
 	_travel.clear_destination()
 	_close_screens()
 	_targeting.select(null)
@@ -352,6 +376,7 @@ func _swap_system(scene: PackedScene) -> void:
 	_system.free()
 	_system = scene.instantiate()
 	_system.set_owner_lookup(_territory.owner_name_of)
+	_system.set_extra_rows_lookup(_extra_target_rows)
 	add_child(_system)
 	move_child(_system, 0)  # keep it drawn behind the ship
 	_hud.set_nav_system(_system)
@@ -586,3 +611,11 @@ func _process(_delta: float) -> void:
 	# the panel width so the ship sits in the middle of the remaining play area.
 	var window_width: float = get_viewport().get_visible_rect().size.x
 	_camera.offset.x = window_width * _hud.get_panel_width_fraction() * 0.5
+
+
+## Rows added to what the target panel shows for a location: how damaged it is.
+## Places nobody lives in have nothing to damage.
+func _extra_target_rows(data: InhabitedData) -> Array:
+	if data == null or not data.is_dockable() or data.population <= 0:
+		return []
+	return [["DAMAGE", "%d%%" % _infrastructure.get_damage_percent(data.id)]]

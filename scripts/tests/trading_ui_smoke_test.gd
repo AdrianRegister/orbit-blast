@@ -37,6 +37,8 @@ func _init() -> void:
 	docking.try_dock()
 	await process_frame
 	_check(settlement.visible, "docking opens the settlement screen")
+	var day_label: Label = main.get_node("TopBar").get_node("%DayLabel")
+	_check(day_label.text == "DAY 1", "landing takes a day and the top bar shows it (was '%s')" % day_label.text)
 	_check(not trading.visible, "trading screen starts closed")
 
 	var trading_button: Button = settlement.get_node("%TradingButton")
@@ -61,18 +63,30 @@ func _init() -> void:
 	_check(trade_panel.global_position.y + trade_panel.size.y <= screen.y - 90.0,
 			"trade panel ends 90+ px above the screen bottom (%d of %d)" % [trade_panel.global_position.y + trade_panel.size.y, screen.y])
 	_check(table.size.y > 150.0, "table has usable height (%d px)" % table.size.y)
-	_check(table.get_root().get_child_count() == 6, "Earth lists 6 commodities")
+	var market: Market = economy.get_market(earth.details as InhabitedData)
+	_check(table.get_root().get_child_count() == market.get_commodities().size() and market.get_commodities().size() >= 5,
+			"the table lists every good Earth deals in (%d)" % table.get_root().get_child_count())
 
-	# Select Food (first row), buy 10 through the button.
+	# Select Food, buy 10 through the button.
+	var food: Commodity = load("res://resources/commodities/food.tres")
+	for row in table.get_root().get_children():
+		if row.get_metadata(0) == food:
+			row.select(0)
+	await process_frame
 	var quantity: SpinBox = trading.get_node("%QuantityBox")
 	quantity.value = 10
 	var buy_button: Button = trading.get_node("%BuyButton")
 	var sell_button: Button = trading.get_node("%SellButton")
 	_check(not buy_button.disabled, "Buy enabled for a valid purchase")
-	_check(sell_button.disabled, "Sell disabled where the market rejects Food")
+	var food_row: TreeItem = table.get_selected()
+	_check(Market.SUPPLY_NAMES.has(food_row.get_text(TradingScreen.Column.SUPPLY)), "the table shows Food's supply level ('%s')" % food_row.get_text(TradingScreen.Column.SUPPLY))
+	_check(food_row.get_text(TradingScreen.Column.VS_BASE).ends_with("%"), "the table shows the price against the base price ('%s')" % food_row.get_text(TradingScreen.Column.VS_BASE))
+	_check(trading.get_node("%SelectedLabel").text.contains("SUPPLY:"), "the selected good's supply is shown by the trade panel")
+	_check(trading.get_node("%BuyLabel").text.contains("AVERAGE"), "a multi-unit order shows its average price ('%s')" % trading.get_node("%BuyLabel").text)
+	_check(sell_button.disabled, "Sell disabled when the hold has no Food")
+	var expected: int = 500000 - market.buy_total(food, 10)
 	buy_button.pressed.emit()
 	await process_frame
-	var expected: int = 500000 - 10 * 38  # Food 50 * 0.75 = 37.5 -> 38
 	_check(economy.get_credits() == expected, "credits after buying: %d" % economy.get_credits())
 	_check(credits_label.text == NumberFormat.with_commas(expected), "HUD credits updated to '%s'" % credits_label.text)
 	_check(economy.get_cargo().get_used() == 10, "cargo holds 10")

@@ -13,6 +13,7 @@ const COMMODITY_DIR := "res://resources/commodities/"
 const LOCATION_DIR := "res://resources/locations/"
 const SHIP_STATS_DIR := "res://resources/ships/"
 const UPGRADE_DIR := "res://resources/upgrades/"
+const SYSTEM_CLASS_DIR := "res://resources/system_classes/"
 const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 
 ## Human-readable problems found while building the registry. Empty when sound.
@@ -23,6 +24,7 @@ var _commodities: Dictionary = {}  # StringName -> Commodity
 var _locations: Dictionary = {}  # StringName -> InhabitedData
 var _ship_stats: Dictionary = {}  # StringName -> ShipStats
 var _upgrades: Dictionary = {}  # StringName -> UpgradeDefinition
+var _system_classes: Dictionary = {}  # StringName -> SystemClass
 var _galaxy: Galaxy
 
 
@@ -33,11 +35,13 @@ func _init(galaxy: Galaxy = null) -> void:
 	_index(LOCATION_DIR, _locations, "location", "id")
 	_index(SHIP_STATS_DIR, _ship_stats, "ship", "id")
 	_index(UPGRADE_DIR, _upgrades, "upgrade", "id")
+	_index(SYSTEM_CLASS_DIR, _system_classes, "system class", "id")
 	_galaxy = galaxy if galaxy != null else load(GALAXY_PATH) as Galaxy
 	if _galaxy == null:
 		problems.append("galaxy missing: %s" % GALAXY_PATH)
 	else:
 		problems.append_array(_galaxy.validate())
+		problems.append_array(_check_capitals())
 
 
 func faction(id: StringName) -> Faction:
@@ -102,6 +106,19 @@ func max_cargo_capacity() -> int:
 	return best
 
 
+func system_class(id: StringName) -> SystemClass:
+	return _system_classes.get(id)
+
+
+func system_classes() -> Array[SystemClass]:
+	var result: Array[SystemClass] = []
+	var ids := _system_classes.keys()
+	ids.sort_custom(func(a, b) -> bool: return str(a) < str(b))
+	for id in ids:
+		result.append(_system_classes[id])
+	return result
+
+
 func has_system(id: StringName) -> bool:
 	return _galaxy != null and _galaxy.has_system(id)
 
@@ -128,3 +145,21 @@ func _index(directory: String, into: Dictionary, kind: String, id_property: Stri
 			problems.append("%s id '%s' is used twice" % [kind, id])
 		else:
 			into[id] = resource
+
+
+## Problems with the factions' capitals: each must be an inhabited system whose
+## class can be a centre of power.
+func _check_capitals() -> Array[String]:
+	var found: Array[String] = []
+	for faction in _factions.values():
+		if faction.capital_system == &"":
+			continue
+		if not _galaxy.has_system(faction.capital_system):
+			found.append("the capital of '%s' (%s) is not a system" % [faction.id, faction.capital_system])
+			continue
+		if not _galaxy.is_inhabited(faction.capital_system):
+			found.append("the capital of '%s' (%s) is not inhabited" % [faction.id, faction.capital_system])
+		var system_class := _galaxy.get_system_class(faction.capital_system)
+		if system_class == null or not system_class.can_be_centre():
+			found.append("the capital of '%s' (%s) must be a system whose class can be a centre of power" % [faction.id, faction.capital_system])
+	return found

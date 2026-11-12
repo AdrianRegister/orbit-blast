@@ -15,6 +15,7 @@ func _init() -> void:
 	var ore: Commodity = load("res://resources/commodities/ore.tres")
 	var machinery: Commodity = load("res://resources/commodities/machinery.tres")
 	var fuel: Commodity = load("res://resources/commodities/fuel.tres")
+	var rare_isotopes: Commodity = load("res://resources/commodities/rare_isotopes.tres")
 
 	for data in [earth_data, mars_data, victory_data]:
 		_check(data.validate().is_empty(), "%s data validates: %s" % [data.display_name, data.validate()])
@@ -37,14 +38,18 @@ func _init() -> void:
 	_check(earth.get_stock(food) > mars.get_stock(food), "Food stock is larger at Earth than Mars")
 	_check(earth.get_buy_price(ore) > mars.get_buy_price(ore), "Ore costs more at importing Earth than exporting Mars")
 	_check(earth.get_sell_price(ore) > mars.get_buy_price(ore), "Ore Mars->Earth is profitable")
-	_check(not victory.has_commodity(food), "Victory I does not list Food")
+	_check(not victory.has_commodity(ore), "Victory I does not deal in Ore")
+	_check(victory.has_commodity(food), "Victory I's people eat, so it deals in Food")
 
 	# 3. Buying.
 	var credits_before := player.credits
 	var stock_before := earth.get_stock(food)
+	var first_price := earth.get_buy_price(food)
 	var quote := economy.buy(earth, food, 10)
 	_check(quote.is_ok(), "buy 10 Food succeeds")
-	_check(player.credits == credits_before - 10 * earth.get_buy_price(food), "credits reduced by cost")
+	_check(player.credits == credits_before - quote.total, "credits reduced by the quoted total")
+	_check(quote.unit_price >= first_price, "each unit is priced after the ones before it, so the average is no lower than the first")
+	_check(earth.get_buy_price(food) >= first_price, "buying makes the next unit dearer")
 	_check(earth.get_stock(food) == stock_before - 10, "market stock reduced")
 	_check(player.cargo.get_quantity(&"food") == 10 and player.cargo.get_used() == 10, "cargo increased")
 
@@ -54,17 +59,17 @@ func _init() -> void:
 	stock_before = mars.get_stock(food)
 	quote = economy.sell(mars, food, 4)
 	_check(quote.is_ok(), "sell 4 Food at Mars succeeds")
-	_check(player.credits == credits_before + 4 * mars.get_sell_price(food), "credits increased by revenue")
+	_check(player.credits == credits_before + quote.total and quote.total > 0, "credits increased by the quoted revenue")
 	_check(mars.get_stock(food) == stock_before + 4, "market stock increased")
 	_check(player.cargo.get_quantity(&"food") == 6, "cargo reduced; the rest was carried between locations")
 
-	# 9. Markets reject goods they do not import.
-	quote = economy.sell(earth, food, 1)
-	_check(quote.reason == TradeQuote.Reason.NOT_ACCEPTED, "Earth rejects its own export")
-	quote = economy.sell(mars, machinery, 1)
-	_check(quote.reason == TradeQuote.Reason.NOT_ACCEPTED, "Mars rejects a listed but not imported good")
-	quote = economy.sell(victory, food, 1)
-	_check(quote.reason == TradeQuote.Reason.NOT_ACCEPTED, "Victory I rejects an unlisted good")
+	# 9. A market takes any good it deals in, and refuses the rest.
+	_check(economy.sell(mars, rare_isotopes, 1).reason == TradeQuote.Reason.INSUFFICIENT_CARGO,
+			"Mars deals in Rare Isotopes (refused only because the hold has none)")
+	quote = economy.sell(victory, ore, 1)
+	_check(quote.reason == TradeQuote.Reason.NOT_ACCEPTED, "Victory I rejects a good it does not deal in")
+	quote = economy.buy(victory, ore, 1)
+	_check(quote.reason == TradeQuote.Reason.NOT_SOLD_HERE, "Victory I does not sell a good it does not deal in")
 
 	# 8. Cannot sell more than owned. Nothing may change on a refused trade.
 	credits_before = player.credits
@@ -73,6 +78,11 @@ func _init() -> void:
 	_check(quote.reason == TradeQuote.Reason.INSUFFICIENT_CARGO, "selling more than owned is refused")
 	_check(player.credits == credits_before and mars.get_stock(food) == stock_before
 			and player.cargo.get_quantity(&"food") == 6, "refused sale changed nothing")
+	var earth_food_before := earth.get_stock(food)
+	var glut_price := earth.get_sell_price(food)
+	_check(economy.sell(earth, food, 6).is_ok(), "Earth takes its own export too, at a poor price")
+	_check(earth.get_stock(food) == earth_food_before + 6 and earth.get_sell_price(food) <= glut_price,
+			"selling to a market raises its stock and lowers what it pays")
 
 	# 5. Insufficient credits.
 	player.credits = 100
@@ -85,7 +95,7 @@ func _init() -> void:
 	player.credits = 500000
 
 	# 6. Insufficient cargo capacity.
-	player.cargo.capacity = 8
+	player.cargo.capacity = 4
 	quote = economy.buy(earth, food, 5)
 	_check(quote.reason == TradeQuote.Reason.INSUFFICIENT_CARGO_SPACE, "insufficient cargo space refused")
 	player.cargo.capacity = 500

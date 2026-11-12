@@ -1,0 +1,77 @@
+[gd_resource type="Resource" script_class="EconomyProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/economy_profile.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/economy_profile_good.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/medical_supplies.tres" id="c_medical_supplies"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/commodities/industrial_chemicals.tres" id="c_industrial_chemicals"]
+[ext_resource type="Resource" path="res://resources/commodities/field_rations.tres" id="c_field_rations"]
+[ext_resource type="Resource" path="res://resources/commodities/munitions.tres" id="c_munitions"]
+[ext_resource type="Resource" path="res://resources/commodities/armour_plating.tres" id="c_armour_plating"]
+[ext_resource type="Resource" path="res://resources/commodities/combat_medkits.tres" id="c_combat_medkits"]
+[ext_resource type="Resource" path="res://resources/commodities/reactor_cores.tres" id="c_reactor_cores"]
+
+[sub_resource type="Resource" id="good_0"]
+script = ExtResource("2")
+commodity = ExtResource("c_fuel")
+industrial_demand = 100.0
+
+[sub_resource type="Resource" id="good_1"]
+script = ExtResource("2")
+commodity = ExtResource("c_electronics")
+industrial_demand = 80.0
+
+[sub_resource type="Resource" id="good_2"]
+script = ExtResource("2")
+commodity = ExtResource("c_machinery")
+industrial_demand = 80.0
+
+[sub_resource type="Resource" id="good_3"]
+script = ExtResource("2")
+commodity = ExtResource("c_medical_supplies")
+industrial_demand = 60.0
+
+[sub_resource type="Resource" id="good_4"]
+script = ExtResource("2")
+commodity = ExtResource("c_ore")
+industrial_demand = 30.0
+
+[sub_resource type="Resource" id="good_5"]
+script = ExtResource("2")
+commodity = ExtResource("c_industrial_chemicals")
+industrial_demand = 20.0
+
+[sub_resource type="Resource" id="good_6"]
+script = ExtResource("2")
+commodity = ExtResource("c_field_rations")
+industrial_demand = 120.0
+
+[sub_resource type="Resource" id="good_7"]
+script = ExtResource("2")
+commodity = ExtResource("c_munitions")
+industrial_demand = 100.0
+
+[sub_resource type="Resource" id="good_8"]
+script = ExtResource("2")
+commodity = ExtResource("c_armour_plating")
+industrial_demand = 60.0
+
+[sub_resource type="Resource" id="good_9"]
+script = ExtResource("2")
+commodity = ExtResource("c_combat_medkits")
+industrial_demand = 50.0
+
+[sub_resource type="Resource" id="good_10"]
+script = ExtResource("2")
+commodity = ExtResource("c_reactor_cores")
+industrial_demand = 20.0
+
+[resource]
+script = ExtResource("1")
+id = &"military"
+display_name = "Military"
+goods = Array[ExtResource("2")]([SubResource("good_0"), SubResource("good_1"), SubResource("good_2"), SubResource("good_3"), SubResource("good_4"), SubResource("good_5"), SubResource("good_6"), SubResource("good_7"), SubResource("good_8"), SubResource("good_9"), SubResource("good_10")])
+military_value = 25.0

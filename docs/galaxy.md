@@ -71,7 +71,7 @@ Barnard's Star      Tau Ceti       Epsilon Eridani
 | Procyon | Talos, Minos (dwarf planet) |
 | Epsilon Eridani | Elysium, Lethe (moon), Styx Platform (station) |
 
-Each system obeys `StarSystem.validate()`: at least one planet, at most 3 objects, and a moon only together with a planet. **Gas giants** are undockable and uninhabited (`PlanetData.dockable = false`; validation requires no population, market, contracts or services), and NPC traffic ignores them as destinations. Dwarf planets and moons are small `size` values of existing sprites. New locations have goods lists and a few shipyards and outfitters but no markets or contracts yet. Systems with fewer than two dockable places have no NPC traffic.
+Each system obeys `StarSystem.validate()`: at least one planet, at most 3 objects, and a moon only together with a planet. **Gas giants** are undockable and uninhabited (`PlanetData.dockable = false`; validation requires no population or services), and NPC traffic ignores them as destinations. Dwarf planets and moons are small `size` values of existing sprites. Inhabited locations get a market automatically (what they make and use follows from population and planet type, see [economy.md](economy.md)) and a few get shipyards and outfitters. Systems with fewer than two dockable places have no NPC traffic.
 
 ---
 
@@ -142,7 +142,7 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 
 ## 11. Current limits
 
-No fuel or energy resource (the cost is shown only), no contracts that send the player to other systems, no markets or contracts in the new systems, and no procedural galaxy. Each system's star background is identical.
+No fuel or energy resource (the cost is shown only), no contracts that send the player to other systems, and no procedural galaxy. Each system's star background is identical.
 
 ## 12. Inhabited, scouted and Wolf 359 (Phase 2.4)
 
@@ -163,18 +163,18 @@ The galaxy follows the Escape Velocity Nova map (`reference_resources/escape_vel
 
 | Piece | File | Role |
 |---|---|---|
-| Table | `data/galaxy/galaxy_map.json` | One row per system: `id`, `name`, `x`,`y` (pixels of the reference image), `faction` (a faction id, "" = unclaimed), `inhabited` (black dot on the reference map), `links`, `region`; flags `hand_built` and `locked`. `origin_system` (Sol) and `scale` place systems on our map |
+| Table | `data/galaxy/galaxy_map.json` | One row per system: `id`, `name`, `x`,`y` (pixels of the reference image), `faction` (a faction id, "" = unclaimed), `inhabited` (black dot on the reference map), `links`, `region`; optional `class` (a system class id, see [system_classes.md](system_classes.md)); flags `hand_built` and `locked`. `origin_system` (Sol) and `scale` place systems on our map |
 | Name pools | `data/galaxy/name_pools.json` | Themed names for generated planets and stations, per region |
-| Generator | `tools/galaxy_generator.gd`, run by `tools/generate_galaxy.gd` | Writes `scenes/systems/generated/`, `resources/locations/generated/`, `resources/markets/generated/` and `resources/universe/galaxy.tres` |
+| Generator | `tools/galaxy_generator.gd`, run by `tools/generate_galaxy.gd` | Writes `scenes/systems/generated/`, `resources/locations/generated/` and `resources/universe/galaxy.tres` |
 | Test | `scripts/tests/galaxy_data_test.gd` | The table is sound, the files on disk are exactly what the table produces, speed |
 
 ```powershell
 & $godot --headless --path . --script res://tools/generate_galaxy.gd
 ```
 
-**What is generated.** Each system gets 1 to 3 bodies (a system holds at most 3 objects). A system the map shows as inhabited gets an inhabited first body built from an archetype (farming, mining, industrial, trade, outpost): exports and imports from the existing commodities, a population range, a market, and for a few places a shipyard or outfitter. Other bodies are barren and cannot be landed on (gas giants, rocks); uninhabited systems have only those. Names come from the region's pool and are unique across the galaxy. Everything is seeded from the system id, so running the generator again changes nothing.
+**What is generated.** Each system gets 1 to 3 bodies (an ordinary system holds at most 3 objects; a system class may allow up to 6, see [system_classes.md](system_classes.md)). A system the map shows as inhabited gets an inhabited first body built from an archetype (farming, mining, industrial, trade, outpost): a planet type and a population range from the archetype (the economy follows from those, so no goods list or market file is written), and for a few places a shipyard or outfitter. The archetype's export and import lists are used only to keep the seeded random sequence, and so every id, unchanged. Other bodies are barren and cannot be landed on (gas giants, rocks); uninhabited systems have only those. Names come from the region's pool and are unique across the galaxy. Everything is seeded from the system id, so running the generator again changes nothing.
 
-**Hand built and locked.** `hand_built` systems (Sol, Centauri, Barnard's Star, Sirius, Tau Ceti, Procyon, Wolf 359 and Alphard, whose id is still `epsilon_eridani`) keep their own scenes and locations; the generator only lists them in `galaxy.tres`. Ids never change, so old saves still work; only the displayed names differ from before. `locked` systems are generated once and then ignored by the generator, so they can be edited by hand.
+**Hand built and locked.** `hand_built` systems (Sol, Centauri, Barnard's Star, Sirius, Tau Ceti, Procyon, Wolf 359 and Alphard, whose id is still `epsilon_eridani`) keep their own scenes and locations; the generator only lists them in `galaxy.tres`. Ids never change, so old saves still work; only the displayed names differ from before. `locked` systems are generated once and then ignored by the generator, so they can be edited by hand (the names their locations hold stay reserved, so no other system takes them and no id changes).
 
 **Richer content later.** Change the archetypes (or add fields) in the generator and regenerate; hand built and locked systems are not touched.
 
@@ -196,5 +196,7 @@ The galaxy follows the Escape Velocity Nova map (`reference_resources/escape_vel
 - **Saving:** an optional `territory` section `{"owners": {location id: faction id or ""}}` holds only the settlements that differ from their starting owner; older saves load with every settlement at its starting owner.
 - **To make a contested system today:** edit a settlement's `faction` in its location file (in a `locked` system if it is generated), or call `transfer_settlement` in a test.
 - **For wars:** `SystemControl` has room for a dominant controller of a contested system (for example by military value); military value, strength and operations are not built yet. See `wars_system.md`.
+
+Zones, centres of power and mini-cores that follow ownership are in [system_classes.md](system_classes.md).
 
 Tests: `scripts/tests/territory_test.gd`.

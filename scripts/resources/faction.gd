@@ -27,6 +27,12 @@ extends Resource
 ## How much war the faction can wage. An arbitrary number for now; it will be
 ## computed from the faction's territory and fleets (see wars_system.md).
 @export var military_strength: int = 0
+## The id of the star system that is this faction's capital (its primary political
+## and economic centre), or &"" for none. It must be an inhabited system whose
+## class can be a centre of power. Zones are measured from the capital and from
+## other centres (see ZoneManager); what happens when the capital is lost is
+## decided there, not here.
+@export var capital_system: StringName = &""
 ## How this faction regards the others (see FactionRelation).
 @export var relations: Array[FactionRelation] = []
 

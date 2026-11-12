@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="InhabitedData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/inhabited_data.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
+[ext_resource type="Resource" path="res://resources/economy/profiles/military.tres" id="profile"]
+
+[resource]
+script = ExtResource("1")
+id = &"citadel_platform"
+display_name = "Citadel Platform"
+faction = ExtResource("faction_1")
+population = 60000
+economy_profile = ExtResource("profile")
+military_value_bonus = 30.0
+size = 180.0

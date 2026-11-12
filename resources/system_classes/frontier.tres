@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SystemClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"frontier"
+display_name = "Frontier System"
+description = "A remote, sparsely populated system far from the faction's centres, of little strategic importance."
+military_value_multiplier = 0.5
+max_objects = 3
+settlements_min = 1
+settlements_max = 1
+stations_min = 0
+stations_max = 1
+population_scale = 0.3

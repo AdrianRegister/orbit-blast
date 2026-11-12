@@ -276,6 +276,10 @@ One particularly important decision: avoid making system ownership an inseparabl
 
 Settlement ownership is authoritative and system control is derived from it (`TerritoryManager`, `SystemControl`), with a contested status and the signals `settlement_owner_changed`, `system_control_changed` and `system_became_contested`. Ownership changes are saved in the optional `territory` save section. Not built yet: military value, strength, wars, operations, news. See `docs/galaxy.md` section 15.
 
+### Status (system roles, zones, damage and military value in place)
+
+Phase 2.9 built the read access and the foundations a war needs, without any war: system classes (critical, economic and military centres, military output, rural, frontier), faction zones and centres of power that follow ownership (conquering a capital or critical system makes a mini-core), damage to locations that lowers production and recovers by itself, military value per location and system (`SystemAssessor`), and military goods and markets that anyone can trade. See `docs/system_classes.md` section 11 for where each is read. Still not built: wars, campaigns, operations, blockades, defenders and news.
+
 ### Status (faction identity and reputation in place)
 
 Factions carry colours, texts, `military_strength` (arbitrary for now) and `relations` that are separate from the player's reputation; reputation is tracked per faction with a central interface (`ReputationManager.meets`, standings), military contracts can award it, and hostile acts have an integration point. See `docs/factions.md`.

@@ -4,6 +4,11 @@
 [ext_resource type="Script" path="res://scripts/galaxy/galaxy_system.gd" id="gs"]
 [ext_resource type="Script" path="res://scripts/galaxy/system_link.gd" id="sl"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="f_faction_1"]
+[ext_resource type="Resource" path="res://resources/system_classes/economic_centre.tres" id="cls_economic_centre"]
+[ext_resource type="Resource" path="res://resources/system_classes/frontier.tres" id="cls_frontier"]
+[ext_resource type="Resource" path="res://resources/system_classes/military_centre.tres" id="cls_military_centre"]
+[ext_resource type="Resource" path="res://resources/system_classes/military_output.tres" id="cls_military_output"]
+[ext_resource type="Resource" path="res://resources/system_classes/rural.tres" id="cls_rural"]
 [ext_resource type="PackedScene" path="res://scenes/systems/generated/south_manchester_system.tscn" id="sc_south_manchester"]
 [ext_resource type="PackedScene" path="res://scenes/systems/generated/rimshot_system.tscn" id="sc_rimshot"]
 [ext_resource type="PackedScene" path="res://scenes/systems/generated/lalande_21185_system.tscn" id="sc_lalande_21185"]
@@ -103,6 +108,7 @@ scene = ExtResource("sc_south_manchester")
 map_position = Vector2(-1110, -619)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_rimshot"]
 script = ExtResource("gs")
@@ -110,6 +116,7 @@ scene = ExtResource("sc_rimshot")
 map_position = Vector2(-863, -571)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_frontier")
 
 [sub_resource type="Resource" id="sys_lalande_21185"]
 script = ExtResource("gs")
@@ -117,6 +124,7 @@ scene = ExtResource("sc_lalande_21185")
 map_position = Vector2(-926, -497)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_agate"]
 script = ExtResource("gs")
@@ -138,6 +146,7 @@ scene = ExtResource("sc_kerella")
 map_position = Vector2(-741, -372)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_sirius"]
 script = ExtResource("gs")
@@ -145,6 +154,7 @@ scene = ExtResource("sc_sirius")
 map_position = Vector2(-494, -437)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_glimmer"]
 script = ExtResource("gs")
@@ -152,6 +162,7 @@ scene = ExtResource("sc_glimmer")
 map_position = Vector2(-372, -498)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_ngc_1776"]
 script = ExtResource("gs")
@@ -166,6 +177,7 @@ scene = ExtResource("sc_codehaven")
 map_position = Vector2(-494, -619)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_homeland"]
 script = ExtResource("gs")
@@ -173,6 +185,7 @@ scene = ExtResource("sc_homeland")
 map_position = Vector2(-224, -372)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_journey_s_end"]
 script = ExtResource("gs")
@@ -180,6 +193,7 @@ scene = ExtResource("sc_journey_s_end")
 map_position = Vector2(-616, -251)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_procyon"]
 script = ExtResource("gs")
@@ -187,6 +201,7 @@ scene = ExtResource("sc_procyon")
 map_position = Vector2(-738, -125)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_sibko"]
 script = ExtResource("gs")
@@ -194,6 +209,7 @@ scene = ExtResource("sc_sibko")
 map_position = Vector2(-913, -77)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_rigel"]
 script = ExtResource("gs")
@@ -201,6 +217,7 @@ scene = ExtResource("sc_rigel")
 map_position = Vector2(-653, -1)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_trishka"]
 script = ExtResource("gs")
@@ -208,6 +225,7 @@ scene = ExtResource("sc_trishka")
 map_position = Vector2(-863, 72)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_avalon"]
 script = ExtResource("gs")
@@ -215,6 +233,7 @@ scene = ExtResource("sc_avalon")
 map_position = Vector2(-616, 72)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_metter"]
 script = ExtResource("gs")
@@ -243,6 +262,7 @@ scene = ExtResource("sc_outpost_819")
 map_position = Vector2(-296, -199)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_spc_034"]
 script = ExtResource("gs")
@@ -250,6 +270,7 @@ scene = ExtResource("sc_spc_034")
 map_position = Vector2(-1108, -220)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_spc_1367"]
 script = ExtResource("gs")
@@ -271,6 +292,7 @@ scene = ExtResource("sc_bloodstone")
 map_position = Vector2(182, -589)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_military_output")
 
 [sub_resource type="Resource" id="sys_porto_rillia"]
 script = ExtResource("gs")
@@ -278,6 +300,7 @@ scene = ExtResource("sc_porto_rillia")
 map_position = Vector2(244, -556)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_pollux"]
 script = ExtResource("gs")
@@ -306,6 +329,7 @@ scene = ExtResource("sc_nesre_primus")
 map_position = Vector2(182, -435)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_eeniar"]
 script = ExtResource("gs")
@@ -313,6 +337,7 @@ scene = ExtResource("sc_eeniar")
 map_position = Vector2(393, -435)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_frontier")
 
 [sub_resource type="Resource" id="sys_aral"]
 script = ExtResource("gs")
@@ -320,6 +345,7 @@ scene = ExtResource("sc_aral")
 map_position = Vector2(268, -372)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_rautherion"]
 script = ExtResource("gs")
@@ -327,6 +353,7 @@ scene = ExtResource("sc_rautherion")
 map_position = Vector2(365, -372)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_lesten"]
 script = ExtResource("gs")
@@ -334,6 +361,7 @@ scene = ExtResource("sc_lesten")
 map_position = Vector2(182, -313)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_barnards_star"]
 script = ExtResource("gs")
@@ -341,6 +369,7 @@ scene = ExtResource("sc_barnards_star")
 map_position = Vector2(-100, -300)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_alpha_centauri"]
 script = ExtResource("gs")
@@ -348,6 +377,7 @@ scene = ExtResource("sc_alpha_centauri")
 map_position = Vector2(-174, -268)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_arcturus"]
 script = ExtResource("gs")
@@ -369,6 +399,7 @@ scene = ExtResource("sc_galvan")
 map_position = Vector2(614, -282)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_frontier")
 
 [sub_resource type="Resource" id="sys_altair"]
 script = ExtResource("gs")
@@ -376,6 +407,7 @@ scene = ExtResource("sc_altair")
 map_position = Vector2(798, -313)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_tenetria"]
 script = ExtResource("gs")
@@ -418,6 +450,7 @@ scene = ExtResource("sc_kania")
 map_position = Vector2(988, -123)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_kon"]
 script = ExtResource("gs")
@@ -425,6 +458,7 @@ scene = ExtResource("sc_kon")
 map_position = Vector2(740, -123)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_naka"]
 script = ExtResource("gs")
@@ -439,6 +473,7 @@ scene = ExtResource("sc_gefjon")
 map_position = Vector2(247, -123)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_wolf_359"]
 script = ExtResource("gs")
@@ -453,6 +488,7 @@ scene = ExtResource("sc_hannaford")
 map_position = Vector2(0, -86)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_lotus"]
 script = ExtResource("gs")
@@ -460,6 +496,7 @@ scene = ExtResource("sc_lotus")
 map_position = Vector2(-122, -126)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_archenar"]
 script = ExtResource("gs")
@@ -474,6 +511,7 @@ scene = ExtResource("sc_sol")
 map_position = Vector2(0, 0)
 start_discovered = true
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_spc_1927"]
 script = ExtResource("gs")
@@ -488,6 +526,7 @@ scene = ExtResource("sc_murasaki")
 map_position = Vector2(494, 62)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_fomalhaut"]
 script = ExtResource("gs")
@@ -544,6 +583,7 @@ scene = ExtResource("sc_koria")
 map_position = Vector2(577, -774)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_frontier")
 
 [sub_resource type="Resource" id="sys_sanddown"]
 script = ExtResource("gs")
@@ -551,6 +591,7 @@ scene = ExtResource("sc_sanddown")
 map_position = Vector2(-122, 98)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_xante"]
 script = ExtResource("gs")
@@ -579,6 +620,7 @@ scene = ExtResource("sc_moonrise")
 map_position = Vector2(-395, 269)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_nesre_secundus"]
 script = ExtResource("gs")
@@ -600,6 +642,7 @@ scene = ExtResource("sc_nadir")
 map_position = Vector2(-590, 521)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_frontier")
 
 [sub_resource type="Resource" id="sys_enlightenment"]
 script = ExtResource("gs")
@@ -607,6 +650,7 @@ scene = ExtResource("sc_enlightenment")
 map_position = Vector2(-248, 246)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_horizon"]
 script = ExtResource("gs")
@@ -614,6 +658,7 @@ scene = ExtResource("sc_horizon")
 map_position = Vector2(-248, 430)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_jenner"]
 script = ExtResource("gs")
@@ -628,6 +673,7 @@ scene = ExtResource("sc_tau_ceti")
 map_position = Vector2(-62, 183)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_mcmurdo"]
 script = ExtResource("gs")
@@ -642,6 +688,7 @@ scene = ExtResource("sc_fire")
 map_position = Vector2(368, 183)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_merrynne"]
 script = ExtResource("gs")
@@ -649,6 +696,7 @@ scene = ExtResource("sc_merrynne")
 map_position = Vector2(75, 220)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_military_output")
 
 [sub_resource type="Resource" id="sys_vega"]
 script = ExtResource("gs")
@@ -656,6 +704,7 @@ scene = ExtResource("sc_vega")
 map_position = Vector2(309, 244)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_economic_centre")
 
 [sub_resource type="Resource" id="sys_ngc_1170"]
 script = ExtResource("gs")
@@ -677,6 +726,7 @@ scene = ExtResource("sc_epsilon_eridani")
 map_position = Vector2(309, 430)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_military_centre")
 
 [sub_resource type="Resource" id="sys_obatta"]
 script = ExtResource("gs")
@@ -698,6 +748,7 @@ scene = ExtResource("sc_spc_050")
 map_position = Vector2(729, 480)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_gateway"]
 script = ExtResource("gs")
@@ -705,6 +756,7 @@ scene = ExtResource("sc_gateway")
 map_position = Vector2(62, 615)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_vemap"]
 script = ExtResource("gs")
@@ -712,6 +764,7 @@ scene = ExtResource("sc_vemap")
 map_position = Vector2(293, 690)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_heraan_cov"]
 script = ExtResource("gs")
@@ -719,6 +772,7 @@ scene = ExtResource("sc_heraan_cov")
 map_position = Vector2(160, 813)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_neirt"]
 script = ExtResource("gs")
@@ -733,6 +787,7 @@ scene = ExtResource("sc_unin")
 map_position = Vector2(883, 435)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_military_output")
 
 [sub_resource type="Resource" id="sys_wittor"]
 script = ExtResource("gs")
@@ -740,6 +795,7 @@ scene = ExtResource("sc_wittor")
 map_position = Vector2(751, 701)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="link_lalande_21185_narcissus"]
 script = ExtResource("sl")

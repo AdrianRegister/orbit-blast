@@ -31,6 +31,9 @@
 [ext_resource type="Script" path="res://scripts/reputation/reputation_manager.gd" id="29"]
 [ext_resource type="PackedScene" path="res://scenes/ui/top_bar.tscn" id="30"]
 [ext_resource type="PackedScene" path="res://scenes/ui/faction_screen.tscn" id="31"]
+[ext_resource type="Script" path="res://scripts/time/game_clock.gd" id="32"]
+[ext_resource type="Script" path="res://scripts/economy/infrastructure_manager.gd" id="33"]
+[ext_resource type="Script" path="res://scripts/galaxy/zone_manager.gd" id="34"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
@@ -62,8 +65,17 @@ script = ExtResource("18")
 [node name="Travel" type="Node" parent="."]
 script = ExtResource("22")
 
+[node name="Clock" type="Node" parent="."]
+script = ExtResource("32")
+
+[node name="Infrastructure" type="Node" parent="."]
+script = ExtResource("33")
+
 [node name="Territory" type="Node" parent="."]
 script = ExtResource("28")
+
+[node name="Zones" type="Node" parent="."]
+script = ExtResource("34")
 
 [node name="Reputation" type="Node" parent="."]
 script = ExtResource("29")

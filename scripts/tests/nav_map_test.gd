@@ -25,7 +25,7 @@ func _init() -> void:
 	ship.global_position = Vector2.ZERO
 	var kinds := _count_kinds(map)
 	_check(kinds.get(NavMap.KIND_PLANET, 0) == 2, "two planets are shown (Earth, Mars)")
-	_check(kinds.get(NavMap.KIND_STATION, 0) == 1, "one station is shown (Victory I)")
+	_check(kinds.get(NavMap.KIND_STATION, 0) >= 1, "a station is shown (Victory I; Sol has more stations now)")
 	_check(kinds.get(NavMap.KIND_UNINHABITED, 0) == 0, "no uninhabited bodies in Sol")
 	var npc_count := system.get_ships_root().get_child_count()
 	_check(kinds.get(NavMap.KIND_SHIP, 0) > 0 and kinds.get(NavMap.KIND_SHIP, 0) <= npc_count, "NPC ships are shown as dots (%d of %d)" % [kinds.get(NavMap.KIND_SHIP, 0), npc_count])

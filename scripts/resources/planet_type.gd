@@ -13,5 +13,9 @@ extends Resource
 ## planet's own data has no `picture` set.
 @export var settlement_picture: Texture2D
 
+## The economy of an inhabited planet of this type, unless the planet names its
+## own profile. Null for types nobody lives on (gas giants).
+@export var economy_profile: EconomyProfile
+
 ## True for moons. A system may only contain a moon if it also has a planet.
 @export var is_moon: bool = false

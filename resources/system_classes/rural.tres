@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SystemClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rural"
+display_name = "Rural System"
+description = "Small agricultural, mining or industrial settlements with low populations and little economic activity."
+military_value_multiplier = 0.75
+max_objects = 3
+settlements_min = 1
+settlements_max = 2
+stations_min = 0
+stations_max = 0
+population_scale = 0.6

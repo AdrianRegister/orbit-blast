@@ -162,7 +162,7 @@ Static data is stored in custom `Resource` classes that also form a hierarchy:
 Resource
  ├── TargetDetails           get_rows(), is_dockable()   (what the HUD shows)
  │    └── InhabitedData      display_name, faction_name, population,
- │         │                 exported_goods, imported_goods, market, picture,
+ │         │                 economy_profile, exported_goods, imported_goods, picture,
  │         │                 size, docking_range, get_picture(), validate()
  │         └── PlanetData    + planet_type
  ├── PlanetType              display_name, texture, settlement_picture
@@ -177,7 +177,7 @@ Key points:
 - `PlanetType` is a separate resource shared by many planets. Choosing the type picks the sprite *and* the default settlement-screen background (`settlement_picture`). Later it can also hold shared trade modifiers.
 - Setters on `InhabitedData` fields call `emit_changed()`, which makes the HUD refresh if data changes at runtime.
 - `faction_name` is currently a plain string until factions exist. `exported_goods` and `imported_goods` are arrays of `Commodity` resources (see [economy.md](economy.md)). A commodity must not appear in both.
-- `market` is an optional `MarketData`. Without one, the location has no trading floor.
+- A location with people gets a market automatically; there is no market file. What it makes and uses follows from `population`, its `planet_type` (or `economy_profile`) and optional specialties (`exported_goods` / `imported_goods`). See [economy.md](economy.md).
 
 ### Data files
 
@@ -221,9 +221,9 @@ Example: add **Venus** to the Sol system.
 | `display_name` | `Venus` | **Required** |
 | `faction` | `resources/factions/federation.tres` | A **Faction** resource (see `resources/factions/`); empty = nobody owns it |
 | `population` | `250000` | |
-| `exported_goods` | `[electronics.tres]` | `Commodity` resources; must not overlap imports |
-| `imported_goods` | `[fuel.tres]` | |
-| `market` | `resources/markets/venus_market.tres` | optional; see [economy.md](economy.md). No market = Trading Floor button disabled |
+| `economy_profile` | *(optional)* | overrides the economy the planet type gives; see [economy.md](economy.md) |
+| `exported_goods` | `[electronics.tres]` | optional specialties (`Commodity` resources); must not overlap imports |
+| `imported_goods` | `[fuel.tres]` | optional specialties. With population above 0 the location has a market and the Trading Floor button is enabled |
 | `size` | `380` | planet diameter in world pixels |
 | `docking_range` | `0` | `0` = automatic (edge of selection box) |
 | `picture` | *(optional)* | settlement screen image for this planet only; empty uses the planet type's `settlement_picture` |
@@ -238,7 +238,6 @@ Or write the file by hand, following the existing format:
 [ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
 [ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
 [ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
-[ext_resource type="Resource" path="res://resources/markets/venus_market.tres" id="market"]
 
 [resource]
 script = ExtResource("1")
@@ -248,7 +247,6 @@ faction = ExtResource("faction_1")
 population = 250000
 exported_goods = Array[ExtResource("cs")]([ExtResource("c_electronics")])
 imported_goods = Array[ExtResource("cs")]([ExtResource("c_fuel")])
-market = ExtResource("market")
 size = 380.0
 ```
 

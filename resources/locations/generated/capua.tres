@@ -3,12 +3,6 @@
 [ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/planet_types/desert.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
-[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
-[ext_resource type="Resource" path="res://resources/commodities/rare_isotopes.tres" id="c_rare_isotopes"]
-[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
-[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
-[ext_resource type="Resource" path="res://resources/markets/generated/capua_market.tres" id="market"]
 [ext_resource type="Script" path="res://scripts/resources/upgrade_definition.gd" id="uds"]
 [ext_resource type="Resource" path="res://resources/upgrades/cargo_bay.tres" id="up_cargo_bay"]
 [ext_resource type="Resource" path="res://resources/upgrades/engine_1.tres" id="up_engine_1"]
@@ -20,8 +14,5 @@ display_name = "Capua"
 planet_type = ExtResource("2")
 faction = ExtResource("faction_1")
 population = 195500
-exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_rare_isotopes")])
-imported_goods = Array[ExtResource("cs")]([ExtResource("c_water"), ExtResource("c_food")])
 size = 560.0
-market = ExtResource("market")
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1")])

@@ -3,13 +3,6 @@
 [ext_resource type="Script" path="res://scripts/resources/planet_data.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/planet_types/rocky.tres" id="2"]
 [ext_resource type="Resource" path="res://resources/factions/federation.tres" id="faction_1"]
-[ext_resource type="Script" path="res://scripts/resources/commodity.gd" id="cs"]
-[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
-[ext_resource type="Resource" path="res://resources/commodities/rare_isotopes.tres" id="c_rare_isotopes"]
-[ext_resource type="Resource" path="res://resources/commodities/food.tres" id="c_food"]
-[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
-[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
-[ext_resource type="Resource" path="res://resources/markets/generated/ceres_market.tres" id="market"]
 
 [resource]
 script = ExtResource("1")
@@ -18,7 +11,4 @@ display_name = "Ceres"
 planet_type = ExtResource("2")
 faction = ExtResource("faction_1")
 population = 6500
-exported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_rare_isotopes")])
-imported_goods = Array[ExtResource("cs")]([ExtResource("c_food"), ExtResource("c_water"), ExtResource("c_machinery")])
 size = 425.0
-market = ExtResource("market")

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SystemClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/economy/profiles/arsenal.tres" id="profile"]
+
+[resource]
+script = ExtResource("1")
+id = &"military_output"
+display_name = "Military Output"
+description = "A system that exists to produce arms, often a single heavily fortified station."
+military_value_multiplier = 1.5
+max_objects = 3
+settlements_min = 1
+settlements_max = 1
+stations_min = 1
+stations_max = 1
+population_scale = 0.3
+station_profile = ExtResource("profile")

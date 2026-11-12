@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SystemClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/system_classes/critical.tres" id="parent"]
+[ext_resource type="Resource" path="res://resources/economy/profiles/military.tres" id="profile"]
+
+[resource]
+script = ExtResource("1")
+id = &"military_centre"
+display_name = "Military Centre"
+description = "A critical system built for war: fortified settlements, several military stations and a large garrison, usually a chokepoint towards another faction."
+parent = ExtResource("parent")
+military_value_multiplier = 2.0
+max_objects = 6
+settlements_min = 3
+settlements_max = 3
+stations_min = 2
+stations_max = 3
+population_scale = 1.0
+station_profile = ExtResource("profile")

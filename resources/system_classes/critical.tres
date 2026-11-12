@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SystemClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"critical"
+display_name = "Critical System"
+description = "A key part of a faction's economy: several planets or moons and one or more stations, a large population, heavy defences, and a major objective in any war."
+centre_of_power = true
+military_value_multiplier = 1.5
+max_objects = 6
+settlements_min = 2
+settlements_max = 3
+stations_min = 1
+stations_max = 3
+population_scale = 1.5

@@ -19,13 +19,20 @@ extends Node2D
 ## 0.1 to 0.3. 0 means no traffic at all.
 @export_range(0.0, 4.0, 0.05) var traffic_rate: float = 1.0
 
-## Most objects (planets, moons, stations) a system may contain.
+## Most objects (planets, moons, stations) an ordinary system may contain. A
+## system class may allow more (SystemClass.max_objects), never more than
+## ABSOLUTE_MAX_OBJECTS.
 const MAX_OBJECTS := 3
+const ABSOLUTE_MAX_OBJECTS := 6
 
 ## Callable(InhabitedData) -> String: the name of the faction that owns a
 ## location now. Main sets it to the TerritoryManager; without one a location
 ## reports its starting owner.
 var _owner_lookup: Callable = func(data: InhabitedData) -> String: return data.get_faction_name()
+
+## Callable(InhabitedData) -> Array of [caption, value] rows added to what the HUD
+## shows for a location (see Targetable.extra_rows_lookup). Main sets it.
+var _extra_rows_lookup: Callable
 
 @onready var _objects: Node2D = $Objects
 @onready var _ships: Node2D = $Ships
@@ -43,6 +50,18 @@ func set_owner_lookup(lookup: Callable) -> void:
 
 func get_owner_lookup() -> Callable:
 	return _owner_lookup
+
+
+## Gives the locations of the system extra rows to show (see above).
+func set_extra_rows_lookup(lookup: Callable) -> void:
+	_extra_rows_lookup = lookup
+	if is_node_ready():
+		for node in get_inhabited_nodes():
+			node.set_extra_rows_lookup(lookup)
+
+
+func get_extra_rows_lookup() -> Callable:
+	return _extra_rows_lookup
 
 
 ## The name of the faction that owns a location of this system now.
@@ -93,8 +112,9 @@ func restart_traffic(player: Node2D) -> void:
 
 ## Human-readable problems with this system; empty when it is sound. Works on a
 ## system that is not in the tree. Rules: at least one planet, at most
-## MAX_OBJECTS objects, and a moon only together with a planet.
-func validate() -> Array[String]:
+## `max_objects` objects (MAX_OBJECTS unless the system's class allows more), and a
+## moon only together with a planet.
+func validate(max_objects: int = MAX_OBJECTS) -> Array[String]:
 	var problems: Array[String] = []
 	if system_id == &"":
 		problems.append("system_id is empty")
@@ -119,6 +139,7 @@ func validate() -> Array[String]:
 		problems.append("a system needs at least one planet")
 	if moons > 0 and planets == 0:
 		problems.append("a moon needs a planet in the same system")
-	if count > MAX_OBJECTS:
-		problems.append("a system may hold at most %d objects (has %d)" % [MAX_OBJECTS, count])
+	var limit := mini(max_objects, ABSOLUTE_MAX_OBJECTS)
+	if count > limit:
+		problems.append("a system may hold at most %d objects (has %d)" % [limit, count])
 	return problems

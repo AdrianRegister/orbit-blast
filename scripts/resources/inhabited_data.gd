@@ -27,21 +27,29 @@ extends TargetDetails
 		population = value
 		emit_changed()
 
-## Commodities this location produces. Must not overlap imported_goods.
+## Overrides the economy this location would get from its planet type (or, for a
+## station, the default station economy). Leave empty to use the default.
+@export var economy_profile: EconomyProfile
+
+## Specialties: commodities this location is especially known for making. They
+## add to what its population and profile give (see EconomyModel); the goods
+## shown as exports on screen are worked out, not read from here.
+## Must not overlap imported_goods.
 @export var exported_goods: Array[Commodity] = []:
 	set(value):
 		exported_goods = value
 		emit_changed()
 
-## Commodities this location wants. Must not overlap exported_goods.
+## Specialties: commodities this location is especially short of. Must not
+## overlap exported_goods.
 @export var imported_goods: Array[Commodity] = []:
 	set(value):
 		imported_goods = value
 		emit_changed()
 
-## Optional market. Without one, the location has no trading floor.
-## Prices and stock are derived from this and the goods lists above.
-@export var market: MarketData
+## Extra military value for a place built for war, on top of what its economy profile
+## and size give: a fortress, a major shipbuilding hub (see MilitaryValueRules).
+@export var military_value_bonus: float = 0.0
 
 ## Ship models this location's shipyard sells. Empty = no shipyard.
 @export var shipyard_ships: Array[ShipStats] = []
@@ -80,12 +88,19 @@ func faction_id() -> StringName:
 	return faction.id if faction != null else &""
 
 
+## The economy this location gets by default: its own profile if it names one.
+## Subclasses add a fallback (a planet's type). Null = the default station economy.
+func get_economy_profile() -> EconomyProfile:
+	return economy_profile
+
+
 func get_rows() -> Array:
+	var economy := EconomyModel.shared().of(self)
 	return [
 		["OWNED BY", get_faction_name()],
 		["POPULATION", _format_number(population)],
-		["EXPORTS", _join_goods(exported_goods)],
-		["IMPORTS", _join_goods(imported_goods)],
+		["EXPORTS", _join_goods(economy.exports())],
+		["IMPORTS", _join_goods(economy.imports())],
 	]
 
 
@@ -107,8 +122,6 @@ func validate() -> Array[String]:
 		problems.append("display_name is empty")
 	for good in get_conflicting_goods():
 		problems.append("'%s' is both imported and exported" % good.display_name)
-	if market != null:
-		problems.append_array(market.validate())
 	for ship in shipyard_ships:
 		if ship == null:
 			problems.append("shipyard_ships has an empty entry")
@@ -125,7 +138,7 @@ func _has_good(goods: Array[Commodity], good: Commodity) -> bool:
 	return false
 
 
-func _join_goods(goods: Array[Commodity]) -> String:
+func _join_goods(goods: Array) -> String:
 	var names := PackedStringArray()
 	for good in goods:
 		if good != null:

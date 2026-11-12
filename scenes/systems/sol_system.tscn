@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://resources/locations/earth.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/locations/mars.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/locations/victory_i.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/locations/aegis_station.tres" id="loc_aegis"]
 
 [node name="SolSystem" instance=ExtResource("1")]
 system_id = &"sol"
@@ -22,3 +23,7 @@ data = ExtResource("5")
 [node name="VictoryI" parent="Objects" index="2" instance=ExtResource("3")]
 position = Vector2(600, 350)
 data = ExtResource("6")
+
+[node name="AegisStation" parent="Objects" index="3" instance=ExtResource("3")]
+position = Vector2(-300, 1100)
+data = ExtResource("loc_aegis")

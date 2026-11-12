@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="EconomyConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/economy_config.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/economy/profiles/commercial.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+station_profile = ExtResource("2")

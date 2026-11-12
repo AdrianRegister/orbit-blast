@@ -70,10 +70,10 @@ func _check_generation_rules() -> void:
 	_check(rules.ferry_max_passengers <= 3 and rules.ferry_max_jumps <= 3, "ferry limits are at most 3 passengers and 3 jumps")
 	var passengers := _registry.commodity(&"passengers")
 	_check(passengers != null and passengers.base_price == 0, "the passengers commodity exists and is not for sale")
+	var model := EconomyModel.shared()
 	for location in _registry.locations():
-		if location.market != null:
-			for listing in location.market.listings:
-				_check(listing.commodity.id != &"passengers", "%s does not trade passengers" % location.display_name)
+		for good in model.of(location).goods():
+			_check(good.id != &"passengers", "%s does not trade passengers" % location.display_name)
 
 
 # ---------------------------------------------------------------- generator

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="EconomyProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/economy_profile.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/economy_profile_good.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/commodities/luxury_goods.tres" id="c_luxury_goods"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+[ext_resource type="Resource" path="res://resources/commodities/medical_supplies.tres" id="c_medical_supplies"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+
+[sub_resource type="Resource" id="good_0"]
+script = ExtResource("2")
+commodity = ExtResource("c_luxury_goods")
+production = 40.0
+
+[sub_resource type="Resource" id="good_1"]
+script = ExtResource("2")
+commodity = ExtResource("c_electronics")
+industrial_demand = 10.0
+
+[sub_resource type="Resource" id="good_2"]
+script = ExtResource("2")
+commodity = ExtResource("c_medical_supplies")
+industrial_demand = 10.0
+
+[sub_resource type="Resource" id="good_3"]
+script = ExtResource("2")
+commodity = ExtResource("c_fuel")
+industrial_demand = 5.0
+
+[resource]
+script = ExtResource("1")
+id = &"resort"
+display_name = "Resort"
+goods = Array[ExtResource("2")]([SubResource("good_0"), SubResource("good_1"), SubResource("good_2"), SubResource("good_3")])
+military_value = 1.0

@@ -8,3 +8,4 @@ id = &"medical_supplies"
 display_name = "Medical Supplies"
 description = "Vaccines, surgical kits and the unglamorous things that keep colonies alive."
 base_price = 180
+civilian_demand = 8.0

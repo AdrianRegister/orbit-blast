@@ -202,6 +202,9 @@ func _init() -> void:
 		entry.scene = scene
 		galaxy.systems.append(entry)
 	galaxy.systems[1].map_position = Vector2(100, 0)
+	# Sol is the Federation's capital, so it needs a class that can be a centre of power.
+	# (An economic centre would need more links than this made up galaxy has.)
+	galaxy.systems[0].system_class = load("res://resources/system_classes/critical.tres")
 	var link := SystemLink.new()
 	link.a = &"sol"
 	link.b = &"quiet"
@@ -268,7 +271,7 @@ func _dock(place: String) -> void:
 
 
 func _make_second_system() -> PackedScene:
-	var system: StarSystem = load("res://scenes/systems/sol_system.tscn").instantiate()  # a valid system (it needs a planet)
+	var system: StarSystem = load("res://scenes/systems/tau_ceti_system.tscn").instantiate()  # a valid system (it needs a planet)
 	system.system_id = &"quiet"
 	system.system_name = "Quiet"
 	var packed := PackedScene.new()

@@ -8,3 +8,4 @@ id = &"food"
 display_name = "Food"
 description = "Staple provisions for settlements and crews."
 base_price = 50
+civilian_demand = 40.0

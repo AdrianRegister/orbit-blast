@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="EconomyProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/economy_profile.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/economy_profile_good.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/commodities/water.tres" id="c_water"]
+[ext_resource type="Resource" path="res://resources/commodities/fuel.tres" id="c_fuel"]
+[ext_resource type="Resource" path="res://resources/commodities/ore.tres" id="c_ore"]
+[ext_resource type="Resource" path="res://resources/commodities/machinery.tres" id="c_machinery"]
+[ext_resource type="Resource" path="res://resources/commodities/electronics.tres" id="c_electronics"]
+
+[sub_resource type="Resource" id="good_0"]
+script = ExtResource("2")
+commodity = ExtResource("c_water")
+production = 70.0
+
+[sub_resource type="Resource" id="good_1"]
+script = ExtResource("2")
+commodity = ExtResource("c_fuel")
+production = 120.0
+
+[sub_resource type="Resource" id="good_2"]
+script = ExtResource("2")
+commodity = ExtResource("c_ore")
+production = 40.0
+
+[sub_resource type="Resource" id="good_3"]
+script = ExtResource("2")
+commodity = ExtResource("c_machinery")
+industrial_demand = 6.0
+
+[sub_resource type="Resource" id="good_4"]
+script = ExtResource("2")
+commodity = ExtResource("c_electronics")
+industrial_demand = 3.0
+
+[resource]
+script = ExtResource("1")
+id = &"frontier"
+display_name = "Frontier"
+goods = Array[ExtResource("2")]([SubResource("good_0"), SubResource("good_1"), SubResource("good_2"), SubResource("good_3"), SubResource("good_4")])
+military_value = 4.0

@@ -12,3 +12,4 @@ description = "The core government of the known galaxy: a union of worlds bound 
 political_identity = "A broadly republican union. Member worlds govern themselves and send delegates to a shared assembly, and what holds the Federation together is common trade and common military interests rather than loyalty to any one world or leader."
 background = "The Federation is a complex political entity. Its member worlds, trading houses and military commands each pursue their own ends, and its internal politics are tangled and sometimes dangerous: alliances shift, favours are called in, and those who misjudge them rarely get a second chance."
 military_strength = 1000
+capital_system = &"sol"

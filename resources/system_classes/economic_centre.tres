@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="SystemClass" format=3]
+
+[ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/system_classes/critical.tres" id="parent"]
+
+[resource]
+script = ExtResource("1")
+id = &"economic_centre"
+display_name = "Economic Centre"
+description = "A critical system built on trade, industry and population. Transit through its many jump links made it rich."
+parent = ExtResource("parent")
+min_links = 4
+military_value_multiplier = 1.5
+max_objects = 6
+settlements_min = 3
+settlements_max = 3
+stations_min = 1
+stations_max = 2
+population_scale = 2.0

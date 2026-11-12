@@ -19,12 +19,19 @@ func _ready() -> void:
 	var system := get_parent().get_parent() as StarSystem if get_parent() != null else null
 	if system != null:
 		set_owner_lookup(system.get_owner_lookup())
+		set_extra_rows_lookup(system.get_extra_rows_lookup())
 
 
 ## Lets the HUD show who owns this location now rather than its starting owner.
 func set_owner_lookup(lookup: Callable) -> void:
 	if is_node_ready():
 		_targetable.owner_name_lookup = lookup
+
+
+## Lets the HUD show extra rows for this location (see Targetable.extra_rows_lookup).
+func set_extra_rows_lookup(lookup: Callable) -> void:
+	if is_node_ready():
+		_targetable.extra_rows_lookup = lookup
 
 
 func _get_object_name() -> String:

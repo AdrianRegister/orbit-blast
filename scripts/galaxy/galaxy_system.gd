@@ -16,3 +16,12 @@ extends Resource
 ## TerritoryManager); it only decides the system when it has no settlements, and
 ## is the default owner for the settlements generated in it. Null = unclaimed.
 @export var claim: Faction
+## What kind of system this is (critical, rural, ...), or null for an ordinary
+## unclassified one. Set with the "class" field of the system's row in
+## data/galaxy/galaxy_map.json; never changes while playing.
+@export var system_class: SystemClass
+
+
+## Most objects this system may hold: its class's limit, or the ordinary one.
+func object_limit() -> int:
+	return system_class.max_objects if system_class != null else StarSystem.MAX_OBJECTS

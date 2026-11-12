@@ -44,7 +44,7 @@ func open(target: Targetable) -> void:
 	var inhabited := target.details as InhabitedData
 	var picture: Texture2D = inhabited.get_picture() if inhabited != null else null
 	_picture.texture = picture if picture != null else default_picture
-	_trading_button.disabled = inhabited == null or inhabited.market == null
+	_trading_button.disabled = inhabited == null or inhabited.population <= 0  # a market exists wherever people live
 	# Main enables these once it knows there is something to show.
 	_mission_button.disabled = true
 	_shipyard_button.disabled = true

@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" path="res://scenes/objects/planet.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/objects/space_station.tscn" id="3"]
 [ext_resource type="Resource" path="res://resources/locations/generated/electra.tres" id="loc_0"]
+[ext_resource type="Resource" path="res://resources/locations/tarn.tres" id="loc_tarn"]
+[ext_resource type="Resource" path="res://resources/locations/kerella_junction.tres" id="loc_junction"]
 
 [node name="KerellaSystem" instance=ExtResource("1")]
 system_id = &"kerella"
@@ -12,3 +14,11 @@ system_name = "Kerella"
 [node name="Electra" parent="Objects" index="0" instance=ExtResource("2")]
 position = Vector2(-927, 535)
 data = ExtResource("loc_0")
+
+[node name="Tarn" parent="Objects" index="1" instance=ExtResource("2")]
+position = Vector2(950, -500)
+data = ExtResource("loc_tarn")
+
+[node name="KerellaJunction" parent="Objects" index="2" instance=ExtResource("3")]
+position = Vector2(500, 900)
+data = ExtResource("loc_junction")

@@ -14,6 +14,9 @@ var registry: ContentRegistry
 var territory: TerritoryManager
 ## The player's reputation with each faction (for contracts that need some).
 var reputation: ReputationManager
+## What each settlement makes and uses (decides which goods a place offers to
+## deliver and which it wants).
+var economy: EconomyModel = EconomyModel.shared()
 var rewards: ContractRewards = ContractRewards.new()
 ## The biggest cargo hold any ship model has; offers asking for more than this
 ## are not achievable and are skipped. 0 = do not check.

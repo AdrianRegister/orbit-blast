@@ -6,6 +6,8 @@
 [ext_resource type="Resource" path="res://resources/locations/elysium.tres" id="loc_elysium"]
 [ext_resource type="Resource" path="res://resources/locations/lethe.tres" id="loc_lethe"]
 [ext_resource type="Resource" path="res://resources/locations/styx_platform.tres" id="loc_styx_platform"]
+[ext_resource type="Resource" path="res://resources/locations/bastion_station.tres" id="loc_bastion"]
+[ext_resource type="Resource" path="res://resources/locations/citadel_platform.tres" id="loc_citadel"]
 
 [node name="EpsilonEridaniSystem" instance=ExtResource("1")]
 system_id = &"epsilon_eridani"
@@ -22,3 +24,11 @@ data = ExtResource("loc_lethe")
 [node name="StyxPlatform" parent="Objects" index="2" instance=ExtResource("3")]
 position = Vector2(1500, 300)
 data = ExtResource("loc_styx_platform")
+
+[node name="BastionStation" parent="Objects" index="3" instance=ExtResource("3")]
+position = Vector2(-1200, 450)
+data = ExtResource("loc_bastion")
+
+[node name="CitadelPlatform" parent="Objects" index="4" instance=ExtResource("3")]
+position = Vector2(500, 1100)
+data = ExtResource("loc_citadel")

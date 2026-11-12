@@ -4,8 +4,11 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/planets/Resort.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/settlements/arctic_city.png" id="3"]
 
+[ext_resource type="Resource" path="res://resources/economy/profiles/resort.tres" id="profile"]
+
 [resource]
 script = ExtResource("1")
 display_name = "Resort"
 texture = ExtResource("2")
 settlement_picture = ExtResource("3")
+economy_profile = ExtResource("profile")

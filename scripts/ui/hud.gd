@@ -99,6 +99,12 @@ func set_target(target: Targetable) -> void:
 	_refresh_target()
 
 
+## Rebuilds the target panel's rows (for values that change while the target stays
+## selected, such as damage).
+func refresh_target() -> void:
+	_refresh_target()
+
+
 ## Shows a red message inside the target panel for a few seconds.
 ## Ignored when nothing is targeted, since the panel is empty then.
 func show_target_message(text: String) -> void:

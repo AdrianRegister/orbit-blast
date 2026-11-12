@@ -26,3 +26,4 @@ imported_goods = Array[ExtResource("cs")]([ExtResource("c_ore"), ExtResource("c_
 size = 580.0
 shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_interceptor"), ExtResource("sy_light_frigate")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1")])
+military_value_bonus = 60.0

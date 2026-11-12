@@ -4,9 +4,12 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/planets/Moon.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/sprites/settlements/desert_city.png" id="3"]
 
+[ext_resource type="Resource" path="res://resources/economy/profiles/mining.tres" id="profile"]
+
 [resource]
 script = ExtResource("1")
 display_name = "Moon"
 texture = ExtResource("2")
 settlement_picture = ExtResource("3")
 is_moon = true
+economy_profile = ExtResource("profile")

@@ -8,7 +8,13 @@ extends CanvasLayer
 signal factions_requested
 
 @onready var _factions_button: Button = %FactionsButton
+@onready var _day_label: Label = %DayLabel
 
 
 func _ready() -> void:
 	_factions_button.pressed.connect(factions_requested.emit)
+
+
+## Shows the current calendar day at the far right of the bar.
+func set_day(day: int) -> void:
+	_day_label.text = "DAY %d" % day
