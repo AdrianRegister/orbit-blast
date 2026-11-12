@@ -74,7 +74,7 @@ func _init() -> void:
 
 	print("")
 	print("%d inhabited systems (of %d). Hops are measured from the faction capital over its own systems." % [rows.size(), galaxy.get_system_ids().size()])
-	print("%-18s %-16s %5s %4s %7s %5s %5s %5s %11s  %s" % ["ID", "NAME", "LINKS", "HOPS", "TRANSIT", "CHOKE", "SETTL", "STATN", "POPULATION", "SUGGESTED"])
+	print("%-18s %-16s %5s %4s %7s %5s %5s %5s %11s  %s" % ["ID", "NAME", "LINKS", "HOPS", "TRANSIT", "CHOKE", "SETTL", "STATN", "POP (REAL)", "SUGGESTED"])
 	for row in rows:
 		print("%-18s %-16s %5d %4s %6.0f%% %5s %5d %5d %11d  %s" % [row["id"], row["name"], row["links"],
 				str(row["hops"]) if row["hops"] >= 0 else "-", row["between"], "yes" if row["choke"] else "", row["settlements"],

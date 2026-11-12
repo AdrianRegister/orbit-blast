@@ -75,3 +75,4 @@ id = &"military"
 display_name = "Military"
 goods = Array[ExtResource("2")]([SubResource("good_0"), SubResource("good_1"), SubResource("good_2"), SubResource("good_3"), SubResource("good_4"), SubResource("good_5"), SubResource("good_6"), SubResource("good_7"), SubResource("good_8"), SubResource("good_9"), SubResource("good_10")])
 military_value = 25.0
+population_display_scale = 4.0

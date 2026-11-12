@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="PopulationDisplayRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/population_display_rules.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/population_scale_entry.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/system_classes/critical.tres" id="critical"]
+[ext_resource type="Resource" path="res://resources/system_classes/rural.tres" id="rural"]
+[ext_resource type="Resource" path="res://resources/system_classes/frontier.tres" id="frontier"]
+
+[sub_resource type="Resource" id="entry_critical"]
+script = ExtResource("2")
+system_class = ExtResource("critical")
+planet_scale = 40.0
+station_scale = 10.0
+
+[sub_resource type="Resource" id="entry_rural"]
+script = ExtResource("2")
+system_class = ExtResource("rural")
+planet_scale = 4.0
+station_scale = 8.0
+
+[sub_resource type="Resource" id="entry_frontier"]
+script = ExtResource("2")
+system_class = ExtResource("frontier")
+planet_scale = 0.5
+station_scale = 0.5
+
+[resource]
+script = ExtResource("1")
+entries = Array[ExtResource("2")]([SubResource("entry_critical"), SubResource("entry_rural"), SubResource("entry_frontier")])

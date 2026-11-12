@@ -10,3 +10,4 @@ display_name = "Kerella Junction"
 faction = ExtResource("faction_1")
 population = 250000
 size = 180.0
+population_display_scale = 2.0

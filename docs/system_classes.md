@@ -15,6 +15,7 @@ Contents
 9. [Current content](#9-current-content)
 10. [Tests and tools](#10-tests-and-tools)
 11. [For the war system](#11-for-the-war-system)
+12. [Displayed population](#12-displayed-population)
 
 ---
 
@@ -85,7 +86,7 @@ system    = sum over its inhabited locations * class.military_value_multiplier
 | Rule | Default |
 |---|---|
 | core: up to this many jumps from a centre | 1 |
-| inner: up to this many jumps | 3; beyond that, frontier |
+| inner: up to this many jumps | 2 in the game's rules file (the script default is 3); beyond that, frontier |
 | a centre with fewer links than this projects no core | 2 |
 | a system with at least this many links is promoted one zone toward the core | 4 (0 turns it off) |
 
@@ -127,11 +128,11 @@ See [save-system.md](save-system.md).
 
 ## 9. Current content
 
-- **Classes.** Economic centres: Sol, Nesre Primus, Sirius, Vega, Lalande 21185, Tau Ceti, Procyon, Kerella. Military centre: Alphara (`epsilon_eridani`). Military output: Merrynne, Bloodstone, Unin. Frontier: Nadir, Eeniar, Rimshot, Galvan, Koria. Rural: Journey's End, Sanddown and every other inhabited system with three or fewer links. Unclassified: Fomalhaut, Aldebaran, Archenar, Nesre Secundus, Tichel, Arcturus.
+- **Classes.** Economic centres: Sol, Nesre Primus, Sirius, Vega, Lalande 21185, Tau Ceti, Procyon, Kerella. Military centre: Alphara (`epsilon_eridani`). Military output: Merrynne, Bloodstone, Unin. Frontier: Nadir, Eeniar, Rimshot, Galvan, Koria. Rural: Journey's End, Sanddown, Arcturus (six links, but only two lead onward) and every other inhabited system with three or fewer links. Unclassified: Fomalhaut, Aldebaran, Archenar, Nesre Secundus, Tichel.
 - **Military stations** (profile `military`): Aegis Station (Sol), Bastion Station, Citadel Platform and Styx Platform (Alphara). Elysium and Lethe are fortified (`military_value_bonus`).
-- **Arsenals** (profile `arsenal`): Oceanus Station (Merrynne), Loki Platform (Bloodstone), Rhodes Platform (Unin). These systems and Kerella are `locked`: they were generated once and edited by hand.
+- **Arsenals** (profile `arsenal`): Oceanus Station (Merrynne), Loki Platform (Bloodstone), Rhodes Platform (Unin). These systems, Kerella and Lotus (for Narcissa Port's display scale) are `locked`: they were generated once and edited by hand.
 - **Kerella** grew into the hub its five links make it: Electra now holds 1.5M people, with a new planet (Tarn) and station (Kerella Junction).
-- **Zones today.** With the default rules and nine centres, the inhabited systems are 1 capital, 28 core, 27 inner and 1 frontier. Shortening `inner_max_hops` to 2 in `zone_rules.tres` makes Nadir, Galvan and Koria frontier (nine in all).
+- **Zones today.** With `inner_max_hops` 2 and nine centres, the inhabited systems are 1 capital, 28 core, 19 inner and 9 frontier. Nadir, Galvan and Koria are frontier; Eeniar is inner; Rimshot, Journey's End, Sanddown and Arcturus are core (each one jump from a centre). With `inner_max_hops` 3 they would be 27 inner and 1 frontier.
 
 **Locked systems and names.** The generator never rebuilds a locked system, but it keeps the names its locations hold taken (and the pool name behind a station name), because otherwise another system would pick one and its locations and ids would change.
 
@@ -151,3 +152,32 @@ See [save-system.md](save-system.md).
 | news | `ZoneManager.zones_changed`, `InfrastructureManager.damage_changed`, the territory signals |
 
 Not built: wars, campaigns, operations, blockades (stopping trade), fortification strength, defenders, and what a lost capital means politically.
+
+---
+
+## 12. Displayed population
+
+A location's `population` is its **economic weight**: markets, production, military value, importance and zones are all tuned around it (`reference_population` 1,000,000), so it is never rescaled to make the galaxy feel bigger. What the player *reads* is a separate, display-only figure: the real number times a scale, rounded to two significant figures and written in words. Earth keeps 8,500,000 in every calculation and reads **2.6 billion**. Nothing displayed is saved or fed back into anything.
+
+`PopulationDisplay` (`scripts/galaxy/population_display.gd`) works out the figure from `PopulationDisplayRules` (`resources/economy/population_display_rules.tres`). The scale comes from, in order:
+
+1. `InhabitedData.population_display_scale` on the location (Earth x300; Kerella Junction and Narcissa Port x2 to tame outliers);
+2. `EconomyProfile.population_display_scale` (military stations x4, arsenals x1.5);
+3. the entry for the system's class, planets and stations separately: critical (and its subtypes) planets x40, stations x10; rural planets x4, stations x8; frontier x0.5 for both;
+4. the defaults (planets x4, stations x8), for unclassified systems.
+
+A scale of 0 means "not set". Written as "2.6 billion", "320 million", "4.8 million", and full digits with commas below a million ("480,000").
+
+| Place | Reads |
+|---|---|
+| Earth | 2.6 billion |
+| Aries, Elysium, Persephone, Cernunnos | 320, 310, 200, 170 million |
+| Aurelia, Talos, Electra, Tarn | 96, 68, 60, 36 million |
+| a typical rural planet | 2 to 6 million (up to 14 million) |
+| frontier places | 69,000 to 960,000 |
+| Aegis, Bastion, Styx, Citadel | 320,000, 480,000, 360,000, 240,000 |
+| Rhodes, Loki, Oceanus (arsenals) | 900,000, 600,000, 380,000 |
+
+**Where it appears.** Only the POPULATION row of the target panel and the settlement screen. `Main._extra_target_rows` supplies it through the same lookup as the DAMAGE row; a lookup row now *replaces* a location row with the same caption, so the lookup's POPULATION replaces the raw one. `InhabitedData.get_rows()` itself still shows the real number (used by tests and tools). The dev tools print real populations.
+
+**To change how big a place reads:** change a class entry, a profile scale or one location's `population_display_scale`, never `population`. A new generated system gets sensible numbers from its class automatically. `scripts/tests/population_display_test.gd` checks the tiers (Earth in the billions, core planets tens to hundreds of millions, rural planets in the millions, frontier and military places below a million) against the real data.

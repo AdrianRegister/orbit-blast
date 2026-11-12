@@ -30,6 +30,9 @@ const ARRIVAL_SPEED := 120.0
 
 var player_data: PlayerData
 
+## Writes the population the player reads (a scaled figure) for the target panel.
+var _population_display: PopulationDisplay
+
 ## True from a new game starting until the player has named the first ship.
 var _naming_first_ship: bool = false
 
@@ -90,6 +93,7 @@ func _ready() -> void:
 	var assessor := SystemAssessor.new(galaxy, content, EconomyModel.shared(), military_rules,
 			_infrastructure.get_damage, _infrastructure.production_scale)
 	_zones.setup(galaxy, _territory, assessor, content, _clock)
+	_population_display = PopulationDisplay.new(galaxy, load("res://resources/economy/population_display_rules.tres"))
 	_reputation.setup(_territory)
 	_system.set_owner_lookup(_territory.owner_name_of)
 	_system.set_extra_rows_lookup(_extra_target_rows)
@@ -613,9 +617,12 @@ func _process(_delta: float) -> void:
 	_camera.offset.x = window_width * _hud.get_panel_width_fraction() * 0.5
 
 
-## Rows added to what the target panel shows for a location: how damaged it is.
-## Places nobody lives in have nothing to damage.
+## Rows added to (or replacing) what the target panel shows for a location: the
+## population as the player reads it (a scaled figure, see PopulationDisplayRules; the
+## economy keeps the real one) and how damaged the place is. Places nobody lives in
+## show neither.
 func _extra_target_rows(data: InhabitedData) -> Array:
 	if data == null or not data.is_dockable() or data.population <= 0:
 		return []
-	return [["DAMAGE", "%d%%" % _infrastructure.get_damage_percent(data.id)]]
+	return [["POPULATION", _population_display.text_for(data)],
+			["DAMAGE", "%d%%" % _infrastructure.get_damage_percent(data.id)]]

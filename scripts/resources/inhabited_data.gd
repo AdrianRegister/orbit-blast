@@ -22,10 +22,19 @@ extends TargetDetails
 		faction = value
 		emit_changed()
 
+## The people living here, as the economy sees them: its economic weight. Production,
+## markets, military value and importance are all tuned around it, so it is not changed
+## to make a place feel bigger. What the player reads is this times a display scale
+## (see PopulationDisplayRules).
 @export var population: int = 0:
 	set(value):
 		population = value
 		emit_changed()
+
+## Overrides how many times larger the population shown to the player is than
+## `population`, for this location only. 0 = use the economy profile's or the system
+## class's scale. (Earth, which holds billions.)
+@export var population_display_scale: float = 0.0
 
 ## Overrides the economy this location would get from its planet type (or, for a
 ## station, the default station economy). Leave empty to use the default.

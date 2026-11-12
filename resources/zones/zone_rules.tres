@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1")
+inner_max_hops = 2

@@ -519,6 +519,7 @@
 			"inhabited": true,
 			"id": "arcturus",
 			"faction": "faction_1",
+			"class": "rural",
 			"region": "federation_core",
 			"links": [
 				"gefjon",
@@ -726,6 +727,7 @@
 			"id": "lotus",
 			"faction": "faction_1",
 			"class": "rural",
+			"locked": true,
 			"region": "federation_core",
 			"links": [
 				"archenar",

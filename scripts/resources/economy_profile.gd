@@ -16,6 +16,10 @@ extends Resource
 ## MilitaryValueRules): a resort counts for little, a garrison or arsenal for a lot.
 ## Scaled by the settlement's size.
 @export var military_value: float = 0.0
+## How many times larger than its real population the population shown to the player
+## is for settlements with this profile (0 = use the system class's scale; see
+## PopulationDisplayRules). Garrisons and arsenals use it.
+@export var population_display_scale: float = 0.0
 
 
 ## Human-readable problems with this profile; empty when it is valid.
@@ -25,6 +29,8 @@ func validate() -> Array[String]:
 		problems.append("id is empty")
 	if military_value < 0.0:
 		problems.append("profile '%s' has a negative military_value" % id)
+	if population_display_scale < 0.0:
+		problems.append("profile '%s' has a negative population_display_scale" % id)
 	var seen := {}
 	for line in goods:
 		if line == null or line.commodity == null:

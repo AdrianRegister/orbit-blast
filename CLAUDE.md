@@ -7,9 +7,11 @@ trading and combat game inspired by Escape Velocity.
 
 ## Current Development Phase
 
-Phase 2.9 – Advanced economy
+Phase 3 – Combat and military gameplay (next; not started)
 
-Phases 2.2 to 2.8 are done (ships and upgrades, galaxy map and travel, expanded and procedural contracts, the EV Nova galaxy, settlement ownership and contested systems, factions and reputation). Each has a document in docs/ describing how it works; read the relevant one before changing that system.
+Phase 2 is complete. Phases 2.2 to 2.9 are done (ships and upgrades, galaxy map and travel, expanded and procedural contracts, the EV Nova galaxy, settlement ownership and contested systems, factions and reputation, the advanced economy). Each has a document in docs/ describing how it works; read the relevant one before changing that system.
+
+Phase 2.9 built the foundations the war system will use, without any war: the game clock (docs/game_clock.md), the derived economy with stock, prices and military goods (docs/economy.md), and system classes, zones and centres of power, damage to locations, military value and displayed population (docs/system_classes.md). Before designing combat or war features, read wars_system.md and docs/system_classes.md section 11 ("For the war system"), which lists where each foundation is read.
 
 ## Technology
 
@@ -46,6 +48,7 @@ Phases 2.2 to 2.8 are done (ships and upgrades, galaxy map and travel, expanded 
 - Save data is JSON in registered sections (scripts/save/). A section validates before it applies, is optional if older saves must still load, and refers to content by permanent id, never by name or path. Ids must never change once saves exist.
 - Compare factions, locations and systems by id. Faction, location and system names are for display only.
 - Who owns a settlement comes from TerritoryManager, and a system's control is derived from its settlements. Reputation comes from ReputationManager. Do not read `faction` fields directly for current ownership.
+- A location's `population` is its economic weight, tuned against the whole economy: never rescale it to make a place feel bigger. The population the player reads comes from PopulationDisplay (a scale by location, profile or system class, see docs/system_classes.md section 12).
 - Damage to planets and stations comes from InfrastructureManager and only lowers production; it recovers by itself and is never permanent. Military value comes from SystemAssessor. Neither reads reputation.
 - Contracts come from a ContractSource (procedural today). Tunable numbers live in resources (resources/contracts/), not in code. Civilian contracts never change reputation.
 

@@ -11,9 +11,16 @@ var _rules: ZoneRules
 
 
 func _init() -> void:
-	_rules = load("res://resources/zones/zone_rules.tres")
-	_check(_rules != null and _rules.validate().is_empty(), "the zone rules are valid")
-	_check(_rules.core_max_hops == 1 and _rules.inner_max_hops == 3, "setup: the default reach is core 1, inner 3 (the tests rely on it)")
+	# The made-up networks are drawn with explicit rules, so tuning the game's rules
+	# (resources/zones/zone_rules.tres) never changes what these tests expect.
+	_rules = ZoneRules.new()
+	_rules.core_max_hops = 1
+	_rules.inner_max_hops = 3
+	_rules.core_requires_links = 2
+	_rules.hub_promotion_links = 4
+	_check(_rules.validate().is_empty(), "the rules these tests use are valid")
+	var game_rules: ZoneRules = load("res://resources/zones/zone_rules.tres")
+	_check(game_rules != null and game_rules.validate().is_empty(), "the game's zone rules are valid")
 
 	_check_zones()
 	_check_links()

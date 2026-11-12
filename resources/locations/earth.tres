@@ -35,3 +35,4 @@ size = 450.0
 shipyard_ships = Array[ExtResource("sss")]([ExtResource("sy_shuttle"), ExtResource("sy_freighter"), ExtResource("sy_bulk_freighter")])
 outfitter_upgrades = Array[ExtResource("uds")]([ExtResource("up_cargo_bay"), ExtResource("up_engine_1"), ExtResource("up_engine_2"), ExtResource("up_manoeuvre_1")])
 economy_profile = ExtResource("profile")
+population_display_scale = 300.0

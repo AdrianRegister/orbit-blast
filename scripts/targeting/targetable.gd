@@ -96,8 +96,9 @@ func set_selected(selected: bool) -> void:
 var owner_name_lookup: Callable
 
 ## Callable(InhabitedData) -> Array of [caption, value] rows added after the
-## location's own rows, for things that change while playing (its damage).
-## Optional; set by the star system.
+## location's own rows, for things that change while playing (its damage); a row
+## with the caption of one of the location's own rows replaces it (the population
+## the player reads). Optional; set by the star system.
 var extra_rows_lookup: Callable
 
 
@@ -109,7 +110,17 @@ func get_detail_rows() -> Array:
 			if row[0] == "OWNED BY":
 				row[1] = owner_name_lookup.call(details)
 	if extra_rows_lookup.is_valid() and details is InhabitedData:
-		rows.append_array(extra_rows_lookup.call(details))
+		# A row from the lookup replaces the location's own row of the same caption
+		# (the displayed POPULATION), and is added if there is no such row (DAMAGE).
+		for extra in extra_rows_lookup.call(details):
+			var replaced := false
+			for row in rows:
+				if row[0] == extra[0]:
+					row[1] = extra[1]
+					replaced = true
+					break
+			if not replaced:
+				rows.append(extra)
 	return rows
 
 

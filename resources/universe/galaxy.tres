@@ -385,6 +385,7 @@ scene = ExtResource("sc_arcturus")
 map_position = Vector2(308, -251)
 start_discovered = false
 claim = ExtResource("f_faction_1")
+system_class = ExtResource("cls_rural")
 
 [sub_resource type="Resource" id="sys_tidbinbilla"]
 script = ExtResource("gs")

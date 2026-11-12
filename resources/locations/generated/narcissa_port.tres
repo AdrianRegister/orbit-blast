@@ -10,3 +10,4 @@ display_name = "Narcissa Port"
 faction = ExtResource("faction_1")
 population = 4713600
 size = 180.0
+population_display_scale = 2.0
