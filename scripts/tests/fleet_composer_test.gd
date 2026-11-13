@@ -5,6 +5,9 @@ extends SceneTree
 ##   Godot --headless --path . --script res://scripts/tests/fleet_composer_test.gd </dev/null
 
 const FEDERATION := &"faction_1"
+const HEGEMONY := &"faction_2"
+## A faction id no ship belongs to.
+const NO_SHIPS_FACTION := &"faction_without_ships"
 const SEEDS := 400
 
 var _failures: int = 0
@@ -26,6 +29,7 @@ func _init() -> void:
 	_test_convoy()
 	_test_missing_classes()
 	_test_new_class_needs_no_code()
+	_test_hegemony()
 	_test_determinism()
 	_test_validation()
 
@@ -274,7 +278,7 @@ func _test_convoy() -> void:
 	for count in [2, 3, 4, 5, 6]:
 		_check(escort_counts.has(count), "convoys of %d escorts turn up" % count)
 	# A convoy is built whoever asks, and never uses the asker's warships.
-	var plan := FleetComposer.compose(_registry.formation_recipe(&"convoy"), &"faction_2", _types, _rng(3))
+	var plan := FleetComposer.compose(_registry.formation_recipe(&"convoy"), NO_SHIPS_FACTION, _types, _rng(3))
 	_check(plan != null, "a convoy can be composed for a faction with no ships of its own")
 
 
@@ -313,7 +317,7 @@ func _test_missing_classes() -> void:
 
 	# A faction with no ships gets no military unit.
 	for id in [&"squadron", &"battle_group", &"fleet"]:
-		var plan := FleetComposer.compose(_registry.formation_recipe(id), &"faction_2", _types, _rng(1))
+		var plan := FleetComposer.compose(_registry.formation_recipe(id), NO_SHIPS_FACTION, _types, _rng(1))
 		_check(plan == null, "a faction with no warships gets no %s" % id)
 
 
@@ -338,6 +342,36 @@ func _test_new_class_needs_no_code() -> void:
 			_check(false, "a squadron never has more than one support ship")
 			return
 	_check(seen_gunboat and seen_frigate, "a new gunboat model joins squadrons as support with no code change")
+
+
+func _test_hegemony() -> void:
+	# The Hegemony has its own six warship models, so it composes every military unit from them alone.
+	var gunboats := 0
+	var own_ships_only := true
+	var all_built := true
+	var squads := 0
+	for id in [&"squadron", &"battle_group", &"fleet"]:
+		for seed_value in SEEDS:
+			var plan := FleetComposer.compose(_registry.formation_recipe(id), HEGEMONY, _types, _rng(seed_value))
+			if plan == null:
+				all_built = false
+				continue
+			for type in plan.all_ship_types():
+				if type.stats.faction_id() != HEGEMONY:
+					own_ships_only = false
+			if id == &"squadron":
+				squads += 1
+				gunboats += _count_class(plan, &"gunboat")
+	_check(all_built, "the Hegemony can field a squadron, a battle group and a fleet")
+	_check(own_ships_only, "...from Hegemony ships only (never the Federation's)")
+	_check(gunboats > 0 and gunboats < squads, "its gunboat joins some squadrons as the support ship (%d of %d)" % [gunboats, squads])
+	# And the Federation never draws a Hegemony ship.
+	var federation_only := true
+	for seed_value in SEEDS:
+		for type in _compose(&"battle_group", seed_value).all_ship_types():
+			if type.stats.faction_id() != FEDERATION:
+				federation_only = false
+	_check(federation_only, "the Federation draws no Hegemony ships")
 
 
 func _test_determinism() -> void:

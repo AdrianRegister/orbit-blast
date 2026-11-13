@@ -39,6 +39,12 @@ func are_allies(a: Combatant, b: Combatant) -> bool:
 	return a.faction_id != &"" and a.faction_id == b.faction_id
 
 
+## Whether the player is an ally of the faction `faction_id` through their
+## reputation (Hostility uses it to put the player's friends on the player's side).
+func is_player_ally(faction_id: StringName) -> bool:
+	return _player_allied_with(faction_id)
+
+
 ## Whether the player is an ally of `faction_id` through their reputation.
 func _player_allied_with(faction_id: StringName) -> bool:
 	if faction_id == &"" or not _player_reputation.is_valid():

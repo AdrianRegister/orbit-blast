@@ -33,6 +33,10 @@ extends Resource
 ## other centres (see ZoneManager); what happens when the capital is lost is
 ## decided there, not here.
 @export var capital_system: StringName = &""
+## Whether the faction's ships are hostile to every ship they meet, whoever it
+## belongs to (pirates). Combat reads it through Hostility; it says nothing about
+## reputation or about which faction owns what.
+@export var hostile_to_all: bool = false
 ## How this faction regards the others (see FactionRelation).
 @export var relations: Array[FactionRelation] = []
 

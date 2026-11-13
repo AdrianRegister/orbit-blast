@@ -151,7 +151,7 @@ A `RecipeGroup` names the classes a group may use, their `weights`, `min_count` 
 1. Each group gets a random size inside its range, trimmed so the unit's ships stay within the recipe's range.
 2. A group's size is split between its classes in proportion to their weights by **largest remainder**, ties broken at random. At 2:1 that gives 3 = 2+1, 4 = 3+1, 5 = 3+2, 6 = 4+2. A single ship among equal classes is a random pick.
 3. Each class is filled with ship models that belong to it (`ship_class.is_a(class)`) and match the group's category and faction rule; models are drawn by their `spawn_weight`. A civilian recipe takes only ships with no faction.
-4. **Missing content degrades, not breaks.** A class with no model drops out and the others share its part (no heavy fighters: fighters only; no gunboat model: the support ship is a frigate). A group that must have ships (`min_count` above 0) and has no models makes the unit impossible: a faction with no warships gets no squadron, battle group or fleet; no capital ship, no fleet. A new model of an existing class (the Hegemony gunboat) needs no code: it joins squadrons as support by itself.
+4. **Missing content degrades, not breaks.** A class with no model drops out and the others share its part (no heavy fighters: fighters only; no gunboat model: the support ship is a frigate). A group that must have ships (`min_count` above 0) and has no models makes the unit impossible: a faction with no warships gets no squadron, battle group or fleet; no capital ship, no fleet. A new model of an existing class needs no code: the Hegemony gunboat joins Hegemony squadrons as support by itself.
 5. Sub-units are composed the same way (a battle group draws its squadrons), and a shape is drawn from the recipe's.
 
 `ShipType.load_all()` lists the ship models to compose from (`resources/ship_types/`). Recipes are found by `ContentRegistry.formation_recipe(id)` / `formation_recipes()`.
@@ -186,7 +186,7 @@ A spawned fleet is laid out in an arc behind the flagship, far enough apart that
 
 ### Sandbox panel
 
-The panel's "Composed unit" section draws a unit from a recipe (squadron, battle group, fleet or convoy) and spawns it ahead of the player, and shows what was drawn (`FormationPlan.describe()`). The selected-formation text also says when a formation is part of a battle group or a fleet. CLEAR ALL FORMATIONS removes fleets too.
+The panel's "Composed unit" section draws a unit from a recipe (squadron, battle group, fleet or convoy) for the chosen faction (Federation or Hegemony) and spawns it ahead of the player, and shows what was drawn (`FormationPlan.describe()`). The selected-formation text also says when a formation is part of a battle group or a fleet. CLEAR ALL FORMATIONS removes fleets too.
 
 ---
 

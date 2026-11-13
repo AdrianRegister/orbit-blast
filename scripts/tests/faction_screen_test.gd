@@ -34,7 +34,7 @@ func _init() -> void:
 	_check(screen.visible and paused, "the button opens the Factions screen and pauses the game")
 	_check(screen.get_selected() == federation, "the Federation is selected")
 	var list: ItemList = screen.get_node("%FactionList")
-	_check(list.item_count == 1 and list.get_item_text(0) == "Federation", "it is the one faction listed")
+	_check(list.item_count == 3 and list.get_item_text(0) == "Federation" and list.get_item_text(1) == "Hegemony" and list.get_item_text(2) == "Pirates", "the Federation, the Hegemony and the Pirates are listed")
 	_check(screen.get_node("%NameLabel").text == "FEDERATION", "its name is shown")
 	var text := _text(screen)
 	_check(federation.description in text, "its description is shown")
@@ -46,7 +46,7 @@ func _init() -> void:
 	var bar := _bar(screen)
 	_check(bar != null and bar.value == 0 and bar.fill_colour == federation.primary_colour, "the reputation bar is centred, in the faction colour")
 	_check("92 controlled" in text and "1 known to you" in text and "Sol" in text, "its territory is summarised: %s" % text.substr(text.find("SYSTEMS"), 40).replace("\n", " "))
-	_check("SETTLEMENTS" in text and "None known" in text, "...with its settlements, and no relations")
+	_check("SETTLEMENTS" in text and "HEGEMONY" in text and "At war (-80)" in text, "...with its settlements, and its war with the Hegemony")
 
 	# --- It follows changes while open.
 	reputation.change(federation, 45)

@@ -1,0 +1,75 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/hegemony_capital_ship.png" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/hegemony.tres" id="faction_2"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+[ext_resource type="Resource" path="res://resources/weapons/heavy_blaster.tres" id="w_heavy_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/capital_ship.tres" id="cls"]
+
+[sub_resource type="Resource" id="mount_0"]
+script = ExtResource("wm")
+type = 1
+size = 2
+offset = Vector2(40, -25)
+arc_degrees = 150.0
+
+[sub_resource type="Resource" id="mount_1"]
+script = ExtResource("wm")
+type = 1
+size = 2
+offset = Vector2(40, 25)
+arc_degrees = 150.0
+
+[sub_resource type="Resource" id="mount_2"]
+script = ExtResource("wm")
+type = 1
+size = 1
+offset = Vector2(-10, -40)
+arc_degrees = 150.0
+
+[sub_resource type="Resource" id="mount_3"]
+script = ExtResource("wm")
+type = 1
+size = 1
+offset = Vector2(-10, 40)
+arc_degrees = 150.0
+
+[sub_resource type="Resource" id="mount_4"]
+script = ExtResource("wm")
+type = 1
+size = 1
+offset = Vector2(-50, -30)
+arc_degrees = 150.0
+
+[sub_resource type="Resource" id="mount_5"]
+script = ExtResource("wm")
+type = 1
+size = 1
+offset = Vector2(-50, 30)
+arc_degrees = 150.0
+
+[resource]
+script = ExtResource("1")
+id = &"hegemony_capital_ship"
+display_name = "Hegemony Capital Ship"
+description = "The largest ship in Hegemony service. Where it goes, the fleet follows."
+ship_class = ExtResource("cls")
+faction = ExtResource("faction_2")
+price = 3000000
+texture = ExtResource("2")
+display_width = 441
+thrust = 140.0
+turn_rate = 0.9
+max_speed = 330.0
+cargo_capacity = 300
+shield_capacity = 800.0
+shield_regen = 24.0
+armour = 900.0
+hull = 1500.0
+energy_capacity = 500.0
+energy_regen = 60.0
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1"), SubResource("mount_2"), SubResource("mount_3"), SubResource("mount_4"), SubResource("mount_5")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_heavy_blaster"), ExtResource("w_heavy_blaster"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon")])

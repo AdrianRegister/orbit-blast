@@ -1,6 +1,13 @@
 [gd_resource type="Resource" script_class="Faction" format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/faction.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/faction_relation.gd" id="2"]
+
+[sub_resource type="Resource" id="relation_hegemony"]
+script = ExtResource("2")
+other_faction_id = &"faction_2"
+attitude = -80
+at_war = true
 
 [resource]
 script = ExtResource("1")
@@ -13,3 +20,4 @@ political_identity = "A broadly republican union. Member worlds govern themselve
 background = "The Federation is a complex political entity. Its member worlds, trading houses and military commands each pursue their own ends, and its internal politics are tangled and sometimes dangerous: alliances shift, favours are called in, and those who misjudge them rarely get a second chance."
 military_strength = 1000
 capital_system = &"sol"
+relations = Array[ExtResource("2")]([SubResource("relation_hegemony")])

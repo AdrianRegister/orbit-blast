@@ -14,6 +14,10 @@ signal ship_destroyed(report: DestructionReport)
 ## The player's ship was destroyed. Main handles what happens next.
 signal player_destroyed(report: DestructionReport)
 
+## How a ship stands to the player, for the HUD's colours: an ally (a friend of the
+## player), hostile (will attack the player), or neither.
+enum Relation { NEUTRAL, HOSTILE, ALLY }
+
 const ATTACK_SHIP: HostileActionType = preload("res://resources/reputation/hostile_actions/attack_ship.tres")
 const DESTROY_SHIP: HostileActionType = preload("res://resources/reputation/hostile_actions/destroy_ship.tres")
 const SPARK_SHIELD := Color(0.4, 0.8, 1.0)
@@ -23,8 +27,15 @@ var _reputation: ReputationManager
 ## Callable(faction_id: StringName) -> Faction (or null).
 var _faction_lookup: Callable
 var _clock: GameClock
-## Who counts as an ally; every ship registered here gets it (see Allegiance).
+## Who counts as an ally and who as hostile; every ship registered here gets them
+## (see Allegiance and Hostility).
 var _allegiance := Allegiance.new()
+var _hostility := Hostility.new()
+## What is going on in the current system, for combat AI (see TacticalPicture).
+var _picture: TacticalPicture
+## Seconds of game time since the game started: what grudges are timed by (it
+## stops while the game is paused).
+var _time: float = 0.0
 var _system: StarSystem
 var _player: Combatant
 ## instance id -> true, for combatants already hooked up.
@@ -37,7 +48,9 @@ func setup(reputation: ReputationManager, faction_lookup: Callable, clock: GameC
 	_faction_lookup = faction_lookup
 	_clock = clock
 	# Without a reputation (the combat sandbox) the player has no allies.
-	_allegiance.setup(AllegianceRules.shared(), _player_reputation if reputation != null else Callable())
+	var player_reputation := _player_reputation if reputation != null else Callable()
+	_allegiance.setup(AllegianceRules.shared(), player_reputation)
+	_hostility.setup(HostilityRules.shared(), _allegiance, faction_lookup, player_reputation, func() -> float: return _time)
 
 
 ## The player's combatant. Registered like any other ship.
@@ -50,10 +63,67 @@ func get_player() -> Combatant:
 	return _player
 
 
+## Who is hostile to whom (see Hostility).
+func get_hostility() -> Hostility:
+	return _hostility
+
+
+## What is going on in the current system (null before the first set_system).
+func get_picture() -> TacticalPicture:
+	return _picture
+
+
+func _physics_process(delta: float) -> void:
+	_time += delta
+
+
+## How the ship `targetable` belongs to stands to the player. Anything that is not a
+## ship with a combatant (planets, stations) is neutral.
+func get_player_relation(targetable: Targetable) -> Relation:
+	var combatant := find_combatant(targetable)
+	if combatant == null or _player == null or combatant == _player:
+		return Relation.NEUTRAL
+	if _allegiance.are_allies(_player, combatant):
+		return Relation.ALLY
+	if _hostility.are_hostile(_player, combatant):
+		return Relation.HOSTILE
+	return Relation.NEUTRAL
+
+
+## The hostile ships that are targeting the player now (as of the picture's last
+## look, a fifth of a second at most).
+func get_player_attackers() -> Array[Combatant]:
+	var result: Array[Combatant] = []
+	if _picture == null or _player == null:
+		return result
+	for attacker in _picture.targeters_of(_player):
+		if _hostility.are_hostile(attacker, _player):
+			result.append(attacker)
+	return result
+
+
+## The same ships as their Targetables (what the HUD and the TargetingManager use).
+func get_player_attacker_targetables() -> Array[Targetable]:
+	var result: Array[Targetable] = []
+	for attacker in get_player_attackers():
+		var targetable := attacker.get_parent().get_node_or_null("Targetable") as Targetable
+		if targetable != null:
+			result.append(targetable)
+	return result
+
+
 ## The system now loaded. Its ships (present and future) are watched, and shots
 ## and effects are added to its Projectiles node so they go with the system.
 func set_system(system: StarSystem) -> void:
 	_system = system
+	_hostility.clear()  # grudges end with the system
+	var existing := system.get_node_or_null("TacticalPicture") as TacticalPicture
+	if existing != null:
+		_picture = existing  # (the same system set again: no second picture)
+	else:
+		_picture = TacticalPicture.new()
+		_picture.name = "TacticalPicture"
+		system.add_child(_picture)
 	var ships := system.get_ships_root()
 	ships.child_entered_tree.connect(_on_ship_entered)
 	for child in ships.get_children():
@@ -72,6 +142,7 @@ func register(combatant: Combatant) -> void:
 	combatant.tree_exited.connect(func() -> void: _registered.erase(key))
 	combatant.projectile_root_provider = _get_projectile_root
 	combatant.allegiance = _allegiance
+	combatant.hostility = _hostility
 	combatant.damaged.connect(_on_damaged.bind(combatant))
 	combatant.destroyed.connect(_on_destroyed)
 
@@ -121,6 +192,7 @@ func _get_projectile_root() -> Node:
 
 func _on_damaged(result: DamageResult, hit: Hit, victim: Combatant) -> void:
 	var attacker := hit.attacker as Combatant
+	_hostility.record_attack(attacker, victim)
 	_spawn_effect(BurstEffect.spark(hit.position, SPARK_HULL if result.penetrated() else SPARK_SHIELD))
 	ship_attacked.emit(victim, attacker, result)
 	if attacker != null and attacker.is_player and not victim.is_player:

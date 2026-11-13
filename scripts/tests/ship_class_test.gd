@@ -70,6 +70,8 @@ func _test_ship_models(registry: ContentRegistry) -> void:
 		&"interceptor": &"interceptor", &"light_frigate": &"light_frigate",
 		&"federation_fighter": &"fighter", &"federation_heavy_fighter": &"heavy_fighter",
 		&"federation_frigate": &"frigate", &"federation_cruiser": &"cruiser", &"federation_capital_ship": &"capital_ship",
+		&"hegemony_fighter": &"fighter", &"hegemony_heavy_fighter": &"heavy_fighter", &"hegemony_gunboat": &"gunboat",
+		&"hegemony_frigate": &"frigate", &"hegemony_cruiser": &"cruiser", &"hegemony_capital_ship": &"capital_ship",
 	}
 	var models := registry.all_ship_stats()
 	_check(models.size() == expected.size(), "every ship model is covered (%d)" % models.size())
@@ -94,7 +96,7 @@ func _test_ship_models(registry: ContentRegistry) -> void:
 		classes_in_use[model.ship_class.id] = true
 	for id in [&"fighter", &"heavy_fighter", &"frigate", &"cruiser", &"capital_ship", &"interceptor", &"light_frigate", &"freighter"]:
 		_check(classes_in_use.has(id), "a ship model of class '%s' exists" % id)
-	_check(not classes_in_use.has(&"gunboat") and not classes_in_use.has(&"corvette"), "gunboat and corvette are classes with no models yet (the Hegemony gunboat comes later)")
+	_check(classes_in_use.has(&"gunboat") and not classes_in_use.has(&"corvette"), "the Hegemony has a gunboat; the corvette is a class with no models yet")
 
 
 func _test_validation() -> void:
@@ -126,6 +128,15 @@ func _test_rating(registry: ContentRegistry) -> void:
 	var order := [&"federation_fighter", &"federation_heavy_fighter", &"federation_frigate", &"federation_cruiser", &"federation_capital_ship"]
 	for index in range(1, order.size()):
 		_check(rating.call(order[index]) > rating.call(order[index - 1]), "%s rates above %s (%.0f > %.0f)" % [order[index], order[index - 1], rating.call(order[index]), rating.call(order[index - 1])])
+	# The Hegemony line is ordered the same way, with the gunboat between the heavy fighter and the frigate,
+	# and each ship rates within 5% of its Federation counterpart (the rating budget, see doctrine_balancing.md).
+	var hegemony := [&"hegemony_fighter", &"hegemony_heavy_fighter", &"hegemony_gunboat", &"hegemony_frigate", &"hegemony_cruiser", &"hegemony_capital_ship"]
+	for index in range(1, hegemony.size()):
+		_check(rating.call(hegemony[index]) > rating.call(hegemony[index - 1]), "%s rates above %s (%.0f > %.0f)" % [hegemony[index], hegemony[index - 1], rating.call(hegemony[index]), rating.call(hegemony[index - 1])])
+	for kind in ["fighter", "heavy_fighter", "frigate", "cruiser", "capital_ship"]:
+		var ours: float = rating.call(StringName("federation_" + kind))
+		var theirs: float = rating.call(StringName("hegemony_" + kind))
+		_check(absf(theirs - ours) <= ours * 0.05, "the Hegemony %s rates within 5%% of the Federation's (%.0f and %.0f)" % [kind, theirs, ours])
 	_check(rating.call(&"bulk_freighter") > rating.call(&"freighter"), "a bulk freighter rates above a freighter by its staying power")
 	_check(rating.call(&"federation_fighter") > rating.call(&"freighter"), "an armed fighter outranks an unarmed freighter")
 

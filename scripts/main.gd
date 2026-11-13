@@ -103,6 +103,8 @@ func _ready() -> void:
 	_targeting.target_changed.connect(_hud.set_target)
 	_targeting.target_changed.connect(_combat.on_target_changed)
 	_targeting.set_origin(_ship)
+	_targeting.attackers_provider = _combat.get_player_attacker_targetables
+	_hud.get_nav_map().set_combat_view(_combat.get_player_relation, _combat.get_player_attacker_targetables)
 
 	_economy.credits_changed.connect(_hud.set_credits)
 	_economy.cargo_changed.connect(_update_cargo_hud)

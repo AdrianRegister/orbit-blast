@@ -20,7 +20,14 @@ func _init() -> void:
 	_check(federation.primary_colour.s > 0.5 and yellow_hue > 0.08 and yellow_hue < 0.18 and federation.primary_colour.v < 0.9, "its primary colour is a dark yellow (taken from its ships)")
 	_check(sprite != null and not federation.description.is_empty() and not federation.political_identity.is_empty() and not federation.background.is_empty(), "it has a description, a political identity and a background")
 	_check(federation.military_strength > 0, "it has a military strength (%d)" % federation.military_strength)
-	_check(federation.relations.is_empty() and federation.get_relation(&"faction_2") == null, "with one faction there are no relations")
+	var hegemony := registry.faction(&"faction_2")
+	_check(hegemony != null and hegemony.display_name == "Hegemony" and hegemony.validate().is_empty(), "faction_2 is the Hegemony")
+	_check(federation.get_relation(&"faction_2") != null and federation.get_relation(&"faction_2").at_war, "the Federation is at war with the Hegemony")
+	_check(hegemony.get_relation(&"faction_1") != null and hegemony.get_relation(&"faction_1").at_war, "...and the Hegemony with the Federation")
+	var pirates := registry.faction(&"faction_3")
+	_check(pirates != null and pirates.display_name == "Pirates" and pirates.hostile_to_all and pirates.validate().is_empty(), "faction_3 is the Pirates, hostile to everyone")
+	_check(not federation.hostile_to_all and not hegemony.hostile_to_all, "...and nobody else is")
+	_check(federation.get_relation(&"faction_3") == null, "a faction with no relation entry has no particular feelings")
 	var other := Faction.new()
 	other.id = &"faction_x"
 	other.display_name = "X"

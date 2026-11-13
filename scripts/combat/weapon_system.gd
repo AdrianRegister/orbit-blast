@@ -47,6 +47,20 @@ func get_longest_range() -> float:
 	return best
 
 
+## Damage per second of every armed weapon, ignoring energy limits. With
+## `light_only`, only the light weapons count: the ones that can hurt a nimble ship
+## (see Combatant.lets_shot_pass).
+func get_dps(light_only: bool = false) -> float:
+	var total := 0.0
+	for slot in slots:
+		if not slot.is_armed() or slot.weapon.fire_interval <= 0.0:
+			continue
+		if light_only and slot.weapon.mount_size >= WeaponMount.Size.MEDIUM:
+			continue
+		total += slot.weapon.damage / slot.weapon.fire_interval
+	return total
+
+
 ## What the HUD shows: ready when something can fire now, no energy when
 ## something is ready but the ship cannot pay for it, otherwise cooling down.
 func get_status(available_energy: float) -> Status:

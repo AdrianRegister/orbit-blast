@@ -16,11 +16,16 @@ A faction is one `Faction` resource in `resources/factions/` (`scripts/resources
 | `description`, `political_identity`, `background` | Text shown on the Factions screen |
 | `military_strength` | An arbitrary number for now; it will be computed from territory and fleets (see `wars_system.md`) |
 | `capital_system` | The id of the faction's capital system (Federation: `sol`), or empty. Must be an inhabited system whose class can be a centre of power. Zones are measured from it; see [system_classes.md](system_classes.md) |
+| `hostile_to_all` | Its ships fight every ship they meet, whoever it belongs to (the Pirates). Read by `Hostility` (see [combat_ai.md](combat_ai.md)) |
 | `relations` | `FactionRelation` entries: how this faction regards another (`attitude` -100 to 100, `at_war`) |
 
-To add a faction, add a `.tres` with a new id. `ContentRegistry.factions()` finds it and the Factions screen lists it. **Relations belong to pairs of factions and have nothing to do with the player's reputation**; today there are none (one faction). Like ownership, a runtime layer for relations (changed by wars while playing, and saved) will be added with the wars system; the data shape is here.
+To add a faction, add a `.tres` with a new id. `ContentRegistry.factions()` finds it and the Factions screen lists it. **Relations belong to pairs of factions and have nothing to do with the player's reputation**; today the Federation and the Hegemony are at war with each other (attitude -80, `at_war`). Like ownership, a runtime layer for relations (changed by wars while playing, and saved) will be added with the wars system; the data shape is here.
 
 **Territory.** The Federation owns every system now in the galaxy (`data/galaxy/galaxy_map.json`).
+
+**The Hegemony** (`faction_2`, `resources/factions/hegemony.tres`) is the Federation's rival, to inhabit the space to the south. It has no systems yet, and its politics are placeholders to be written later. It has six warship models (`hegemony_fighter`, `heavy_fighter`, `gunboat`, `frigate`, `cruiser`, `capital_ship`) that copy the matching Federation ship's numbers for now; the gunboat is new, between the heavy fighter and the frigate. See `doctrine_balancing.md` for how they should be made distinct later.
+
+**The Pirates** (`faction_3`, `resources/factions/pirates.tres`) are hostile to everyone (`hostile_to_all`). They have no ship models or systems of their own: pirate ships are other models flown under their faction id. They appear in the Factions screen like any faction (with a reputation of their own, which nothing reads).
 
 ---
 

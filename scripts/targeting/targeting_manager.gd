@@ -10,6 +10,9 @@ signal target_changed(target: Targetable)
 var current_target: Targetable
 ## The ship that "nearest" is measured from (the player's ship).
 var _origin: Node2D
+## Callable() -> Array[Targetable]: the ships that are attacking the player. Set by
+## Main (it comes from combat); with none set, select_closest_attacker does nothing.
+var attackers_provider: Callable
 
 
 ## Tells the manager which node "nearest" is measured from. Called by Main.
@@ -26,6 +29,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("target_nearest_ship"):
 		select_nearest(Targetable.SHIP_GROUP)
+		return
+	if event.is_action_pressed("target_attacker"):
+		select_closest_attacker()
 		return
 	var click := event as InputEventMouseButton
 	if click == null or click.button_index != MOUSE_BUTTON_LEFT or not click.pressed:
@@ -80,6 +86,26 @@ func select_nearest(group: StringName = Targetable.SHIP_GROUP) -> void:
 			best_distance = distance
 	if best != null:
 		select(best)
+
+
+## Selects the closest of the ships that are attacking the player (V). Returns
+## whether there was one; with nobody attacking, the selection is left as it is.
+func select_closest_attacker() -> bool:
+	if _origin == null or not attackers_provider.is_valid():
+		return false
+	var best: Targetable = null
+	var best_distance: float = INF
+	for candidate: Targetable in attackers_provider.call():
+		if candidate == null or not is_instance_valid(candidate) or not candidate.is_enabled():
+			continue
+		var distance: float = candidate.distance_from(_origin.global_position)
+		if distance < best_distance:
+			best = candidate
+			best_distance = distance
+	if best == null:
+		return false
+	select(best)
+	return true
 
 
 func _find_targetable_at(world_position: Vector2) -> Targetable:

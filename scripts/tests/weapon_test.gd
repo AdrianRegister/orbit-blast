@@ -40,7 +40,7 @@ func _test_weapon_files() -> void:
 
 func _test_ship_files() -> void:
 	var ships := _load_all("res://resources/ships/")
-	_check(ships.size() == 10, "ten ship models (%d)" % ships.size())
+	_check(ships.size() == 16, "sixteen ship models (%d)" % ships.size())
 	for model: ShipStats in ships:
 		var problems := model.validate()
 		_check(problems.is_empty(), "%s is valid %s" % [model.id, str(problems)])

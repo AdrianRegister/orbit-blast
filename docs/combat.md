@@ -66,6 +66,7 @@ The ship tells its `Combatant` how to read its heading and velocity (two callabl
 **Who a shot hits.** A shot passes straight through a ship in two cases, decided by `Combatant.lets_shot_pass(weapon, shooter)`; the ray is then cast again past that ship (at most `Projectile.MAX_CASTS` times a frame). Nothing happens to the shot and nothing is shown: as far as combat goes it missed.
 
 - **Allies.** `Allegiance.are_allies(a, b)` (`allegiance.gd`) is the one rule for who is an ally, so there is no friendly fire, and combat AI will use it so ships never target allies. Two ships are allies if they belong to the same, non-empty faction. The player belongs to no faction: they are an ally of a faction (and its ships the player's allies) while their reputation with it is at least `AllegianceRules.min_reputation` (`resources/combat/allegiance_rules.tres`, 40 = the start of Friendly). A ship that belongs to nobody is an ally of nobody, and with no reputation (the combat sandbox) the player has no allies. `CombatManager` owns the `Allegiance` and gives it to each combatant when it registers.
+- **Hostility.** Who attacks whom on sight (war, pirates, a hostile reputation, grudges) is the one rule `Hostility` (`hostility.gd`), the counterpart of `Allegiance`; see [combat_ai.md](combat_ai.md). `CombatManager` owns it, gives it to each combatant (`Combatant.hostility`, `is_hostile_to`) and records a grudge on every hit. A `TacticalPicture` node under the system answers AI questions about who is where.
 - **Nimble ships.** A ship class with `evades_heavy_fire` (fighters and heavy fighters; inherited through `parent`) is passed through by every shot from a medium or large weapon (`WeaponDefinition.mount_size` of MEDIUM or above), whoever fires it. Only light weapons can hurt it. The player is nimble too while flying such a ship (`Combatant.evasive` is set from the model in `setup`). So a swarm of fighters with light weapons can wear down a cruiser that has no fighter support of its own.
 
 Everything else is hit as before: the first enemy in the line of fire takes the shot and shields whatever is behind it, which is what makes the shape of a formation matter (a column or a convoy ring protects what is behind or inside it).
@@ -74,7 +75,7 @@ Everything else is hit as before: the first enemy in the line of fire takes the 
 
 **Collision layers** (named in `project.godot`): 1 world, 2 targetable (click selection, unchanged), 3 ship hurtbox.
 
-**Targeting.** There is no separate "lock": the existing selection (Tab, T, R, click) is the target. `CombatManager.on_target_changed` gives the selected ship's `Combatant` to the player's combatant, so turrets follow it and the HUD shows its defences. Selecting a planet or nothing clears it.
+**Targeting.** There is no separate "lock": the existing selection (Tab, T, R, V, click) is the target. `CombatManager.on_target_changed` gives the selected ship's `Combatant` to the player's combatant, so turrets follow it and the HUD shows its defences. Selecting a planet or nothing clears it.
 
 **Firing.** Hold **Space** (`fire_primary`). It fires every ready weapon, only while flying (not docked, not warping, not during a menu pause).
 
@@ -102,7 +103,7 @@ Effects (hit sparks, explosions) are `BurstEffect` particles added to the system
 
 NPC ships (`NpcShip`) carry the same `Combatant` with their model's default loadout and full defences. In 3.1 they are **passive**: they keep flying their traffic routes and never fire. They can be shot at and destroyed: a destroyed NPC disables its `Targetable` (which clears the player's selection), hides and frees itself; the traffic manager counts it as gone and replaces it later.
 
-To add NPC combat later, drive the same `Combatant` from an AI: call `set_target` and `fire`, and add combat states to `NpcShip.State` as [npc-traffic.md](npc-traffic.md) describes. Nothing in the combat code assumes the controller is the player.
+NPC combat AI is Phase 3.3, described in [combat_ai.md](combat_ai.md) (awareness is built; pilots are not yet). To drive an NPC, drive the same `Combatant` from an AI: call `set_target` and `fire`, and add combat states to `NpcShip.State` as [npc-traffic.md](npc-traffic.md) describes. Nothing in the combat code assumes the controller is the player.
 
 ---
 
@@ -194,6 +195,8 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 & $godot --headless --path . --script res://scripts/tests/formation_report_test.gd
 ```
 
+The Phase 3.3 tests (hostility, target scoring, the tactical picture, the sandbox battle builder) are listed in [combat_ai.md](combat_ai.md) section 9.
+
 - `damage_model_test.gd`: the layers, multipliers, bypass, bleed-through, destruction.
 - `weapon_test.gd`: every weapon and ship file validates, `fits`, `Intercept`, the specs.
 - `combat_test.gd` (real scene): firing, cooldown, energy, projectile hits, shields then hull, destruction events and removal, deselection, reputation once per act, turret aim and arc, no self-hits, shield recharge.
@@ -215,6 +218,7 @@ For trying combat by hand. **DEV COMBAT SANDBOX** on the main menu starts it; Es
 - **Everything is for sale:** the planet's shipyard sells every ship model (faction restrictions ignored, `ShipManager.ignore_ship_factions`), its outfitter every upgrade and weapon. The lists are filled from the content registry (`ContentRegistry.all_ship_stats / all_upgrades / all_weapons`) when the sandbox starts, so new content appears without editing anything. Repairs work too.
 - **The player** starts with 500,000,000 credits in a Light Frigate, near the planet.
 - **The target:** one freighter that drifts around the centre of the system (`NpcShip.State.WANDERING`, `begin_wandering`). It never fires, belongs to nobody, and a new one appears 3 seconds after it is destroyed.
+- **Toolbar and panels:** a toolbar at the top left opens and closes the dev panels, FORMATIONS (F2) and BATTLE (F3); the battle panel spawns two sides of any faction and ship facing each other (see [combat_ai.md](combat_ai.md) section 8).
 - **Formation panel:** a dev panel on the left spawns formations (squadron, battle group and convoy presets, or any ship times a count) in a chosen shape, shows the targeted ship's formation, changes its shape, kills its leader or a member, and clears them. It can also draw a whole squadron, battle group, fleet or convoy from its recipe and spawn it. See [formations.md](formations.md) sections 3 and 4.
 - **Isolation:** no reputation is ever charged (the `CombatManager` is given none), no contracts, no jumping or galaxy map or Factions screen, and saving and loading from the pause menu are refused. If the player's ship is destroyed the escape pod brings them back to the Proving Ground, in the most valuable ship they still own (or a new Light Frigate).
 - **Changing it:** edit the constants at the top of `combat_sandbox.gd` (the player's ship and credits, the target's ship type, wander radius, respawn delay) or the system scene. When a combat feature needs something new in the sandbox (more targets, armed enemies, hazards), add it to `CombatSandbox`.

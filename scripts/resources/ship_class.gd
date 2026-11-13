@@ -35,6 +35,9 @@ extends Resource
 ## weapons: every shot from a medium or large weapon passes through them, so only
 ## light weapons can hurt them (fighters and heavy fighters).
 @export var evades_heavy_fire: bool = false
+## How ships of this class fight (see CombatDoctrine), or null to use the parent's.
+## Classes that never fight (freighters, shuttles) have none.
+@export var doctrine: CombatDoctrine
 
 
 ## Whether this class is `other`, or a kind of it: a frigate is_a frigate and
@@ -89,6 +92,19 @@ func is_evasive() -> bool:
 	return false
 
 
+## How ships of this class fight: its own doctrine or the nearest parent's, or null
+## when the class has none.
+func get_doctrine() -> CombatDoctrine:
+	var current: ShipClass = self
+	for step in 16:
+		if current == null:
+			return null
+		if current.doctrine != null:
+			return current.doctrine
+		current = current.parent
+	return null
+
+
 ## Human-readable problems with this class; empty when it is valid.
 func validate() -> Array[String]:
 	var problems: Array[String] = []
@@ -104,4 +120,7 @@ func validate() -> Array[String]:
 			break
 		seen.append(current)
 		current = current.parent
+	if doctrine != null:
+		for problem in doctrine.validate():
+			problems.append("doctrine: " + problem)
 	return problems

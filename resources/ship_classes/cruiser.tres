@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/ship_classes/warship.tres" id="parent"]
+[ext_resource type="Resource" path="res://resources/combat/ai/doctrines/cruiser.tres" id="doctrine"]
 
 [resource]
 script = ExtResource("1")
@@ -10,3 +11,4 @@ display_name = "Cruiser"
 description = "A heavy warship that holds the line in a battle group."
 parent = ExtResource("parent")
 tier = 3
+doctrine = ExtResource("doctrine")

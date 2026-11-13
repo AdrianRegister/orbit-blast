@@ -31,8 +31,17 @@ var projectile_root_provider: Callable
 ## Who counts as an ally (set by the CombatManager when it registers the ship).
 ## Null: nobody is, so every shot hits.
 var allegiance: Allegiance
+## Who counts as hostile (set by the CombatManager when it registers the ship).
+## Null: nobody is.
+var hostility: Hostility
 ## Whether the ship slips past medium and heavy weapons (its class says so).
 var evasive: bool = false
+## The ship's class (null when it has none), for AI that picks targets by role.
+var ship_class: ShipClass
+## How strong the ship is in a fight with its fitted weapons (see CombatRating) and
+## how much damage it takes to destroy it: fixed when the ship is set up.
+var rating: float = 0.0
+var staying_power: float = 0.0
 
 var _target: Combatant
 var _heading_provider: Callable
@@ -60,6 +69,9 @@ func setup(model: ShipStats, ship_specs: ShipSpecs, loadout: Array, condition: S
 	model_id = model.id
 	display_name = model.display_name
 	evasive = model.ship_class != null and model.ship_class.is_evasive()
+	ship_class = model.ship_class
+	rating = CombatRating.of(model, loadout)
+	staying_power = CombatRating.staying_power(model)
 	_heading_provider = heading
 	_velocity_provider = velocity
 	_dead = false
@@ -85,6 +97,17 @@ func get_velocity() -> Vector2:
 ## Where a shot from `mount` leaves the ship, in world space.
 func get_muzzle_position(mount: WeaponMount) -> Vector2:
 	return global_position + mount.offset.rotated(get_heading())
+
+
+## Whether this ship and `other` are hostile to each other (see Hostility). False
+## when nothing has registered the ship yet.
+func is_hostile_to(other: Combatant) -> bool:
+	return hostility != null and hostility.are_hostile(self, other)
+
+
+## Whether the ship has a weapon fitted.
+func is_armed() -> bool:
+	return weapons != null and weapons.has_weapons()
 
 
 # ----------------------------------------------------------------- targeting

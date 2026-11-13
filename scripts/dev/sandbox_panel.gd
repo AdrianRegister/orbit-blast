@@ -1,11 +1,10 @@
 class_name SandboxPanel
-extends CanvasLayer
+extends DevPanel
 ## DEVELOPMENT ONLY. The combat sandbox's control panel: a small box on the left
 ## of the screen for spawning formations and poking at them, so formation
 ## features can be tried by hand. It only calls CombatSandbox; it holds no game
 ## logic. New controls are added here as features land.
 
-var _sandbox: CombatSandbox
 var _group: OptionButton
 var _ship: OptionButton
 var _count: SpinBox
@@ -14,6 +13,8 @@ var _info: Label
 var _custom_row: HBoxContainer
 var _recipe: OptionButton
 var _recipes: Array[FormationRecipe] = []
+var _faction: OptionButton
+var _factions: Array[Faction] = []
 var _plan_info: Label
 var _ships: Array[ShipStats] = []
 var _shapes: Array[FormationShape] = []
@@ -24,10 +25,11 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	_ships = registry.all_ship_stats()
 	_shapes = registry.formation_shapes()
 	_recipes = registry.formation_recipes()
+	_factions = registry.factions()
 	layer = 5
 	var panel := PanelContainer.new()
 	panel.theme = load("res://resources/ui/hud_theme.tres")
-	panel.position = Vector2(12, 56)
+	panel.position = Vector2(12, 100)
 	panel.custom_minimum_size = Vector2(330, 0)
 	add_child(panel)
 	var margin := MarginContainer.new()
@@ -72,6 +74,10 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	for recipe in _recipes:
 		_recipe.add_item(recipe.display_name)
 	column.add_child(_recipe)
+	_faction = OptionButton.new()
+	for faction in _factions:
+		_faction.add_item(faction.display_name)
+	column.add_child(_faction)
 	column.add_child(_button("SPAWN COMPOSED UNIT (drawn shape)", _on_spawn_composed))
 	_plan_info = _label("")
 	_plan_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -91,8 +97,7 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 
 
 func _process(_delta: float) -> void:
-	# Hidden while docked or paused.
-	visible = _sandbox != null and _sandbox.is_flying() and not get_tree().paused
+	_update_visibility()  # (hidden while docked, paused or closed from the toolbar)
 	var formation := _sandbox.get_selected_formation() if _sandbox != null else null
 	if formation == null:
 		_info.text = "No formation selected. Target a ship in one (T / R / click)."
@@ -138,7 +143,8 @@ func _on_spawn() -> void:
 func _on_spawn_composed() -> void:
 	if _recipes.is_empty():
 		return
-	_sandbox.spawn_composed(_recipes[_recipe.selected])
+	var faction_id: StringName = _factions[_faction.selected].id if not _factions.is_empty() else &""
+	_sandbox.spawn_composed(_recipes[_recipe.selected], null, faction_id)
 	if _sandbox.last_plan != null:
 		_plan_info.text = _sandbox.last_plan.describe()
 

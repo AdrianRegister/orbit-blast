@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/hegemony_cruiser.png" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/hegemony.tres" id="faction_2"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+[ext_resource type="Resource" path="res://resources/weapons/heavy_blaster.tres" id="w_heavy_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/cruiser.tres" id="cls"]
+
+[sub_resource type="Resource" id="mount_0"]
+script = ExtResource("wm")
+size = 2
+offset = Vector2(40, 0)
+
+[sub_resource type="Resource" id="mount_1"]
+script = ExtResource("wm")
+type = 1
+size = 1
+offset = Vector2(-5, -20)
+arc_degrees = 120.0
+
+[sub_resource type="Resource" id="mount_2"]
+script = ExtResource("wm")
+type = 1
+size = 1
+offset = Vector2(-5, 20)
+arc_degrees = 120.0
+
+[resource]
+script = ExtResource("1")
+id = &"hegemony_cruiser"
+display_name = "Hegemony Cruiser"
+description = "A heavy warship built to break enemy battle lines with concentrated fire."
+ship_class = ExtResource("cls")
+faction = ExtResource("faction_2")
+price = 900000
+texture = ExtResource("2")
+display_width = 315
+thrust = 240.0
+turn_rate = 2.0
+max_speed = 450.0
+cargo_capacity = 150
+shield_capacity = 350.0
+shield_regen = 14.0
+armour = 400.0
+hull = 600.0
+energy_capacity = 280.0
+energy_regen = 36.0
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1"), SubResource("mount_2")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_heavy_blaster"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon")])

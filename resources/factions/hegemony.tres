@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Faction" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/resources/faction_relation.gd" id="2"]
+
+[sub_resource type="Resource" id="relation_federation"]
+script = ExtResource("2")
+other_faction_id = &"faction_1"
+attitude = -80
+at_war = true
+
+[resource]
+script = ExtResource("1")
+id = &"faction_2"
+display_name = "Hegemony"
+primary_colour = Color(0.27, 0.38, 0.56, 1)
+secondary_colour = Color(0.78, 0.8, 0.83, 1)
+description = "The Federation's great rival: a militarised power that holds the space to the south."
+political_identity = "To be defined. A centralised state whose fleets answer to a single command."
+background = "To be defined. The Hegemony and the Federation have been at war for as long as anyone can remember."
+military_strength = 1000
+relations = Array[ExtResource("2")]([SubResource("relation_federation")])

@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="ShipStats" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/ship_stats.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ships/hegemony_frigate.png" id="2"]
+[ext_resource type="Resource" path="res://resources/factions/hegemony.tres" id="faction_2"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_mount.gd" id="wm"]
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
+[ext_resource type="Resource" path="res://resources/weapons/light_blaster.tres" id="w_light_blaster"]
+[ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/ship_classes/frigate.tres" id="cls"]
+
+[sub_resource type="Resource" id="mount_0"]
+script = ExtResource("wm")
+size = 1
+offset = Vector2(30, 0)
+
+[sub_resource type="Resource" id="mount_1"]
+script = ExtResource("wm")
+type = 1
+offset = Vector2(-10, -14)
+arc_degrees = 120.0
+
+[sub_resource type="Resource" id="mount_2"]
+script = ExtResource("wm")
+type = 1
+offset = Vector2(-10, 14)
+arc_degrees = 120.0
+
+[resource]
+script = ExtResource("1")
+id = &"hegemony_frigate"
+display_name = "Hegemony Frigate"
+description = "The backbone of the Hegemony fleet: a well-armoured escort with respectable agility and firepower."
+ship_class = ExtResource("cls")
+faction = ExtResource("faction_2")
+price = 350000
+texture = ExtResource("2")
+display_width = 131
+thrust = 380.0
+turn_rate = 3.4
+max_speed = 600.0
+cargo_capacity = 80
+shield_capacity = 180.0
+shield_regen = 10.0
+armour = 200.0
+hull = 260.0
+energy_capacity = 180.0
+energy_regen = 26.0
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1"), SubResource("mount_2")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_pulse_cannon"), ExtResource("w_light_blaster"), ExtResource("w_light_blaster")])

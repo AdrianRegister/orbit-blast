@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CombatDoctrine" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ai/combat_doctrine.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"light_warship"
+display_name = "Gunboat and frigate"
+sensor_range_factor = 2.5
+preferred_tier_min = 1
+preferred_tier_max = 2
+weight_effectiveness = 3.0
+weight_affinity = 1.0
+weight_threat = 1.5
+weight_distance = 1.0
+weight_finish = 0.5
+weight_focus = 1.0
+weight_overkill = 1.5
+protect_bonus = 2.0
+threat_horizon = 20.0
+hysteresis = 0.25

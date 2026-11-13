@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="HostilityRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/hostility_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+attack_player_reputation = -80
+grudge_seconds = 90.0

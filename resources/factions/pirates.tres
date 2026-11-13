@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Faction" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/faction.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"faction_3"
+display_name = "Pirates"
+primary_colour = Color(0.6, 0.15, 0.12, 1)
+secondary_colour = Color(0.1, 0.1, 0.1, 1)
+description = "Raiders who prey on every faction's shipping. They answer to nobody."
+political_identity = "None. Pirate crews fly for themselves and fight anyone they meet."
+background = "To be defined."
+hostile_to_all = true

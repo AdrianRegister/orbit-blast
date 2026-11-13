@@ -61,12 +61,23 @@ const COMPOSED_DISTANCE := {
 	FormationRecipe.Unit.FLEET: 2800.0,
 }
 const FORMATION_WANDER_RADIUS := 700.0
+## The battle builder: how far apart the two sides start, how far ahead of the
+## player the middle of the battle is, how far apart ships of a side are (as a
+## multiple of their hit radius), and how far they drift before the AI takes over.
+const BATTLE_SEPARATION := 1000.0
+const BATTLE_DISTANCE := 700.0
+const BATTLE_SPACING_FACTOR := 3.0
+const BATTLE_DRIFT_RADIUS := 300.0
 
 var _main: Main
 var _system: StarSystem
 var _targets_spawned: int = 0
 var _registry: ContentRegistry
 var _panel: SandboxPanel
+var _battle_panel: BattlePanel
+var _toolbar: DevToolbar
+## The ships the battle builder has spawned.
+var _battle_ships: Array = []
 ## What the last composed unit was made of (for the panel to show).
 var last_plan: FormationPlan
 
@@ -121,6 +132,15 @@ func _start() -> void:
 	_panel = SandboxPanel.new()
 	_main.add_child(_panel)
 	_panel.setup(self, _registry)
+	_battle_panel = BattlePanel.new()
+	_main.add_child(_battle_panel)
+	_battle_panel.setup(self, _registry)
+	_toolbar = DevToolbar.new()
+	_main.add_child(_toolbar)
+	_toolbar.setup(self, [
+		{"name": "FORMATIONS", "key": KEY_F2, "panel": _panel},
+		{"name": "BATTLE", "key": KEY_F3, "panel": _battle_panel},
+	])
 	spawn_target()
 
 
@@ -147,9 +167,12 @@ func spawn_formation(shape: FormationShape, ship_ids: Array, kind: Formation.Kin
 
 ## Composes a unit from `recipe` (who goes in is drawn at random within the recipe's
 ## rules) and spawns it ahead of the player: a Formation for a squadron, battle
-## group or convoy, a WarFleet for a fleet. `shape` replaces the drawn shape.
-func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null) -> Node:
-	var plan := FleetComposer.compose(recipe, COMPOSED_FACTION, FleetComposer.all_ship_types())
+## group or convoy, a WarFleet for a fleet. `shape` replaces the drawn shape and
+## `faction` (default COMPOSED_FACTION) says whose ships they are.
+func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null, faction: StringName = &"") -> Node:
+	if faction == &"":
+		faction = COMPOSED_FACTION
+	var plan := FleetComposer.compose(recipe, faction, FleetComposer.all_ship_types())
 	if plan == null:
 		push_warning("The %s recipe cannot be built from the ships that exist." % recipe.display_name)
 		return null
@@ -158,7 +181,7 @@ func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null) -> No
 	var distance: float = COMPOSED_DISTANCE.get(recipe.unit, FORMATION_SPAWN_DISTANCE)
 	var at := player.global_position + Vector2.from_angle(player.rotation) * distance
 	return FleetSpawner.spawn_plan(_system, player, TRAFFIC_CONFIG, plan, at, player.rotation,
-			COMPOSED_FACTION, FORMATION_WANDER_RADIUS, null, [], shape)
+			faction, FORMATION_WANDER_RADIUS, null, [], shape)
 
 
 ## The formation of the ship the player has targeted (as a member or leader).
@@ -191,6 +214,67 @@ func clear_formations() -> void:
 		for ship in ships:
 			ship.queue_free()
 		unit.queue_free()
+
+
+# ------------------------------------------------------------------ battles
+
+## Spawns two sides facing each other ahead of the player. A side is {"faction":
+## StringName (&"" for none), "model": ship id, "count": int}. Returns {"a": ships,
+## "b": ships}. The ships carry their faction, their default weapons and the same
+## combat rules as any other ship; until the AI is built they only drift.
+func spawn_battle(side_a: Dictionary, side_b: Dictionary) -> Dictionary:
+	var player := _main.get_player_ship()
+	var forward := Vector2.from_angle(player.rotation)
+	var across := forward.rotated(PI / 2.0)
+	var middle := player.global_position + forward * BATTLE_DISTANCE
+	return {
+		"a": _spawn_side(side_a, middle - across * BATTLE_SEPARATION / 2.0, across),
+		"b": _spawn_side(side_b, middle + across * BATTLE_SEPARATION / 2.0, -across),
+	}
+
+
+## One side: `count` ships in a column through `centre`, all facing `facing`.
+func _spawn_side(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
+	var ships: Array[NpcShip] = []
+	var count: int = side.get("count", 1)
+	var type := ShipType.new()
+	type.stats = _registry.ship_stats(side["model"])
+	var spacing: float = type.stats.get_hit_radius() * BATTLE_SPACING_FACTOR + 40.0
+	var along := facing.rotated(PI / 2.0)
+	for index in count:
+		var offset := (index - (count - 1) / 2.0) * spacing
+		ships.append(spawn_ship(type, side.get("faction", &""), centre + along * offset, facing.angle()))
+	return ships
+
+
+## Puts one armed NPC of `type` and `faction_id` at `position`, facing `heading`
+## (radians). It drifts around where it started until something takes it over.
+func spawn_ship(type: ShipType, faction_id: StringName, position: Vector2, heading: float) -> NpcShip:
+	var ship: NpcShip = NPC_SCENE.instantiate()
+	var no_places: Array[InhabitedNode] = []
+	var faction := _registry.faction(faction_id)
+	ship.setup(type, TRAFFIC_CONFIG, no_places, faction.display_name if faction != null else "", null, _main.get_player_ship())
+	ship.combat_id = TrafficManager.new_combat_id()
+	ship.faction_id = faction_id
+	ship.configure_jumping(_system.global_position, _system.jump_radius, [])
+	ship.begin_wandering(position, BATTLE_DRIFT_RADIUS)
+	_system.get_ships_root().add_child(ship)
+	ship.global_position = position
+	ship.set_heading(heading)
+	_battle_ships.append(ship)
+	return ship
+
+
+## Removes every ship the battle builder spawned.
+func clear_battle() -> void:
+	for ship in _battle_ships:
+		if is_instance_valid(ship):
+			ship.queue_free()
+	_battle_ships.clear()
+
+
+func get_player_combatant() -> Combatant:
+	return _main.get_player_ship().combatant
 
 
 ## Puts a new target ship in the system (the old one, if still alive, stays).

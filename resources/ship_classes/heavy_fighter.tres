@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/ship_classes/warship.tres" id="parent"]
+[ext_resource type="Resource" path="res://resources/combat/ai/doctrines/heavy_fighter.tres" id="doctrine"]
 
 [resource]
 script = ExtResource("1")
@@ -11,3 +12,4 @@ description = "A tougher, better armed fighter that leads a squadron's strike."
 parent = ExtResource("parent")
 tier = 1
 evades_heavy_fire = true
+doctrine = ExtResource("doctrine")
