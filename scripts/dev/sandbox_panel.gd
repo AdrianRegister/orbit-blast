@@ -12,6 +12,9 @@ var _count: SpinBox
 var _shape: OptionButton
 var _info: Label
 var _custom_row: HBoxContainer
+var _recipe: OptionButton
+var _recipes: Array[FormationRecipe] = []
+var _plan_info: Label
 var _ships: Array[ShipStats] = []
 var _shapes: Array[FormationShape] = []
 
@@ -20,6 +23,7 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	_sandbox = sandbox
 	_ships = registry.all_ship_stats()
 	_shapes = registry.formation_shapes()
+	_recipes = registry.formation_recipes()
 	layer = 5
 	var panel := PanelContainer.new()
 	panel.theme = load("res://resources/ui/hud_theme.tres")
@@ -63,6 +67,18 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	column.add_child(_button("SPAWN FORMATION", _on_spawn))
 
 	column.add_child(HSeparator.new())
+	column.add_child(_label("Composed unit (ships drawn from the recipe)"))
+	_recipe = OptionButton.new()
+	for recipe in _recipes:
+		_recipe.add_item(recipe.display_name)
+	column.add_child(_recipe)
+	column.add_child(_button("SPAWN COMPOSED UNIT (drawn shape)", _on_spawn_composed))
+	_plan_info = _label("")
+	_plan_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_plan_info.custom_minimum_size = Vector2(310, 48)
+	column.add_child(_plan_info)
+
+	column.add_child(HSeparator.new())
 	_info = _label("No formation selected. Target a ship in one (T / R / click).")
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.custom_minimum_size = Vector2(310, 64)
@@ -85,9 +101,15 @@ func _process(_delta: float) -> void:
 	for ship in formation.get_ships():
 		if ship == formation.lead or formation.is_on_station(ship):
 			on_station += 1
-	_info.text = "%s: %s, %d ships, %d on station.\nLeader: %s. Cruise speed %d, turn %.1f rad/s." % [
+	var text := "%s: %s, %d ships, %d on station.\nLeader: %s. Cruise speed %d, turn %.1f rad/s." % [
 			Formation.Kind.keys()[formation.kind].capitalize(), formation.shape.display_name, formation.size(), on_station,
 			formation.lead.ship_type.display_name, roundi(formation.lead.formation_speed_cap), formation.lead.formation_turn_cap]
+	if formation.parent != null and is_instance_valid(formation.parent):
+		text += "\nPart of a %s." % Formation.Kind.keys()[formation.parent.kind].capitalize()
+	var fleet: WarFleet = formation.get_root_lead().fleet if formation.has_valid_lead() else null
+	if fleet != null and is_instance_valid(fleet):
+		text += "\nIn a fleet of %d ships (flagship: %s)." % [fleet.get_all_ships().size(), fleet.flagship.ship_type.display_name]
+	_info.text = text
 
 
 func _on_group_selected(index: int) -> void:
@@ -111,6 +133,14 @@ func _on_spawn() -> void:
 		for i in int(_count.value):
 			ids.append(_ships[_ship.selected].id)
 		_sandbox.spawn_formation(shape, ids, Formation.Kind.SQUADRON)
+
+
+func _on_spawn_composed() -> void:
+	if _recipes.is_empty():
+		return
+	_sandbox.spawn_composed(_recipes[_recipe.selected])
+	if _sandbox.last_plan != null:
+		_plan_info.text = _sandbox.last_plan.describe()
 
 
 func _on_apply_shape() -> void:

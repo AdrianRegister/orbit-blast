@@ -28,6 +28,23 @@ var sprite_scale: float:
 		return stats.get_scale() if stats != null else 0.15
 
 
+const DIRECTORY := "res://resources/ship_types/"
+
+
+## Every ship type in resources/ship_types/ (what NPC groups are composed from).
+static func load_all() -> Array[ShipType]:
+	var result: Array[ShipType] = []
+	var names := DirAccess.get_files_at(DIRECTORY)
+	names.sort()
+	for file_name in names:
+		if not file_name.ends_with(".tres"):
+			continue
+		var type := load(DIRECTORY + file_name) as ShipType
+		if type != null:
+			result.append(type)
+	return result
+
+
 ## Visual size in world pixels, used for the click area and selection brackets.
 func get_size() -> Vector2:
 	return stats.get_size() if stats != null else Vector2(64, 64)

@@ -61,7 +61,14 @@ All the numbers are in `damage_rules.tres` and in the weapon files. To make armo
 
 The ship tells its `Combatant` how to read its heading and velocity (two callables passed to `setup`), because the player is a `CharacterBody2D` and NPCs are plain `Node2D`s that move themselves.
 
-**Projectiles** (`projectile.gd`, `scenes/combat/projectile.tscn`) live under the system's new `Projectiles` node, so a jump frees them with the rest of the system. A shot's velocity is its muzzle velocity plus `inherit_velocity` times the shooter's velocity. Each physics frame it casts a ray (mask: layer 3, `hit_from_inside`) over the distance it is about to travel and hits the first hurtbox, ignoring its own shooter's.
+**Projectiles** (`projectile.gd`, `scenes/combat/projectile.tscn`) live under the system's new `Projectiles` node, so a jump frees them with the rest of the system. A shot's velocity is its muzzle velocity plus `inherit_velocity` times the shooter's velocity. Each physics frame it casts a ray (mask: layer 3, `hit_from_inside`) over the distance it is about to travel and hits the first hurtbox, ignoring its own shooter's and any ship it passes through (next paragraph).
+
+**Who a shot hits.** A shot passes straight through a ship in two cases, decided by `Combatant.lets_shot_pass(weapon, shooter)`; the ray is then cast again past that ship (at most `Projectile.MAX_CASTS` times a frame). Nothing happens to the shot and nothing is shown: as far as combat goes it missed.
+
+- **Allies.** `Allegiance.are_allies(a, b)` (`allegiance.gd`) is the one rule for who is an ally, so there is no friendly fire, and combat AI will use it so ships never target allies. Two ships are allies if they belong to the same, non-empty faction. The player belongs to no faction: they are an ally of a faction (and its ships the player's allies) while their reputation with it is at least `AllegianceRules.min_reputation` (`resources/combat/allegiance_rules.tres`, 40 = the start of Friendly). A ship that belongs to nobody is an ally of nobody, and with no reputation (the combat sandbox) the player has no allies. `CombatManager` owns the `Allegiance` and gives it to each combatant when it registers.
+- **Nimble ships.** A ship class with `evades_heavy_fire` (fighters and heavy fighters; inherited through `parent`) is passed through by every shot from a medium or large weapon (`WeaponDefinition.mount_size` of MEDIUM or above), whoever fires it. Only light weapons can hurt it. The player is nimble too while flying such a ship (`Combatant.evasive` is set from the model in `setup`). So a swarm of fighters with light weapons can wear down a cruiser that has no fighter support of its own.
+
+Everything else is hit as before: the first enemy in the line of fire takes the shot and shields whatever is behind it, which is what makes the shape of a formation matter (a column or a convoy ring protects what is behind or inside it).
 
 **Aiming.** Fixed mounts fire along the heading. Turrets aim at the intercept point of the combatant's target (`Intercept.solve`, which accounts for both ships' velocities and the shot speed), clamped to the mount's arc; with no target they fire ahead. The HUD's lead marker (`LeadIndicator`, a child of the player ship) shows the same point for the nose.
 
@@ -83,7 +90,7 @@ Signals (transient notifications; anything that must outlive them is stored by i
 - `ship_destroyed(report: DestructionReport)`
 - `player_destroyed(report)`
 
-`DestructionReport` is plain data: victim and attacker ids, model and faction, whether either was the player, the system, the position and the game day. The war system will read reports like this to turn fights into strategic losses.
+`DestructionReport` is plain data: victim and attacker ids, model and faction, whether either was the player, the system, the position and the game day, and the unit the victim belonged to (`victim_formation_kind`, `victim_formation_id`, `victim_fleet_id`: the squadron, battle group or convoy it led or was a member of, and the fleet that held it; all empty for a ship in no formation). The war system will read reports like this to turn fights into strategic losses.
 
 **Reputation.** When the player attacks a ship the first hit calls `ReputationManager.report_hostile_action(attack_ship, ...)` and destroying it reports `destroy_ship`; each uses an event id built from the victim's `combat_id`, so a ship is charged once per kind of act however many times it is hit. The victim faction is the ship's `faction_id`. A ship with no faction (one just passing through) is charged to the faction that controls the system, through `report_hostile_action_in_system`; a contested or unclaimed system charges nobody. NPC ships get their `faction_id` from the current owner of the location they came from (`StarSystem.get_owner_id`, set to `TerritoryManager.owner_id_of`), never from `faction` fields.
 
@@ -182,6 +189,9 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 & $godot --headless --path . --script res://scripts/tests/ship_combat_test.gd
 & $godot --headless --path . --script res://scripts/tests/escape_pod_test.gd
 & $godot --headless --path . --script res://scripts/tests/combat_sandbox_test.gd
+& $godot --headless --path . --script res://scripts/tests/allegiance_test.gd
+& $godot --headless --path . --script res://scripts/tests/pass_through_test.gd
+& $godot --headless --path . --script res://scripts/tests/formation_report_test.gd
 ```
 
 - `damage_model_test.gd`: the layers, multipliers, bypass, bleed-through, destruction.
@@ -189,6 +199,9 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 - `combat_test.gd` (real scene): firing, cooldown, energy, projectile hits, shields then hull, destruction events and removal, deselection, reputation once per act, turret aim and arc, no self-hits, shield recharge.
 - `ship_combat_test.gd`: loadouts, fitting and selling, limits, repairs, saving and loading weapons and damage, old saves, invalid data.
 - `escape_pod_test.gd` (real scene): the whole sequence, cargo and contracts, the replacement ship, the respawn place, the immediate save.
+- `allegiance_test.gd`: who is an ally (factions, no faction, the player at, below and above the reputation threshold, symmetry, the threshold being data) and which classes are nimble.
+- `pass_through_test.gd` (real scene): shots through allies and not through enemies, a front rank shielding what is behind it, faction-less ships, fighters and heavy fighters against light, medium and heavy weapons (and everything else being hit by all), a fighter swarm destroying a cruiser, the player in a fighter and as an ally.
+- `formation_report_test.gd` (real scene): the unit named in destruction reports (loose ship, squadron, battle group, squadron inside a battle group inside a fleet, flagship, convoy) and the FORMATION and ROLE rows the HUD shows.
 
 The look of the shots, the HUD and the explosions is best checked by running the game (hold Space with a ship selected).
 
@@ -202,11 +215,11 @@ For trying combat by hand. **DEV COMBAT SANDBOX** on the main menu starts it; Es
 - **Everything is for sale:** the planet's shipyard sells every ship model (faction restrictions ignored, `ShipManager.ignore_ship_factions`), its outfitter every upgrade and weapon. The lists are filled from the content registry (`ContentRegistry.all_ship_stats / all_upgrades / all_weapons`) when the sandbox starts, so new content appears without editing anything. Repairs work too.
 - **The player** starts with 500,000,000 credits in a Light Frigate, near the planet.
 - **The target:** one freighter that drifts around the centre of the system (`NpcShip.State.WANDERING`, `begin_wandering`). It never fires, belongs to nobody, and a new one appears 3 seconds after it is destroyed.
-- **Formation panel:** a dev panel on the left spawns formations (squadron, battle group and convoy presets, or any ship times a count) in a chosen shape, shows the targeted ship's formation, changes its shape, kills its leader or a member, and clears them. See [formations.md](formations.md) section 3.
+- **Formation panel:** a dev panel on the left spawns formations (squadron, battle group and convoy presets, or any ship times a count) in a chosen shape, shows the targeted ship's formation, changes its shape, kills its leader or a member, and clears them. It can also draw a whole squadron, battle group, fleet or convoy from its recipe and spawn it. See [formations.md](formations.md) sections 3 and 4.
 - **Isolation:** no reputation is ever charged (the `CombatManager` is given none), no contracts, no jumping or galaxy map or Factions screen, and saving and loading from the pause menu are refused. If the player's ship is destroyed the escape pod brings them back to the Proving Ground, in the most valuable ship they still own (or a new Light Frigate).
 - **Changing it:** edit the constants at the top of `combat_sandbox.gd` (the player's ship and credits, the target's ship type, wander radius, respawn delay) or the system scene. When a combat feature needs something new in the sandbox (more targets, armed enemies, hazards), add it to `CombatSandbox`.
 - **Test:** `scripts/tests/combat_sandbox_test.gd` starts it from the menu button and checks all of the above.
 
 ## 15. Current limits
 
-NPC ships never fire. No missiles or beams. No ammunition. No collisions between ships. No shield or armour upgrades at the outfitter (the numbers come from the model). No insurance (the escape pod costs the ship and cargo, never credits). No area damage. The enemy sides of combat (faction hostility, who attacks whom) come with the AI and war phases. All numbers are first guesses.
+NPC ships never fire. No missiles or beams. No ammunition. No collisions between ships. No shield or armour upgrades at the outfitter (the numbers come from the model). No insurance (the escape pod costs the ship and cargo, never credits). No area damage (pass-through applies to projectiles only, not to future beams or area effects). The enemy sides of combat (faction hostility, who attacks whom) come with the AI and war phases. All numbers are first guesses.

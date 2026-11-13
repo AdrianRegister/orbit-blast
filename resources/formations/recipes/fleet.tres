@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="FormationRecipe" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_recipe.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/recipe_group.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/fleet/recipe_child.gd" id="5"]
+[ext_resource type="Resource" path="res://resources/ship_classes/capital_ship.tres" id="capital_ship"]
+[ext_resource type="Resource" path="res://resources/formations/recipes/battle_group.tres" id="battle_group"]
+
+[sub_resource type="Resource" id="capitals"]
+script = ExtResource("2")
+label = "capital ships"
+classes = Array[ExtResource("3")]([ExtResource("capital_ship")])
+weights = Array[float]([1.0])
+min_count = 1
+max_count = 2
+category = 2
+faction_rule = 0
+
+[sub_resource type="Resource" id="battle_groups"]
+script = ExtResource("5")
+recipe = ExtResource("battle_group")
+min_count = 2
+max_count = 3
+
+[resource]
+script = ExtResource("1")
+id = &"fleet"
+display_name = "Fleet"
+description = "2 to 3 battle groups with 1 to 2 capital ships. The strongest capital ship is the flagship. A fleet has no shape: its parts keep to a leash around the flagship."
+unit = 2
+groups = Array[ExtResource("2")]([SubResource("capitals")])
+children = Array[ExtResource("5")]([SubResource("battle_groups")])

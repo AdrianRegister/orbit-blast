@@ -31,6 +31,10 @@ extends Resource
 @export var cargo: bool = false
 ## Whether ships of this class are capital ships (a fleet's flagship is one).
 @export var capital: bool = false
+## Whether ships of this class are nimble enough to slip past medium and heavy
+## weapons: every shot from a medium or large weapon passes through them, so only
+## light weapons can hurt them (fighters and heavy fighters).
+@export var evades_heavy_fire: bool = false
 
 
 ## Whether this class is `other`, or a kind of it: a frigate is_a frigate and
@@ -67,6 +71,19 @@ func is_capital() -> bool:
 		if current == null:
 			return false
 		if current.capital:
+			return true
+		current = current.parent
+	return false
+
+
+## Whether ships of this class slip past medium and heavy weapons: its own flag or
+## a parent's.
+func is_evasive() -> bool:
+	var current: ShipClass = self
+	for step in 16:
+		if current == null:
+			return false
+		if current.evades_heavy_fire:
 			return true
 		current = current.parent
 	return false

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="FormationRecipe" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_recipe.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/recipe_group.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="4"]
+[ext_resource type="Resource" path="res://resources/ship_classes/cargo_ship.tres" id="cargo_ship"]
+[ext_resource type="Resource" path="res://resources/ship_classes/interceptor.tres" id="interceptor"]
+[ext_resource type="Resource" path="res://resources/ship_classes/light_frigate.tres" id="light_frigate"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/convoy.tres" id="convoy"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/convoy_diamond.tres" id="convoy_diamond"]
+
+[sub_resource type="Resource" id="freighters"]
+script = ExtResource("2")
+label = "freighters"
+classes = Array[ExtResource("3")]([ExtResource("cargo_ship")])
+weights = Array[float]([1.0])
+min_count = 2
+max_count = 5
+category = 1
+faction_rule = 1
+
+[sub_resource type="Resource" id="escorts"]
+script = ExtResource("2")
+label = "escorts"
+classes = Array[ExtResource("3")]([ExtResource("interceptor"), ExtResource("light_frigate")])
+weights = Array[float]([2.0, 1.0])
+min_count = 2
+max_count = 6
+category = 0
+faction_rule = 1
+
+[resource]
+script = ExtResource("1")
+id = &"convoy"
+display_name = "Cargo Convoy"
+description = "2 to 5 freighters (any cargo ship) escorted by 2 to 6 interceptors and light frigates in a 2:1 ratio. Civilian: no military faction's ships."
+unit = 3
+groups = Array[ExtResource("2")]([SubResource("freighters"), SubResource("escorts")])
+shapes = Array[ExtResource("4")]([ExtResource("convoy"), ExtResource("convoy_diamond")])
+civilian = true

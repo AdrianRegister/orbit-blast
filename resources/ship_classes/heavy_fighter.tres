@@ -10,3 +10,4 @@ display_name = "Heavy Fighter"
 description = "A tougher, better armed fighter that leads a squadron's strike."
 parent = ExtResource("parent")
 tier = 1
+evades_heavy_fire = true

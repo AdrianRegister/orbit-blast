@@ -28,6 +28,11 @@ var specs: ShipSpecs
 var rules: DamageRules
 ## Callable() -> Node: the node new shots are added to (the system's Projectiles).
 var projectile_root_provider: Callable
+## Who counts as an ally (set by the CombatManager when it registers the ship).
+## Null: nobody is, so every shot hits.
+var allegiance: Allegiance
+## Whether the ship slips past medium and heavy weapons (its class says so).
+var evasive: bool = false
 
 var _target: Combatant
 var _heading_provider: Callable
@@ -54,6 +59,7 @@ func setup(model: ShipStats, ship_specs: ShipSpecs, loadout: Array, condition: S
 	specs = ship_specs
 	model_id = model.id
 	display_name = model.display_name
+	evasive = model.ship_class != null and model.ship_class.is_evasive()
 	_heading_provider = heading
 	_velocity_provider = velocity
 	_dead = false
@@ -120,6 +126,16 @@ func spawn_projectile(weapon: WeaponDefinition, muzzle: Vector2, direction: Vect
 
 
 # ------------------------------------------------------------------- damage
+
+## Whether a shot from `weapon` fired by `shooter` goes straight through this ship
+## instead of hitting it: the shooter is an ally (no friendly fire), or this ship is
+## nimble (see ShipClass.evades_heavy_fire) and the weapon is medium or large.
+## Nothing happens to the shot and nothing is shown: as far as combat goes it missed.
+func lets_shot_pass(weapon: WeaponDefinition, shooter: Combatant) -> bool:
+	if shooter != null and allegiance != null and allegiance.are_allies(shooter, self):
+		return true
+	return evasive and weapon != null and weapon.mount_size >= WeaponMount.Size.MEDIUM
+
 
 ## Takes a hit through the layered damage rules. Destroys the ship at hull zero.
 func take_hit(hit: Hit) -> DamageResult:

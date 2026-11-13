@@ -9,3 +9,4 @@ id = &"fighter"
 display_name = "Fighter"
 description = "A small, agile warship. The backbone of a squadron."
 parent = ExtResource("parent")
+evades_heavy_fire = true

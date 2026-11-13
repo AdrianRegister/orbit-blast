@@ -8,6 +8,13 @@ var victim_id: StringName = &""
 var victim_model: StringName = &""
 var victim_faction: StringName = &""
 var victim_is_player: bool = false
+## The formation the victim belonged to when it was destroyed (a squadron, battle
+## group or convoy): its kind (&"squadron", &"battle_group", &"convoy"), its id, and
+## the id of the fleet it was part of. All empty for a ship in no formation, so wars
+## can count a unit's losses.
+var victim_formation_kind: StringName = &""
+var victim_formation_id: StringName = &""
+var victim_fleet_id: StringName = &""
 
 var attacker_id: StringName = &""
 var attacker_faction: StringName = &""

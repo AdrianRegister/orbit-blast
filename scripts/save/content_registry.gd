@@ -16,6 +16,7 @@ const UPGRADE_DIR := "res://resources/upgrades/"
 const WEAPON_DIR := "res://resources/weapons/"
 const SHIP_CLASS_DIR := "res://resources/ship_classes/"
 const FORMATION_SHAPE_DIR := "res://resources/formations/shapes/"
+const FORMATION_RECIPE_DIR := "res://resources/formations/recipes/"
 const SYSTEM_CLASS_DIR := "res://resources/system_classes/"
 const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 
@@ -30,6 +31,7 @@ var _upgrades: Dictionary = {}  # StringName -> UpgradeDefinition
 var _weapons: Dictionary = {}  # StringName -> WeaponDefinition
 var _ship_classes: Dictionary = {}  # StringName -> ShipClass
 var _formation_shapes: Dictionary = {}  # StringName -> FormationShape
+var _formation_recipes: Dictionary = {}  # StringName -> FormationRecipe
 var _system_classes: Dictionary = {}  # StringName -> SystemClass
 var _galaxy: Galaxy
 
@@ -44,6 +46,7 @@ func _init(galaxy: Galaxy = null) -> void:
 	_index(WEAPON_DIR, _weapons, "weapon", "id")
 	_index(SHIP_CLASS_DIR, _ship_classes, "ship class", "id")
 	_index(FORMATION_SHAPE_DIR, _formation_shapes, "formation shape", "id")
+	_index(FORMATION_RECIPE_DIR, _formation_recipes, "formation recipe", "id")
 	_index(SYSTEM_CLASS_DIR, _system_classes, "system class", "id")
 	_galaxy = galaxy if galaxy != null else load(GALAXY_PATH) as Galaxy
 	if _galaxy == null:
@@ -130,6 +133,18 @@ func formation_shapes() -> Array[FormationShape]:
 	var result: Array[FormationShape] = []
 	result.assign(_formation_shapes.values())
 	result.sort_custom(func(a: FormationShape, b: FormationShape) -> bool: return str(a.id) < str(b.id))
+	return result
+
+
+func formation_recipe(id: StringName) -> FormationRecipe:
+	return _formation_recipes.get(id)
+
+
+## Every formation recipe, sorted by id.
+func formation_recipes() -> Array[FormationRecipe]:
+	var result: Array[FormationRecipe] = []
+	result.assign(_formation_recipes.values())
+	result.sort_custom(func(a: FormationRecipe, b: FormationRecipe) -> bool: return str(a.id) < str(b.id))
 	return result
 
 

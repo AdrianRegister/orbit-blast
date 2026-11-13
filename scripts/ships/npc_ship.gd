@@ -94,6 +94,14 @@ var formation_turn_cap: float = INF
 ## stop turning (rad/s^2), so members can keep pace (see FormationSteering).
 var formation_thrust_cap: float = INF
 var formation_turn_accel_cap: float = INF
+## The fleet this ship belongs to (a flagship, a second capital ship or a battle
+## group's leader), or null. It supplies collision avoidance to a ship that leads
+## no formation of its own.
+var fleet: WarFleet
+## While set, the ship has strayed from its fleet's flagship: it leaves its route
+## and flies back to a point `recall_distance` from it (see WarFleet).
+var recall_target: NpcShip
+var recall_distance: float = 0.0
 
 var _config: TrafficConfig
 var _destroyed: bool = false
@@ -255,6 +263,10 @@ func effective_thrust() -> float:
 	return minf(ship_type.stats.thrust, formation_thrust_cap)
 
 
+func stats_max_speed() -> float:
+	return ship_type.stats.max_speed
+
+
 ## Removes every limit a formation put on this ship as its leader.
 func clear_formation_limits() -> void:
 	formation_speed_cap = INF
@@ -275,6 +287,46 @@ func get_combatant() -> Combatant:
 ## Turns the ship to face `angle` at once (radians, 0 = facing right).
 func set_heading(angle: float) -> void:
 	_face(angle)
+
+
+## What unit this ship belongs to, for combat reports and the HUD: {"kind", "id",
+## "fleet_id"} (empty values for a ship in no formation). The unit is the formation
+## the ship leads, or else the one it is a member of.
+func get_organisation() -> Dictionary:
+	var unit: Formation = led_formation if led_formation != null else formation
+	if unit != null and not is_instance_valid(unit):
+		unit = null
+	var group: WarFleet = fleet if fleet != null and is_instance_valid(fleet) else null
+	if group == null and unit != null:
+		group = unit.get_fleet()
+	return {
+		"kind": Formation.kind_name(unit.kind) if unit != null else &"",
+		"id": unit.id if unit != null else &"",
+		"fleet_id": group.id if group != null else &"",
+	}
+
+
+## Updates the FORMATION and ROLE rows the HUD shows for this ship.
+func refresh_organisation() -> void:
+	if details == null:
+		return
+	var unit: Formation = led_formation if led_formation != null else formation
+	if unit == null or not is_instance_valid(unit) or unit.shape == null:
+		details.formation_text = ""
+		details.role_text = ""
+		return
+	var slot := unit.get_slot(self)
+	var kind_text := str(Formation.kind_name(unit.kind)).replace("_", " ")
+	var place := "%s %s" % [unit.shape.display_name, kind_text]
+	if slot != null:
+		place += ", %d of %d" % [slot.index + 1, unit.size()]
+	details.formation_text = place
+	if fleet != null and is_instance_valid(fleet) and fleet.flagship == self:
+		details.role_text = "Fleet flagship"
+	elif led_formation != null:
+		details.role_text = "%s leader" % kind_text.capitalize()
+	else:
+		details.role_text = "Member"
 
 
 ## Rewrites the status line the HUD shows (after the state's own text changed,
@@ -302,29 +354,35 @@ func _follow(delta: float) -> void:
 		global_position = slot_position
 		velocity = lead.velocity
 		_face(lead.get_heading())
-		if lead.state == State.WARPING and _targetable.is_enabled():
+		if formation.is_warping() and _targetable.is_enabled():
 			_targetable.set_enabled(false)
 		return
 
-	var stats: ShipStats = ship_type.stats
+	# A member that leads a formation of its own (a squadron leader in a battle group)
+	# flies with its full engines while it holds its place here: its squadron's limits
+	# are for the leader's own route, and would stop it correcting a big error (it can
+	# only circle its slot). The battle group's limits already allow for its squadrons.
+	var free := led_formation != null
+	var top_speed := stats_max_speed() if free else effective_max_speed()
+	var thrust: float = ship_type.stats.thrust if free else effective_thrust()
 	var tuning := formation.tuning
 	var error: Vector2 = slot_position - global_position
 	var catching_up: bool = error.length() > formation.catch_up_distance
-	var desired := FormationSteering.follow_velocity(error, formation.get_slot_velocity(self), stats.max_speed, catching_up, tuning)
-	desired = (desired + formation.get_avoidance(self)).limit_length(stats.max_speed)
+	var desired := FormationSteering.follow_velocity(error, formation.get_slot_velocity(self), top_speed, catching_up, tuning)
+	desired = (desired + formation.get_avoidance(self)).limit_length(top_speed)
 	var correction: Vector2 = desired - velocity
 	if correction.length() <= tuning.trim_range:
 		# A small correction: station-keeping thrusters cancel it in any direction (a
 		# ship cannot brake with forward-only engines without turning round), and
 		# the nose stays with the leader.
-		velocity += FormationSteering.trim_delta(correction, tuning.trim_thrust_fraction * stats.thrust, delta)
-		_turn_toward(formation.get_frame_heading(), delta)
+		velocity += FormationSteering.trim_delta(correction, tuning.trim_thrust_fraction * thrust, delta)
+		_turn_toward(formation.get_frame_heading(), delta, free)
 	else:
 		# A big one: main engines. Turn toward it, thrust once facing it.
-		_turn_toward(correction.angle(), delta)
+		_turn_toward(correction.angle(), delta, free)
 		if absf(angle_difference(get_heading(), correction.angle())) < THRUST_ANGLE:
-			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
-	velocity = velocity.limit_length(stats.max_speed)
+			velocity += Vector2.from_angle(get_heading()) * thrust * delta
+	velocity = velocity.limit_length(top_speed)
 	global_position += velocity * delta
 
 
@@ -332,9 +390,23 @@ func _follow(delta: float) -> void:
 ## (its members already get this in _follow). Zero for everyone else, so ordinary
 ## traffic flies exactly as before.
 func _avoidance() -> Vector2:
-	if led_formation == null:
-		return Vector2.ZERO
-	return led_formation.get_avoidance(self)
+	if led_formation != null:
+		return led_formation.get_avoidance(self)
+	if fleet != null and is_instance_valid(fleet):
+		return fleet.get_avoidance(self)
+	return Vector2.ZERO
+
+
+## Flies back toward the fleet's flagship (it strayed beyond the fleet's leash):
+## heads for a point `recall_distance` from it on this ship's side, matching its
+## velocity, at up to this ship's own speed limit.
+func _recall(delta: float) -> void:
+	var away: Vector2 = global_position - recall_target.global_position
+	var side := away.normalized() if away.length() > 1.0 else Vector2.RIGHT
+	var aim: Vector2 = recall_target.global_position + side * recall_distance
+	var top_speed := effective_max_speed()
+	var wanted: Vector2 = recall_target.velocity + (aim - global_position).limit_length(top_speed)
+	_cruise_toward(wanted, minf(wanted.length(), top_speed), delta)
 
 
 func _ready() -> void:
@@ -372,6 +444,12 @@ func _on_destroyed(_victim: Combatant, _attacker: Combatant) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if recall_target != null:
+		if not is_instance_valid(recall_target) or recall_target.is_queued_for_deletion():
+			recall_target = null
+		elif state == State.WANDERING or state == State.TRAVELLING or state == State.APPROACHING:
+			_recall(delta)
+			return
 	match state:
 		State.TRAVELLING, State.APPROACHING:
 			_fly(delta)
@@ -608,6 +686,7 @@ func _set_state(new_state: State) -> void:
 		State.IN_FORMATION:
 			var shape_name := formation.shape.display_name if formation != null and formation.shape != null else ""
 			details.status = "In formation (%s)" % shape_name if not shape_name.is_empty() else "In formation"
+	refresh_organisation()
 	state_changed.emit(state)
 
 
@@ -615,7 +694,13 @@ func _set_state(new_state: State) -> void:
 ## leader also has a limit on how fast its turn rate may change (formation_turn_accel_cap),
 ## and slows its turn in time to stop on the target without overshooting, so the
 ## formation's slots swing smoothly. Anyone else turns at the full rate at once.
-func _turn_toward(target_angle: float, delta: float) -> void:
+func _turn_toward(target_angle: float, delta: float, free: bool = false) -> void:
+	if free:
+		# (No formation limits: the ship's own turn rate.)
+		var own_rate: float = ship_type.stats.turn_rate
+		_turn_rate = clampf(angle_difference(_visual.rotation, target_angle) / delta, -own_rate, own_rate)
+		_visual.rotation += _turn_rate * delta
+		return
 	var max_rate := effective_turn_rate()
 	var difference := angle_difference(_visual.rotation, target_angle)
 	var wanted := clampf(difference / delta, -max_rate, max_rate)

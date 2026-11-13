@@ -51,6 +51,15 @@ const GROUP_PRESETS := [
 ## How far ahead of the player a formation appears, and how far its leader
 ## drifts from the system centre.
 const FORMATION_SPAWN_DISTANCE := 900.0
+## The faction composed units belong to (the recipes' own-faction ships are its).
+const COMPOSED_FACTION := &"faction_1"
+## How far ahead of the player a composed unit appears, by kind (big units are wide).
+const COMPOSED_DISTANCE := {
+	FormationRecipe.Unit.SQUADRON: 900.0,
+	FormationRecipe.Unit.CONVOY: 1000.0,
+	FormationRecipe.Unit.BATTLE_GROUP: 1500.0,
+	FormationRecipe.Unit.FLEET: 2800.0,
+}
 const FORMATION_WANDER_RADIUS := 700.0
 
 var _main: Main
@@ -58,6 +67,8 @@ var _system: StarSystem
 var _targets_spawned: int = 0
 var _registry: ContentRegistry
 var _panel: SandboxPanel
+## What the last composed unit was made of (for the panel to show).
+var last_plan: FormationPlan
 
 
 ## A ready-to-add game in sandbox mode. The caller adds it to the scene tree.
@@ -134,6 +145,22 @@ func spawn_formation(shape: FormationShape, ship_ids: Array, kind: Formation.Kin
 			player.rotation, &"", FORMATION_WANDER_RADIUS)
 
 
+## Composes a unit from `recipe` (who goes in is drawn at random within the recipe's
+## rules) and spawns it ahead of the player: a Formation for a squadron, battle
+## group or convoy, a WarFleet for a fleet. `shape` replaces the drawn shape.
+func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null) -> Node:
+	var plan := FleetComposer.compose(recipe, COMPOSED_FACTION, FleetComposer.all_ship_types())
+	if plan == null:
+		push_warning("The %s recipe cannot be built from the ships that exist." % recipe.display_name)
+		return null
+	last_plan = plan
+	var player := _main.get_player_ship()
+	var distance: float = COMPOSED_DISTANCE.get(recipe.unit, FORMATION_SPAWN_DISTANCE)
+	var at := player.global_position + Vector2.from_angle(player.rotation) * distance
+	return FleetSpawner.spawn_plan(_system, player, TRAFFIC_CONFIG, plan, at, player.rotation,
+			COMPOSED_FACTION, FORMATION_WANDER_RADIUS, null, [], shape)
+
+
 ## The formation of the ship the player has targeted (as a member or leader).
 func get_selected_formation() -> Formation:
 	var target := (_main.get_node("Targeting") as TargetingManager).current_target
@@ -153,12 +180,17 @@ func kill_ship(ship: NpcShip) -> void:
 	ship.get_combatant().take_hit(hit)
 
 
-## Removes every formation and its ships.
+## Removes every formation and fleet and their ships.
 func clear_formations() -> void:
-	for formation in _system.get_formations_root().get_children():
-		for ship in (formation as Formation).get_ships():
+	for unit in _system.get_formations_root().get_children():
+		var ships: Array[NpcShip] = []
+		if unit is Formation:
+			ships = (unit as Formation).get_all_ships()
+		elif unit is WarFleet:
+			ships = (unit as WarFleet).get_all_ships()
+		for ship in ships:
 			ship.queue_free()
-		formation.queue_free()
+		unit.queue_free()
 
 
 ## Puts a new target ship in the system (the old one, if still alive, stays).

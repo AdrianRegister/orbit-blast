@@ -5,6 +5,10 @@ extends Node2D
 ## never skip over a target. It lives under the star system's Projectiles node,
 ## so shots disappear when the system is swapped.
 
+## Most ships a shot can pass through in one frame before it simply carries on
+## (a safety limit; no formation is that deep along one line).
+const MAX_CASTS := 8
+
 var velocity: Vector2 = Vector2.ZERO
 var weapon: WeaponDefinition
 var shooter: Combatant
@@ -33,11 +37,21 @@ func _physics_process(delta: float) -> void:
 	query.collide_with_bodies = false
 	query.hit_from_inside = true
 	var attacker: Combatant = shooter if is_instance_valid(shooter) else null
+	var skipped: Array[RID] = []
 	if attacker != null:
-		query.exclude = [attacker.hurtbox.get_rid()]
-	var found := get_world_2d().direct_space_state.intersect_ray(query)
-	if not found.is_empty():
+		skipped.append(attacker.hurtbox.get_rid())
+	# The first hurtbox on the way that the shot does not pass through takes the hit.
+	# Allies, and nimble ships facing medium and heavy weapons, are passed through:
+	# the ray is cast again past them.
+	for cast in MAX_CASTS:
+		query.exclude = skipped
+		var found := get_world_2d().direct_space_state.intersect_ray(query)
+		if found.is_empty():
+			break
 		var box := found["collider"] as Hurtbox
+		if box != null and box.combatant != null and box.combatant.lets_shot_pass(weapon, attacker):
+			skipped.append(box.get_rid())
+			continue
 		if box != null and box.combatant != null:
 			box.combatant.take_hit(Hit.from_weapon(weapon, attacker, found["position"]))
 		set_physics_process(false)

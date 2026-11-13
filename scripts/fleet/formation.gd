@@ -23,6 +23,13 @@ extends Node
 ## ship physics. The leader is an ordinary NPC flying its own route (traffic, or
 ## wandering) at the formation's cruise speed.
 ##
+## Formations nest. A squadron's leader is itself a member of its battle group's
+## formation (`ship.led_formation` is the squadron, `ship.formation` the battle
+## group; the squadron's `parent` is the battle group). The battle group lays out
+## room for each squadron's whole footprint, limits its speed and turn by the
+## squadron's slowest ships too, swaps in a squadron's new leader when it loses its
+## own, and takes in a squadron's survivors if the squadron breaks up.
+##
 ## It has no combat behaviour of its own: formation states (following, holding,
 ## attacking ...) and the flagship deciding them come with the NPC combat AI.
 
@@ -36,6 +43,9 @@ signal leader_changed(old_lead, new_lead)
 signal shape_changed(new_shape: FormationShape)
 ## The formation has broken up (too few ships, or its leader jumped out).
 signal dissolved
+## The limits this formation puts on its leader (or its footprint) have changed:
+## the formation it is a member of must lay itself out again.
+signal limits_changed
 
 const REASON_DESTROYED := &"destroyed"
 const REASON_DISABLED := &"disabled"
@@ -44,12 +54,18 @@ const REASON_RELEASED := &"released"
 ## How quickly the measured turn rate follows the real one (1 = instantly).
 const ANGULAR_SMOOTHING := 0.3
 
+## Unique among formations ("formation_12"): what combat reports name the unit by.
+var id: StringName = &""
 var kind: Kind = Kind.SQUADRON
 var shape: FormationShape
 var faction_id: StringName = &""
 ## The ship every slot is measured from, and the one that follows the route.
 var lead: NpcShip
 var tuning: FormationTuning
+## The formation this one's leader is a member of (a squadron's battle group).
+var parent: Formation
+## The fleet this formation is a battle group of, or null.
+var fleet: WarFleet
 
 ## Distance between neighbouring ships now (the shape's, widened for big ships).
 var spacing: float = 0.0
@@ -71,14 +87,27 @@ var _frame_origin: Vector2 = Vector2.ZERO
 var _frame_heading: float = 0.0
 ## How fast the formation is turning (radians per second), smoothed.
 var _angular_velocity: float = 0.0
-var _bodies: Array[Dictionary] = []
-var _obstacles: Array[Dictionary] = []
+var _environment := FormationEnvironment.new()
 ## What the leader's turn limit depends on, per member: {"max_speed", "turn_rate",
 ## "distance"}. Rebuilt with the slots; the limit itself follows the leader's speed.
 var _followers: Array = []
+var _subs: Array = []  # the Formations led by members of this one (untyped: they get freed)
 var _dirty: bool = true
 var _dissolving: bool = false
 var _lead_state: NpcShip.State = NpcShip.State.TRAVELLING
+
+
+static var _created: int = 0
+
+
+func _init() -> void:
+	_created += 1
+	id = StringName("formation_%d" % _created)
+
+
+## The kind as text: &"squadron", &"battle_group" or &"convoy".
+static func kind_name(of_kind: Kind) -> StringName:
+	return StringName(str(Kind.keys()[of_kind]).to_lower())
 
 
 # ------------------------------------------------------------------ setup
@@ -96,7 +125,9 @@ func setup(formation_kind: Kind, formation_shape: FormationShape, ships: Array[N
 	_system = system
 	_player = player
 	lead = lead_ship
-	process_physics_priority = -10  # the slots are updated before the ships move
+	# The slots are updated before the ships move, and a battle group before the
+	# squadrons whose leaders are its members.
+	process_physics_priority = -11 if kind == Kind.BATTLE_GROUP else -10
 	_ships = []  # (untyped: duplicate() of a typed array would stay typed)
 	_ships.append_array(ships)
 	if not _ships.has(lead):
@@ -108,8 +139,9 @@ func setup(formation_kind: Kind, formation_shape: FormationShape, ships: Array[N
 		if ship != lead:
 			ship.formation = self
 		ship.get_combatant().destroyed.connect(_on_combatant_destroyed.bind(ship))
-	for node in system.get_inhabited_nodes():
-		_obstacles.append({"node": node, "position": node.global_position, "radius": _body_radius(node)})
+		if ship != lead:
+			_attach_sub(ship)
+	_environment.setup(system, player)
 	_rebuild()
 	_frame_origin = lead.global_position
 	_frame_heading = lead.get_heading()
@@ -134,6 +166,42 @@ func get_ships() -> Array[NpcShip]:
 		if is_instance_valid(ship):
 			result.append(ship)
 	return result
+
+
+## Every ship in this formation and in the formations led by its members (a battle
+## group's squadrons), each once.
+func get_all_ships() -> Array[NpcShip]:
+	var result: Array[NpcShip] = []
+	for ship in get_ships():
+		if not result.has(ship):
+			result.append(ship)
+		var sub: Formation = ship.led_formation
+		if sub != null and sub != self and is_instance_valid(sub):
+			for inner in sub.get_all_ships():
+				if not result.has(inner):
+					result.append(inner)
+	return result
+
+
+## The leader of the outermost formation this one belongs to: the ship whose route
+## everybody is following.
+func get_root_lead() -> NpcShip:
+	var top: Formation = self
+	for step in 8:
+		if top.parent == null or not is_instance_valid(top.parent):
+			break
+		top = top.parent
+	return top.lead if top.has_valid_lead() else lead
+
+
+## The fleet this formation belongs to, through the formation it is part of, or null.
+func get_fleet() -> WarFleet:
+	var top: Formation = self
+	for step in 8:
+		if top.parent == null or not is_instance_valid(top.parent):
+			break
+		top = top.parent
+	return top.fleet if top.fleet != null and is_instance_valid(top.fleet) else null
 
 
 ## The members, not counting the leader.
@@ -199,7 +267,20 @@ func is_on_station(ship: NpcShip) -> bool:
 ## True while the leader is jumping in or out: ships move too fast to hold
 ## station, so members are simply locked to their slots.
 func is_slaved() -> bool:
-	return has_valid_lead() and (lead.state == NpcShip.State.ARRIVING or lead.state == NpcShip.State.WARPING)
+	if not has_valid_lead():
+		return false
+	if lead.state == NpcShip.State.ARRIVING or lead.state == NpcShip.State.WARPING:
+		return true
+	return parent != null and is_instance_valid(parent) and parent.is_slaved()
+
+
+## True while the leader (or the leader of the formation it belongs to) is jumping out.
+func is_warping() -> bool:
+	if not has_valid_lead():
+		return false
+	if lead.state == NpcShip.State.WARPING:
+		return true
+	return parent != null and is_instance_valid(parent) and parent.is_warping()
 
 
 ## The strongest ship in the formation (the future flagship, the decision-maker
@@ -218,7 +299,7 @@ func get_flagship() -> NpcShip:
 ## The formation's strength: the sum of its ships' ratings.
 func get_rating() -> float:
 	var total := 0.0
-	for ship in _ships:
+	for ship in get_all_ships():
 		total += CombatRating.of(ship.ship_type.stats)
 	return total
 
@@ -226,13 +307,27 @@ func get_rating() -> float:
 ## How far the formation reaches from its leader, counting the ships' own sizes:
 ## the room it needs when it is itself a member of a larger formation.
 func get_extent() -> float:
+	var biggest := 0.0
+	for ship in _ships:
+		biggest = maxf(biggest, _footprint_of(ship))
+	return get_reach() + biggest
+
+
+## How far the farthest slot is from the leader.
+func get_reach() -> float:
 	var reach := 0.0
 	for slot in _slots:
 		reach = maxf(reach, slot.offset.length())
-	var biggest := 0.0
-	for ship in _ships:
-		biggest = maxf(biggest, ship.get_hit_radius())
-	return reach + biggest
+	return reach
+
+
+## The fastest this formation's leader can turn at its cruise speed: the limit a
+## bigger formation has to allow for when this one's leader is one of its members.
+func get_cruise_turn_cap() -> float:
+	if not has_valid_lead():
+		return INF
+	var cruise := minf(lead.ship_type.stats.max_speed, lead.formation_speed_cap)
+	return FormationSteering.turn_cap(lead.ship_type.stats.turn_rate, _followers, cruise, tuning)
 
 
 # ---------------------------------------------------------------- changes
@@ -260,23 +355,27 @@ func release(ship: NpcShip, reason: StringName = REASON_RELEASED) -> void:
 		ship.leave_formation()
 
 
+## Takes a ship that has just lost its own formation (a squadron that broke up)
+## in as a member.
+func adopt(ship: NpcShip) -> void:
+	if _dissolving or _ships.has(ship) or not is_instance_valid(ship):
+		return
+	_ships.append(ship)
+	ship.join_formation(self)
+	ship.refresh_status()
+	ship.get_combatant().destroyed.connect(_on_combatant_destroyed.bind(ship))
+	_attach_sub(ship)
+	_dirty = true
+
+
 # ----------------------------------------------------------------- avoidance
 
 ## A push (a velocity) that keeps `ship` clear of other ships (including the
-## player) and of planets and stations. Used by members and by the leader.
+## player) and of planets and stations. Used by members and by the leader. A
+## formation may gather at the place its leader is going to.
 func get_avoidance(ship: NpcShip) -> Vector2:
-	var max_speed := ship.ship_type.stats.max_speed
-	var radius := ship.get_hit_radius()
-	var push := FormationSteering.separation(ship, ship.global_position, radius, _bodies,
-			tuning.separation_margin, max_speed, tuning.separation_strength)
-	var obstacles: Array[Dictionary] = []
-	for obstacle in _obstacles:
-		# A formation may gather at the place its leader is going to.
-		if has_valid_lead() and obstacle["node"] == lead.destination:
-			continue
-		obstacles.append(obstacle)
-	return push + FormationSteering.obstacle_push(ship.global_position, radius, obstacles,
-			tuning.obstacle_margin, max_speed, tuning.obstacle_strength)
+	var gathering_at: Node = get_root_lead().destination if has_valid_lead() else null
+	return _environment.get_avoidance(ship, tuning, gathering_at)
 
 
 # ------------------------------------------------------------------ per frame
@@ -295,7 +394,7 @@ func _physics_process(delta: float) -> void:
 	_frame_heading = heading
 	_frame_origin = lead.global_position + lead.velocity * delta  # where the leader will be this frame
 	_lead_state = lead.state
-	_update_bodies()
+	_environment.update()
 	_update_turn_cap()
 	_check_members(delta)
 
@@ -323,6 +422,9 @@ func _handle_lost_ships() -> bool:
 ## The leader jumped out of the system: so does everyone with it.
 func _leave_with_leader() -> void:
 	_dissolving = true
+	for sub in _subs:
+		if is_instance_valid(sub):
+			sub._leave_with_leader()
 	for ship in _ships:
 		if is_instance_valid(ship) and ship != lead:
 			ship.formation = null
@@ -352,23 +454,6 @@ func _check_members(delta: float) -> void:
 			_off_station.erase(ship)
 
 
-func _update_bodies() -> void:
-	_bodies.clear()
-	for child in _system.get_ships_root().get_children():
-		var other := child as NpcShip
-		if other != null and other.visible and not other.is_queued_for_deletion():
-			_bodies.append({"node": other, "position": other.global_position, "radius": other.get_hit_radius()})
-	if _player != null and is_instance_valid(_player):
-		var specs = _player.get("stats")
-		var player_radius: float = specs.hit_radius if specs != null else 30.0
-		_bodies.append({"node": _player, "position": _player.global_position, "radius": player_radius})
-
-
-## Radius of a planet or station, from its location data (its size is a diameter).
-func _body_radius(node: InhabitedNode) -> float:
-	return node.data.size * 0.5 if node.data != null else 100.0
-
-
 # ------------------------------------------------------------ slots and losses
 
 func _rebuild() -> void:
@@ -394,6 +479,8 @@ func _rebuild() -> void:
 	for ship in _seating:
 		_previous[ship] = (_seating[ship] as FormationSlot).index
 	_push_limits()
+	for ship in _ships:
+		ship.refresh_organisation()
 
 
 ## How much room a ship needs: its own radius, plus the whole extent of any other
@@ -431,25 +518,46 @@ func _inner_count(candidates: Array[SlotCandidate]) -> int:
 	return -1
 
 
+## Everything the leader's limits depend on, for every ship that follows it, the
+## members of the formations its members lead included: {"max_speed", "turn_rate",
+## "thrust", "distance" from the leader}. `extra` is the distance already travelled
+## from the outer leader (a squadron's ships are farther from the battle group's
+## leader than their own slots say).
+func collect_followers(extra: float) -> Array:
+	var result: Array = []
+	for ship in _ships:
+		if ship == lead:
+			continue
+		var model: ShipStats = ship.ship_type.stats
+		var slot: FormationSlot = _seating.get(ship)
+		var distance: float = extra + (slot.offset.length() if slot != null else 0.0)
+		var sub: Formation = ship.led_formation
+		if sub == self or (sub != null and not is_instance_valid(sub)):
+			sub = null
+		var entry := {"max_speed": model.max_speed, "turn_rate": model.turn_rate, "thrust": model.thrust, "distance": distance}
+		if sub != null:
+			# A squadron leader is held to its squadron's limits.
+			entry["max_speed"] = minf(model.max_speed, ship.formation_speed_cap)
+			entry["thrust"] = minf(model.thrust, ship.formation_thrust_cap)
+			entry["turn_rate"] = minf(model.turn_rate, sub.get_cruise_turn_cap())
+		result.append(entry)
+		if sub != null:
+			result.append_array(sub.collect_followers(distance))
+	return result
+
+
 ## Gives the leader the speed limit that lets every member keep up, and works
 ## out what the turn limit depends on.
 func _push_limits() -> void:
-	var speeds: Array = []
-	_followers.clear()
-	for ship in _ships:
-		speeds.append(ship.ship_type.stats.max_speed)
-		if ship != lead:
-			var slot: FormationSlot = _seating.get(ship)
-			_followers.append({
-				"max_speed": ship.ship_type.stats.max_speed,
-				"turn_rate": ship.ship_type.stats.turn_rate,
-				"thrust": ship.ship_type.stats.thrust,
-				"distance": slot.offset.length() if slot != null else 0.0,
-			})
+	_followers = collect_followers(0.0)
+	var speeds: Array = [lead.ship_type.stats.max_speed]
+	for entry in _followers:
+		speeds.append(entry["max_speed"])
 	lead.formation_speed_cap = FormationSteering.speed_cap(speeds, tuning.speed_margin)
 	lead.formation_thrust_cap = FormationSteering.thrust_cap(_followers, tuning)
 	lead.formation_turn_accel_cap = FormationSteering.turn_accel_cap(_followers, tuning)
 	_update_turn_cap()
+	limits_changed.emit()
 
 
 ## The leader may turn as fast as the outer members can follow at the speed the
@@ -476,16 +584,21 @@ func _remove_ship(ship, reason: StringName) -> void:
 	_seating.erase(ship)
 	_previous.erase(ship)
 	_off_station.erase(ship)
+	if reason != REASON_DESTROYED:
+		_forget_sub(ship)  # (a destroyed squadron leader's squadron keeps its place here: see _on_sub_leader_changed)
 	if is_instance_valid(ship):
 		var combatant: Combatant = ship.get_combatant()
 		var callback := _on_combatant_destroyed.bind(ship)
 		if combatant != null and combatant.destroyed.is_connected(callback):
 			combatant.destroyed.disconnect(callback)
-		if was_lead:
-			ship.led_formation = null
-			ship.clear_formation_limits()
-		elif ship.formation == self:
-			ship.formation = null
+		# (A destroyed ship keeps its links: it is about to be freed, and the combat
+		# report still says which unit it was lost from.)
+		if reason != REASON_DESTROYED:
+			if was_lead:
+				ship.led_formation = null
+				ship.clear_formation_limits()
+			elif ship.formation == self:
+				ship.formation = null
 	member_lost.emit(ship, reason)
 	if _ships.size() < shape.min_members:
 		_dissolve()
@@ -503,6 +616,8 @@ func _promote_leader(old_lead) -> void:
 	var chosen_rating := -INF
 	var cargo_only := kind == Kind.CONVOY and _has_cargo_ship()
 	for ship in _ships:
+		if ship.led_formation != null and ship.led_formation != self:
+			continue  # one ship cannot lead two formations
 		var model: ShipStats = ship.ship_type.stats
 		if cargo_only and not (model.ship_class != null and model.ship_class.carries_cargo()):
 			continue
@@ -510,6 +625,9 @@ func _promote_leader(old_lead) -> void:
 		if rating > chosen_rating:
 			chosen_rating = rating
 			chosen = ship
+	if chosen == null:
+		_dissolve()  # only other formations' leaders are left
+		return
 	lead = chosen
 	lead.formation = null
 	lead.led_formation = self
@@ -527,17 +645,94 @@ func _has_cargo_ship() -> bool:
 	return false
 
 
-## Too few ships are left: everyone carries on alone.
+## Too few ships are left: everyone carries on alone, or joins the formation this
+## one's leader belongs to.
 func _dissolve() -> void:
 	_dissolving = true
+	var outer: Formation = parent if parent != null and is_instance_valid(parent) else null
+	for sub in _subs:
+		if is_instance_valid(sub):
+			sub.parent = null
+	_subs.clear()
+	if outer != null:
+		outer._forget_sub_formation(self)
 	for ship in _ships:
 		if not is_instance_valid(ship) or ship.is_queued_for_deletion():
 			continue
 		if ship == lead:
 			ship.led_formation = null
 			ship.clear_formation_limits()
+		elif outer != null and not outer._dissolving:
+			outer.adopt(ship)
 		else:
 			ship.leave_formation()
 	_ships.clear()
+	parent = null
 	dissolved.emit()
 	queue_free()
+
+
+# ------------------------------------------------------------------- nesting
+
+## Starts tracking the formation `ship` leads, if it leads one other than this.
+func _attach_sub(ship: NpcShip) -> void:
+	var sub: Formation = ship.led_formation
+	if sub == null or sub == self or not is_instance_valid(sub) or _subs.has(sub):
+		return
+	_subs.append(sub)
+	sub.parent = self
+	sub.limits_changed.connect(_on_sub_changed)
+	sub.leader_changed.connect(_on_sub_leader_changed)
+
+
+func _forget_sub(ship) -> void:
+	if not is_instance_valid(ship):
+		return
+	var sub: Formation = ship.led_formation
+	if sub != null and sub != self and is_instance_valid(sub):
+		_forget_sub_formation(sub)
+
+
+func _forget_sub_formation(sub: Formation) -> void:
+	if not _subs.has(sub):
+		return
+	_subs.erase(sub)
+	if is_instance_valid(sub):
+		if sub.limits_changed.is_connected(_on_sub_changed):
+			sub.limits_changed.disconnect(_on_sub_changed)
+		if sub.leader_changed.is_connected(_on_sub_leader_changed):
+			sub.leader_changed.disconnect(_on_sub_leader_changed)
+		if sub.parent == self:
+			sub.parent = null
+	_dirty = true
+
+
+func _on_sub_changed() -> void:
+	_dirty = true
+
+
+## A squadron lost its leader and a new one took over: the new leader takes the old
+## one's place here, so the squadron keeps its slot and its rank.
+func _on_sub_leader_changed(old_lead, new_lead) -> void:
+	if _dissolving or not is_instance_valid(new_lead):
+		return
+	var index: int = _ships.find(old_lead)
+	if index < 0:
+		adopt(new_lead)
+		return
+	var slot_index = _previous.get(old_lead, -1)
+	_ships[index] = new_lead
+	_seating.erase(old_lead)
+	_previous.erase(old_lead)
+	_off_station.erase(old_lead)
+	if is_instance_valid(old_lead):
+		var callback := _on_combatant_destroyed.bind(old_lead)
+		var old_combatant: Combatant = old_lead.get_combatant()
+		if old_combatant != null and old_combatant.destroyed.is_connected(callback):
+			old_combatant.destroyed.disconnect(callback)
+	new_lead.join_formation(self)
+	new_lead.refresh_status()
+	new_lead.get_combatant().destroyed.connect(_on_combatant_destroyed.bind(new_lead))
+	if slot_index >= 0:
+		_previous[new_lead] = slot_index
+	_dirty = true

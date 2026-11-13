@@ -23,6 +23,8 @@ var _reputation: ReputationManager
 ## Callable(faction_id: StringName) -> Faction (or null).
 var _faction_lookup: Callable
 var _clock: GameClock
+## Who counts as an ally; every ship registered here gets it (see Allegiance).
+var _allegiance := Allegiance.new()
 var _system: StarSystem
 var _player: Combatant
 ## instance id -> true, for combatants already hooked up.
@@ -34,6 +36,8 @@ func setup(reputation: ReputationManager, faction_lookup: Callable, clock: GameC
 	_reputation = reputation
 	_faction_lookup = faction_lookup
 	_clock = clock
+	# Without a reputation (the combat sandbox) the player has no allies.
+	_allegiance.setup(AllegianceRules.shared(), _player_reputation if reputation != null else Callable())
 
 
 ## The player's combatant. Registered like any other ship.
@@ -67,6 +71,7 @@ func register(combatant: Combatant) -> void:
 	# Ships leave (jump out, are freed with their system): forget them then.
 	combatant.tree_exited.connect(func() -> void: _registered.erase(key))
 	combatant.projectile_root_provider = _get_projectile_root
+	combatant.allegiance = _allegiance
 	combatant.damaged.connect(_on_damaged.bind(combatant))
 	combatant.destroyed.connect(_on_destroyed)
 
@@ -101,6 +106,15 @@ func _register_ship_node(node) -> void:
 		register(combatant)
 
 
+## The player's reputation with the faction `faction_id` (null when there is no such
+## faction): what Allegiance asks to decide whether the player is an ally of it.
+func _player_reputation(faction_id: StringName):
+	var faction: Faction = _faction_lookup.call(faction_id) if _faction_lookup.is_valid() else null
+	if faction == null or _reputation == null:
+		return null
+	return _reputation.get_reputation(faction)
+
+
 func _get_projectile_root() -> Node:
 	return _system.get_projectiles_root() if _system != null and is_instance_valid(_system) else self
 
@@ -123,6 +137,12 @@ func _on_destroyed(victim: Combatant, attacker: Combatant) -> void:
 		report.attacker_id = attacker.combat_id
 		report.attacker_faction = attacker.faction_id
 		report.attacker_is_player = attacker.is_player
+	var ship := victim.get_parent() as NpcShip
+	if ship != null:
+		var unit := ship.get_organisation()
+		report.victim_formation_kind = unit["kind"]
+		report.victim_formation_id = unit["id"]
+		report.victim_fleet_id = unit["fleet_id"]
 	report.system_id = _system.system_id if _system != null else &""
 	report.position = victim.global_position
 	report.day = _clock.day if _clock != null else 0

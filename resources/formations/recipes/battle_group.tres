@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="FormationRecipe" format=3]
+
+[ext_resource type="Script" path="res://scripts/fleet/formation_recipe.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/recipe_group.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/fleet/recipe_child.gd" id="5"]
+[ext_resource type="Resource" path="res://resources/ship_classes/frigate.tres" id="frigate"]
+[ext_resource type="Resource" path="res://resources/ship_classes/cruiser.tres" id="cruiser"]
+[ext_resource type="Resource" path="res://resources/formations/recipes/squadron.tres" id="squadron"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/screen.tres" id="screen"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/diamond.tres" id="diamond"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/wedge.tres" id="wedge"]
+
+[sub_resource type="Resource" id="large"]
+script = ExtResource("2")
+label = "larger ships"
+classes = Array[ExtResource("3")]([ExtResource("frigate"), ExtResource("cruiser")])
+weights = Array[float]([1.0, 1.0])
+min_count = 2
+max_count = 4
+category = 2
+faction_rule = 0
+
+[sub_resource type="Resource" id="squadrons"]
+script = ExtResource("5")
+recipe = ExtResource("squadron")
+min_count = 2
+max_count = 3
+
+[resource]
+script = ExtResource("1")
+id = &"battle_group"
+display_name = "Battle Group"
+description = "2 to 3 squadrons with 2 to 4 larger ships (frigates and cruisers). Its own formation holds the larger ships and each squadron's leader."
+unit = 1
+groups = Array[ExtResource("2")]([SubResource("large")])
+children = Array[ExtResource("5")]([SubResource("squadrons")])
+shapes = Array[ExtResource("4")]([ExtResource("screen"), ExtResource("diamond"), ExtResource("wedge")])

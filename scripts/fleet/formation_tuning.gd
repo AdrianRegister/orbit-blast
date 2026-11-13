@@ -76,6 +76,19 @@ static var _shared: FormationTuning
 @export var obstacle_margin: float = 80.0
 @export var obstacle_strength: float = 0.8
 
+@export_group("Fleet")
+## A fleet's battle group leaders and second capital ship fly their own routes until
+## they are farther than this (pixels) from the flagship, and are then recalled. A
+## fleet that is laid out wider than this gets a bigger radius (see FleetSpawner).
+@export var fleet_cohesion_radius: float = 1600.0
+## A recalled unit is released once it is back within this fraction of the radius.
+@export_range(0.1, 1.0) var fleet_release_fraction: float = 0.6
+## A recalled unit steers for a point this fraction of the radius from the flagship
+## (not for the flagship itself), so it never piles onto it.
+@export_range(0.1, 1.0) var fleet_station_fraction: float = 0.5
+## Gap kept between neighbouring units, and the flagship, when a fleet is laid out.
+@export var fleet_unit_gap: float = 250.0
+
 
 ## The project's tuning (loaded once).
 static func shared() -> FormationTuning:
@@ -110,4 +123,8 @@ func validate() -> Array[String]:
 		problems.append("lost_distance and lost_time must be above zero")
 	if separation_margin < 0.0 or obstacle_margin < 0.0:
 		problems.append("avoidance margins cannot be negative")
+	if fleet_cohesion_radius <= 0.0 or fleet_unit_gap < 0.0:
+		problems.append("fleet_cohesion_radius must be above zero and fleet_unit_gap cannot be negative")
+	if fleet_release_fraction >= 1.0 or fleet_station_fraction > fleet_release_fraction:
+		problems.append("a fleet's release fraction must be below 1 and not under its station fraction")
 	return problems
