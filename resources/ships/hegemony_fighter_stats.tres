@@ -10,11 +10,7 @@
 
 [sub_resource type="Resource" id="mount_0"]
 script = ExtResource("wm")
-offset = Vector2(18, -7)
-
-[sub_resource type="Resource" id="mount_1"]
-script = ExtResource("wm")
-offset = Vector2(18, 7)
+offset = Vector2(20, 0)
 
 [resource]
 script = ExtResource("1")
@@ -26,6 +22,7 @@ faction = ExtResource("faction_2")
 price = 200000
 texture = ExtResource("2")
 display_width = 59
+hit_radius = 24.0
 thrust = 480.0
 turn_rate = 4.8
 max_speed = 750.0
@@ -36,5 +33,5 @@ armour = 50.0
 hull = 70.0
 energy_capacity = 100.0
 energy_regen = 18.0
-weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1")])
-default_loadout = Array[ExtResource("wd")]([ExtResource("w_light_blaster"), ExtResource("w_light_blaster")])
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_light_blaster")])

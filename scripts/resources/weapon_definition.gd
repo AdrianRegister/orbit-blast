@@ -26,6 +26,11 @@ enum Kind { PROJECTILE }
 @export var fixed_capable: bool = true
 @export var turret_capable: bool = true
 
+## A point-defence weapon fires by itself at nimble hostile ships (fighters) near the
+## ship, whatever the ship is aiming at: the player's fire button and an AI pilot's
+## target never use it. It needs a turret mount. See WeaponSystem.fire_point_defence.
+@export var point_defence: bool = false
+
 ## Raw damage of one shot, before shield and armour rules.
 @export var damage: float = 10.0
 ## Seconds between shots.
@@ -52,6 +57,8 @@ enum Kind { PROJECTILE }
 ## Scene used for the shot. Null = the shared default projectile.
 @export var projectile_scene: PackedScene
 @export var projectile_color: Color = Color(1.0, 0.85, 0.3)
+## How big the shot is drawn (1 = the usual bolt). Looks only: hits do not depend on it.
+@export_range(0.1, 3.0) var projectile_scale: float = 1.0
 
 
 ## Seconds a shot lives, from range and speed.
@@ -95,6 +102,8 @@ func validate() -> Array[String]:
 		problems.append("max_per_ship must be at least 1")
 	if not fixed_capable and not turret_capable:
 		problems.append("the weapon must fit a fixed mount, a turret mount or both")
+	if point_defence and not turret_capable:
+		problems.append("a point-defence weapon must fit a turret mount")
 	if damage <= 0.0:
 		problems.append("damage must be above zero")
 	if fire_interval <= 0.0:

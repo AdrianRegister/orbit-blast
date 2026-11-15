@@ -36,6 +36,7 @@ faction = ExtResource("faction_2")
 price = 350000
 texture = ExtResource("2")
 display_width = 131
+hit_radius = 60.0
 thrust = 380.0
 turn_rate = 3.4
 max_speed = 600.0

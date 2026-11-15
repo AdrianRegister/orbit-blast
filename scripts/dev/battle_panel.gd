@@ -1,9 +1,9 @@
 class_name BattlePanel
 extends DevPanel
 ## DEVELOPMENT ONLY. The combat sandbox's battle builder: two sides, each a faction
-## and a number of one ship model, spawned facing each other. It only calls
-## CombatSandbox; it holds no game logic. (Presets, composed units, and the live
-## battle readout come in later steps.)
+## and a number of one ship model, spawned facing each other, or a preset (1v1,
+## 2v1 ...). It only calls CombatSandbox; it holds no game logic. (Composed units
+## and the live battle readout come in later steps.)
 
 var _factions: Array[Faction] = []  # index 0 of the faction lists is "no faction"
 var _ships: Array[ShipStats] = []
@@ -11,6 +11,7 @@ var _side_faction: Array[OptionButton] = []
 var _side_ship: Array[OptionButton] = []
 var _side_count: Array[SpinBox] = []
 var _info: Label
+var _preset: OptionButton
 var _side_a: Array[NpcShip] = []
 var _side_b: Array[NpcShip] = []
 
@@ -35,6 +36,12 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	margin.add_child(column)
 
 	column.add_child(_label("DEV: BATTLE", true))
+	_preset = OptionButton.new()
+	for preset in CombatSandbox.BATTLE_PRESETS:
+		_preset.add_item(preset["name"])
+	column.add_child(_preset)
+	column.add_child(_button("SPAWN PRESET", _on_spawn_preset))
+	column.add_child(HSeparator.new())
 	for side in 2:
 		column.add_child(_label("Side %s" % ["A", "B"][side]))
 		var faction := OptionButton.new()
@@ -125,6 +132,12 @@ func _on_spawn() -> void:
 	var sides := _sandbox.spawn_battle(
 			{"faction": get_side_faction(0), "model": _ships[_side_ship[0].selected].id, "count": int(_side_count[0].value)},
 			{"faction": get_side_faction(1), "model": _ships[_side_ship[1].selected].id, "count": int(_side_count[1].value)})
+	_side_a = sides["a"]
+	_side_b = sides["b"]
+
+
+func _on_spawn_preset() -> void:
+	var sides := _sandbox.spawn_battle_preset(_preset.selected)
 	_side_a = sides["a"]
 	_side_b = sides["b"]
 

@@ -1,6 +1,6 @@
 # Combat (Phase 3.1: foundations)
 
-How ship combat works: weapons, shots, the layered damage model, destruction, repairs, what the player's death does, and where later systems (NPC combat AI, formations, convoys, wars) plug in. Phase 3.1 builds the ship-level parts only. NPC ships carry weapons and can be destroyed, but they do not fire or fight back yet.
+How ship combat works: weapons, shots, the layered damage model, destruction, repairs, what the player's death does, and where later systems (NPC combat AI, formations, convoys, wars) plug in. Phase 3.1 built the ship-level parts. NPC ships carry weapons and can be destroyed; the AI that makes them fight (Phase 3.3) is described in [combat_ai.md](combat_ai.md).
 
 Read this before changing combat. Read [wars_system.md](../wars_system.md) before designing anything that fleets or wars will use.
 
@@ -30,6 +30,7 @@ Read this before changing combat. Read [wars_system.md](../wars_system.md) befor
 - `default_loadout` is parallel to `weapon_mounts` (entry N goes in mount N, null = empty). It is what NPCs fly with and what a newly bought ship has. The shuttle has one small mount with a light blaster, so a new game can fight.
 - `ShipSpecs` carries the same numbers (and the number of mounts). It is still the only place that combines a model with its upgrades; no upgrade changes defences yet.
 - Weapon `kind` (only `PROJECTILE` exists) is the extension point for beams and missiles.
+- **Point defence** (`WeaponDefinition.point_defence`, turret mounts only; `resources/weapons/point_defence.tres`). A light weapon (3 damage, 6 shots a second, 550 px, very fast shot, drawn at 0.75 size with `projectile_scale`) that fires by itself, from its own mount, at the nearest nimble hostile ship (a fighter or heavy fighter) in its reach and arc, whatever the ship is aiming at: `Combatant._physics_process` looks for targets whenever a point-defence weapon is ready, and `WeaponSystem.fire_point_defence` aims each weapon at its own target. It never shoots anything that is not nimble. It is left out of everything that describes the ship's guns: `fire()` (the player's fire button) and `fire_at_will()` (a pilot) skip it, and so do `has_weapons`, `get_longest_range`, `get_effective_range`, `get_dps` (unless asked for with `with_point_defence`) and the HUD's weapon status, so target scoring is unchanged: fighters still prefer fighters to cruisers, and do not rate a cruiser a threat because of it. It is counted in `CombatRating`. Its shots are counted in `WeaponSystem.point_defence_shots`, not `shots_fired`. Cruisers carry two, capital ships three (Federation and Hegemony); it is not sold at any outfitter yet.
 
 ---
 
@@ -101,7 +102,7 @@ Effects (hit sparks, explosions) are `BurstEffect` particles added to the system
 
 ## 6. NPC ships
 
-NPC ships (`NpcShip`) carry the same `Combatant` with their model's default loadout and full defences. In 3.1 they are **passive**: they keep flying their traffic routes and never fire. They can be shot at and destroyed: a destroyed NPC disables its `Targetable` (which clears the player's selection), hides and frees itself; the traffic manager counts it as gone and replaces it later.
+NPC ships (`NpcShip`) carry the same `Combatant` with their model's default loadout and full defences. Since Phase 3.3 a ship on its own is flown in a fight by its `ShipPilot` (see [combat_ai.md](combat_ai.md) section 6): it picks hostile targets, flies at them, fires and runs when it is hurt, with the same weapons and rules as the player; ships in formations and fleets are left to their commanders (not built yet) and do not fight. They can be shot at and destroyed: a destroyed NPC disables its `Targetable` (which clears the player's selection), hides and frees itself; the traffic manager counts it as gone and replaces it later.
 
 NPC combat AI is Phase 3.3, described in [combat_ai.md](combat_ai.md) (awareness is built; pilots are not yet). To drive an NPC, drive the same `Combatant` from an AI: call `set_target` and `fire`, and add combat states to `NpcShip.State` as [npc-traffic.md](npc-traffic.md) describes. Nothing in the combat code assumes the controller is the player.
 
@@ -195,7 +196,7 @@ $godot = "C:\Users\Adrian\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-s
 & $godot --headless --path . --script res://scripts/tests/formation_report_test.gd
 ```
 
-The Phase 3.3 tests (hostility, target scoring, the tactical picture, the sandbox battle builder) are listed in [combat_ai.md](combat_ai.md) section 9.
+The Phase 3.3 tests (hostility, target scoring, the tactical picture, the sandbox battle builder) are listed in [combat_ai.md](combat_ai.md) section 10.
 
 - `damage_model_test.gd`: the layers, multipliers, bypass, bleed-through, destruction.
 - `weapon_test.gd`: every weapon and ship file validates, `fits`, `Intercept`, the specs.
@@ -217,8 +218,8 @@ For trying combat by hand. **DEV COMBAT SANDBOX** on the main menu starts it; Es
 - **What it is:** the normal game (`main.tscn`) with `Main.sandbox_mode` on, built by `CombatSandbox.build_main()` (`scripts/dev/combat_sandbox.gd`). It swaps in one made-up star system, `scenes/dev/combat_sandbox_system.tscn` (id `dev_combat_sandbox`; not on the galaxy map, no traffic), with one planet, the Proving Ground (`resources/dev/sandbox_planet.tres`, at (1500, 0)).
 - **Everything is for sale:** the planet's shipyard sells every ship model (faction restrictions ignored, `ShipManager.ignore_ship_factions`), its outfitter every upgrade and weapon. The lists are filled from the content registry (`ContentRegistry.all_ship_stats / all_upgrades / all_weapons`) when the sandbox starts, so new content appears without editing anything. Repairs work too.
 - **The player** starts with 500,000,000 credits in a Light Frigate, near the planet.
-- **The target:** one freighter that drifts around the centre of the system (`NpcShip.State.WANDERING`, `begin_wandering`). It never fires, belongs to nobody, and a new one appears 3 seconds after it is destroyed.
-- **Toolbar and panels:** a toolbar at the top left opens and closes the dev panels, FORMATIONS (F2) and BATTLE (F3); the battle panel spawns two sides of any faction and ship facing each other (see [combat_ai.md](combat_ai.md) section 8).
+- **The target:** one freighter that drifts around the centre of the system (`NpcShip.State.WANDERING`, `begin_wandering`). It never fires (it has no guns), belongs to nobody, runs from an armed enemy, and a new one appears 3 seconds after it is destroyed.
+- **Toolbar and panels:** a toolbar at the top left opens and closes the dev panels, FORMATIONS (F2) and BATTLE (F3); the battle panel spawns two sides of any faction and ship facing each other (see [combat_ai.md](combat_ai.md) section 9).
 - **Formation panel:** a dev panel on the left spawns formations (squadron, battle group and convoy presets, or any ship times a count) in a chosen shape, shows the targeted ship's formation, changes its shape, kills its leader or a member, and clears them. It can also draw a whole squadron, battle group, fleet or convoy from its recipe and spawn it. See [formations.md](formations.md) sections 3 and 4.
 - **Isolation:** no reputation is ever charged (the `CombatManager` is given none), no contracts, no jumping or galaxy map or Factions screen, and saving and loading from the pause menu are refused. If the player's ship is destroyed the escape pod brings them back to the Proving Ground, in the most valuable ship they still own (or a new Light Frigate).
 - **Changing it:** edit the constants at the top of `combat_sandbox.gd` (the player's ship and credits, the target's ship type, wander radius, respawn delay) or the system scene. When a combat feature needs something new in the sandbox (more targets, armed enemies, hazards), add it to `CombatSandbox`.
@@ -226,4 +227,4 @@ For trying combat by hand. **DEV COMBAT SANDBOX** on the main menu starts it; Es
 
 ## 15. Current limits
 
-NPC ships never fire. No missiles or beams. No ammunition. No collisions between ships. No shield or armour upgrades at the outfitter (the numbers come from the model). No insurance (the escape pod costs the ship and cargo, never credits). No area damage (pass-through applies to projectiles only, not to future beams or area effects). The enemy sides of combat (faction hostility, who attacks whom) come with the AI and war phases. All numbers are first guesses.
+NPC ships on their own fight (Phase 3.3), but those in formations and fleets do not yet. No missiles or beams. No ammunition. No collisions between ships. No shield or armour upgrades at the outfitter (the numbers come from the model). No insurance (the escape pod costs the ship and cargo, never credits). No area damage (pass-through applies to projectiles only, not to future beams or area effects). The enemy sides of combat (faction hostility, who attacks whom) come with the AI and war phases. All numbers are first guesses.

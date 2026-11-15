@@ -16,6 +16,8 @@ signal target_changed(new_target: Combatant)
 
 const GROUP := &"combatant"
 const PROJECTILE_SCENE := preload("res://scenes/combat/projectile.tscn")
+## Seconds between looks for a target when point defence found none.
+const POINT_DEFENCE_SCAN_INTERVAL := 0.1
 
 ## Unique per ship in play (used to count each hostile act once).
 var combat_id: StringName = &""
@@ -44,6 +46,10 @@ var rating: float = 0.0
 var staying_power: float = 0.0
 
 var _target: Combatant
+var _point_defence_wait: float = 0.0
+## Whether the ship is out of the fight (the player docked or jumping): it cannot be
+## hit, and combat AI does not see it. See set_out_of_play.
+var _out_of_play: bool = false
 var _heading_provider: Callable
 var _velocity_provider: Callable
 var _dead: bool = false
@@ -79,11 +85,39 @@ func setup(model: ShipStats, ship_specs: ShipSpecs, loadout: Array, condition: S
 	health.setup(ship_specs, condition)
 	weapons.setup(model.weapon_mounts, loadout)
 	hurtbox.set_radius(ship_specs.hit_radius)
-	hurtbox.set_active(true)
+	hurtbox.set_active(not _out_of_play)
 
 
 func is_alive() -> bool:
 	return not _dead
+
+
+func _physics_process(delta: float) -> void:
+	if _dead or _out_of_play or weapons == null:
+		return
+	_point_defence_wait -= delta
+	if _point_defence_wait > 0.0 or not weapons.has_ready_point_defence():
+		return
+	# (point defence fires by itself at nimble hostiles near the ship; an idle scan is
+	# repeated every tenth of a second, not every frame)
+	var picture := get_tree().get_first_node_in_group(TacticalPicture.GROUP) as TacticalPicture
+	if picture == null:
+		return
+	var nearby := picture.hostiles_near(self, weapons.get_point_defence_range())
+	if weapons.fire_point_defence(self, nearby) == 0:
+		_point_defence_wait = POINT_DEFENCE_SCAN_INTERVAL
+
+
+## Takes the ship out of the fight (or back into it): the player's ship while docked
+## or jumping. It cannot be hit and combat AI does not see it.
+func set_out_of_play(value: bool) -> void:
+	_out_of_play = value
+	if not _dead:
+		hurtbox.set_active(not value)
+
+
+func is_in_play() -> bool:
+	return not _dead and not _out_of_play
 
 
 func get_heading() -> float:
@@ -128,6 +162,14 @@ func get_target() -> Combatant:
 
 
 # ------------------------------------------------------------------- firing
+
+## Fires the weapons that would hit the current target, the way an AI pilot does (see
+## WeaponSystem.fire_at_will). Returns how many fired.
+func fire_at_will(tolerance_degrees: float = 5.0) -> int:
+	if _dead or weapons == null:
+		return 0
+	return weapons.fire_at_will(self, tolerance_degrees)
+
 
 ## Fires every ready weapon. Returns how many fired.
 func fire() -> int:

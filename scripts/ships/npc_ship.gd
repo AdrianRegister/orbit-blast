@@ -26,11 +26,15 @@ extends Node2D
 ##                 Formation). The leader of a formation is not in this state: it
 ##                 keeps whatever route state it has, flown at the formation's
 ##                 speed and turn limits, and its members follow it.
+##   ENGAGED     - in a fight (or running from one): its ShipPilot flies it. The
+##                 state it was in before is kept and comes back when the pilot
+##                 stands down, so it carries on with its route. Only a ship on its
+##                 own is ever engaged (see is_free_agent).
 ##
 ## Jumping obeys the player's rule: a ship only starts to warp once it is at
 ## least the system's jump radius from the system centre.
 
-enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING, WANDERING, IN_FORMATION }
+enum State { TRAVELLING, APPROACHING, DOCKED, ARRIVING, DEPARTING, WARPING, WANDERING, IN_FORMATION, ENGAGED }
 
 ## A wandering ship cruises at this fraction of its top speed, and picks its
 ## next point once it is within this distance (pixels) of the current one.
@@ -104,6 +108,10 @@ var recall_target: NpcShip
 var recall_distance: float = 0.0
 
 var _config: TrafficConfig
+## Decides how the ship fights (see ShipPilot). Acts only while the ship is on its own.
+var _pilot: ShipPilot
+## The state the ship was in before it was engaged, to go back to.
+var _state_before_combat: State = State.TRAVELLING
 var _destroyed: bool = false
 var _system_centre: Vector2 = Vector2.ZERO
 var _jump_radius: float = 0.0
@@ -195,6 +203,93 @@ func can_jump() -> bool:
 	return _jump_radius > 0.0 and global_position.distance_to(_system_centre) >= _jump_radius
 
 
+# ------------------------------------------------------------------- combat
+
+## Whether the ship is on its own: in no formation and no fleet. Only such a ship is
+## flown by its pilot; the others wait for their commanders.
+func is_free_agent() -> bool:
+	return formation == null and led_formation == null and fleet == null
+
+
+## Whether the ship is in a state it can fight from: flying about, not docked, not
+## jumping in or out, not holding a formation slot.
+func can_fight() -> bool:
+	return state == State.TRAVELLING or state == State.APPROACHING or state == State.WANDERING \
+			or state == State.DEPARTING or state == State.ENGAGED
+
+
+## The state to look at for what the ship is doing about its journey: the one it
+## was in before it was engaged, when it is.
+func get_route_state() -> State:
+	return _state_before_combat if state == State.ENGAGED else state
+
+
+## Hands the ship to its pilot (see ShipPilot). Does nothing unless the ship can fight.
+func engage() -> void:
+	if state == State.ENGAGED or not can_fight():
+		return
+	_state_before_combat = state
+	_set_state(State.ENGAGED)
+
+
+## Gives the ship back to its route, in the state it was in before it was engaged.
+func disengage() -> void:
+	if state != State.ENGAGED:
+		return
+	_set_state(_state_before_combat)
+
+
+## Replaces the status text (what the HUD shows under the ship's name) while engaged.
+func set_combat_status(text: String) -> void:
+	if details != null and state == State.ENGAGED:
+		details.status = text
+		_targetable.info_changed.emit()
+
+
+func get_pilot() -> ShipPilot:
+	return _pilot
+
+
+## Whether there is a way out of the system to run for.
+func can_flee_by_jump() -> bool:
+	return not _exit_bearings.is_empty()
+
+
+func get_exit_bearings() -> Array[Vector2]:
+	return _exit_bearings
+
+
+## Starts jumping out of the system (the ship must be far enough out: can_jump).
+func begin_jump_out() -> void:
+	_begin_warp()
+
+
+## Flies the pilot's intent: turns and thrusts with the ship's own physics toward the
+## velocity the pilot wants. A small correction is made with the station-keeping trim
+## thrusters (any direction, a fraction of the thrust, as in a formation) while the nose
+## stays on the pilot's aim; a big one with the main engines: turn toward it, thrust once
+## facing it.
+func _engaged(delta: float) -> void:
+	if _pilot == null:
+		return
+	var intent := _pilot.get_intent()
+	var tuning := _pilot.tuning
+	var stats := ship_type.stats
+	var correction := intent.velocity - velocity
+	if correction.length() <= tuning.trim_range:
+		velocity += FormationSteering.trim_delta(correction, tuning.trim_thrust_fraction * stats.thrust, delta)
+		var face := intent.aim
+		if is_nan(face):
+			face = velocity.angle() if velocity.length() > 1.0 else get_heading()
+		_turn_toward(face, delta, true)
+	else:
+		_turn_toward(correction.angle(), delta, true)
+		if absf(angle_difference(get_heading(), correction.angle())) < THRUST_ANGLE:
+			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
+	velocity = velocity.limit_length(stats.max_speed)
+	global_position += velocity * delta
+
+
 # ------------------------------------------------------------- formations
 
 ## Becomes a member of `new_formation`: from now on the ship holds station on its
@@ -240,11 +335,12 @@ func take_over_route_from(other: NpcShip) -> void:
 	_patrol = other._patrol
 	_patrol_index = other._patrol_index
 	formation = null
-	if other.state == State.DOCKED:
+	var other_state := other.get_route_state()
+	if other_state == State.DOCKED:
 		_visits_left += 1  # it docks (and is counted) again when it gets there
 		_set_state(State.TRAVELLING)
 	else:
-		_set_state(other.state)
+		_set_state(other_state)
 
 
 ## The top speed this ship may use now: its own, or the formation's cruise speed
@@ -424,6 +520,8 @@ func _ready() -> void:
 	_combatant.setup(ship_type.stats, ShipSpecs.compute(ship_type.stats), ship_type.stats.default_loadout,
 			null, get_heading, func() -> Vector2: return velocity)
 	_combatant.destroyed.connect(_on_destroyed)
+	_pilot = ShipPilot.new()
+	_pilot.setup(self, _combatant)
 	if state == State.WANDERING or state == State.IN_FORMATION:
 		_set_state(state)
 	elif state != State.DEPARTING and state != State.ARRIVING:
@@ -444,6 +542,8 @@ func _on_destroyed(_victim: Combatant, _attacker: Combatant) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _pilot != null:
+		_pilot.tick(delta)
 	if recall_target != null:
 		if not is_instance_valid(recall_target) or recall_target.is_queued_for_deletion():
 			recall_target = null
@@ -467,6 +567,8 @@ func _physics_process(delta: float) -> void:
 			_wander(delta)
 		State.IN_FORMATION:
 			_follow(delta)
+		State.ENGAGED:
+			_engaged(delta)
 
 
 ## The heading the ship is currently facing, in radians (0 = facing right).
@@ -686,6 +788,8 @@ func _set_state(new_state: State) -> void:
 		State.IN_FORMATION:
 			var shape_name := formation.shape.display_name if formation != null and formation.shape != null else ""
 			details.status = "In formation (%s)" % shape_name if not shape_name.is_empty() else "In formation"
+		State.ENGAGED:
+			details.status = "In combat"
 	refresh_organisation()
 	state_changed.emit(state)
 

@@ -67,6 +67,9 @@ func _ship(model_id: StringName, faction: StringName, offset: Vector2) -> NpcShi
 	_system.get_ships_root().add_child(ship)
 	ship.global_position = ORIGIN + offset
 	ship.set_physics_process(false)
+	# (these tests are about shots passing through ships: point defence would shoot the fighters)
+	var combatant := ship.get_combatant()
+	combatant.weapons.slots = combatant.weapons.slots.filter(func(slot: WeaponSlot) -> bool: return not slot.is_point_defence())
 	return ship
 
 

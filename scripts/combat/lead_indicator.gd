@@ -45,7 +45,7 @@ func _first_weapon() -> WeaponDefinition:
 	if combatant == null or combatant.weapons == null:
 		return null
 	for slot in combatant.weapons.slots:
-		if slot.is_armed():
+		if slot.is_main():
 			return slot.weapon
 	return null
 

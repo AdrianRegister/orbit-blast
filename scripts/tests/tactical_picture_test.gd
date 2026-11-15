@@ -58,8 +58,12 @@ func _ship(model: StringName, faction: StringName, at: Vector2) -> NpcShip:
 
 func _settle() -> void:
 	# Ships register on the frame after they appear; the picture then looks again.
+	# (They are held still, and so are their pilots: this test is about what is seen, not
+	# what the ships then do.)
 	await process_frame
 	await process_frame
+	for ship in _system.get_ships_root().get_children():
+		ship.set_physics_process(false)
 	_combat.get_picture().refresh()
 
 
@@ -205,8 +209,14 @@ func _test_grudge() -> void:
 	var neutral := _ship(&"freighter", &"", Vector2(0.0, -300.0))
 	await _settle()
 	_check(not enemy.get_combatant().is_hostile_to(neutral.get_combatant()), "(setup) a Hegemony ship and a lone freighter are at peace")
-	neutral.get_combatant().take_hit(Hit.from_weapon(load("res://resources/weapons/light_blaster.tres"), enemy.get_combatant(), neutral.global_position))
-	_check(enemy.get_combatant().is_hostile_to(neutral.get_combatant()), "a ship that attacks a lone freighter has a grudge with it")
+	var blaster: WeaponDefinition = load("res://resources/weapons/light_blaster.tres")
+	neutral.get_combatant().take_hit(Hit.from_weapon(blaster, enemy.get_combatant(), neutral.global_position))
+	_check(not enemy.get_combatant().is_hostile_to(neutral.get_combatant()), "a stray shot from an NPC that was aiming at something else starts no grudge")
+	player.take_hit(Hit.from_weapon(blaster, enemy.get_combatant(), _player.global_position))
+	_check(not enemy.get_combatant().is_hostile_to(player), "...nor does one that hits the player")
+	enemy.get_combatant().set_target(neutral.get_combatant())
+	neutral.get_combatant().take_hit(Hit.from_weapon(blaster, enemy.get_combatant(), neutral.global_position))
+	_check(enemy.get_combatant().is_hostile_to(neutral.get_combatant()), "a ship that hits the target it was aiming at has a grudge with it")
 	hostility.clear()
 	_check(not federation.get_combatant().is_hostile_to(player) and not enemy.get_combatant().is_hostile_to(neutral.get_combatant()), "clearing (what a change of system does) forgets every grudge")
 	_sandbox.clear_battle()

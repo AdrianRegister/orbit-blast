@@ -16,11 +16,7 @@ offset = Vector2(26, 0)
 
 [sub_resource type="Resource" id="mount_1"]
 script = ExtResource("wm")
-offset = Vector2(14, -12)
-
-[sub_resource type="Resource" id="mount_2"]
-script = ExtResource("wm")
-offset = Vector2(14, 12)
+offset = Vector2(14, 10)
 
 [resource]
 script = ExtResource("1")
@@ -42,5 +38,5 @@ armour = 150.0
 hull = 190.0
 energy_capacity = 150.0
 energy_regen = 22.0
-weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1"), SubResource("mount_2")])
-default_loadout = Array[ExtResource("wd")]([ExtResource("w_pulse_cannon"), ExtResource("w_light_blaster"), ExtResource("w_light_blaster")])
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_pulse_cannon"), ExtResource("w_light_blaster")])

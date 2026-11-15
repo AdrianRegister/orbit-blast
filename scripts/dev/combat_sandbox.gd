@@ -67,7 +67,38 @@ const FORMATION_WANDER_RADIUS := 700.0
 const BATTLE_SEPARATION := 1000.0
 const BATTLE_DISTANCE := 700.0
 const BATTLE_SPACING_FACTOR := 3.0
+## How far behind the rank in front each rank of a mixed force starts (pixels).
+const BATTLE_RANK_SPACING := 350.0
 const BATTLE_DRIFT_RADIUS := 300.0
+## The ways out of the system the battle's ships know (the four directions), so a ship
+## that retreats can jump out as it would in the real game.
+const BATTLE_EXITS: Array[Vector2] = [Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT, Vector2.UP]
+## Battles the battle panel can spawn in one go: a name and the two sides. A side is
+## {"faction", "model", "count"} for one kind of ship, or {"faction", "ships": [{"model",
+## "count"}, ...]} for a mixed force, listed from the front rank to the back.
+const BATTLE_PRESETS := [
+	{"name": "1v1: fighters", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 1},
+			"b": {"faction": &"faction_2", "model": &"hegemony_fighter", "count": 1}},
+	{"name": "2v1: 2 Federation fighters, 1 Hegemony fighter", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 2},
+			"b": {"faction": &"faction_2", "model": &"hegemony_fighter", "count": 1}},
+	{"name": "1v1: frigates", "a": {"faction": &"faction_1", "model": &"federation_frigate", "count": 1},
+			"b": {"faction": &"faction_2", "model": &"hegemony_frigate", "count": 1}},
+	{"name": "1v1: cruisers", "a": {"faction": &"faction_1", "model": &"federation_cruiser", "count": 1},
+			"b": {"faction": &"faction_2", "model": &"hegemony_cruiser", "count": 1}},
+	{"name": "3 fighters v cruiser", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 3},
+			"b": {"faction": &"faction_2", "model": &"hegemony_cruiser", "count": 1}},
+	{"name": "1v1: capital ships", "a": {"faction": &"faction_1", "model": &"federation_capital_ship", "count": 1},
+			"b": {"faction": &"faction_2", "model": &"hegemony_capital_ship", "count": 1}},
+	{"name": "Fleets: cruiser, 2 frigates, 5 fighters v cruiser, 2 frigates, heavy fighter, 3 fighters",
+			"a": {"faction": &"faction_1", "ships": [
+					{"model": &"federation_fighter", "count": 5}, {"model": &"federation_frigate", "count": 2},
+					{"model": &"federation_cruiser", "count": 1}]},
+			"b": {"faction": &"faction_2", "ships": [
+					{"model": &"hegemony_fighter", "count": 3}, {"model": &"hegemony_heavy_fighter", "count": 1},
+					{"model": &"hegemony_frigate", "count": 2}, {"model": &"hegemony_cruiser", "count": 1}]}},
+	{"name": "Pirate v freighter", "a": {"faction": &"faction_3", "model": &"interceptor", "count": 1},
+			"b": {"faction": &"", "model": &"freighter", "count": 1}},
+]
 
 var _main: Main
 var _system: StarSystem
@@ -233,30 +264,44 @@ func spawn_battle(side_a: Dictionary, side_b: Dictionary) -> Dictionary:
 	}
 
 
-## One side: `count` ships in a column through `centre`, all facing `facing`.
+## One side, all facing `facing`: each kind of ship in a rank (a column across the line
+## of battle) through `centre`, the ranks one behind another, the first at the front.
 func _spawn_side(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
 	var ships: Array[NpcShip] = []
-	var count: int = side.get("count", 1)
-	var type := ShipType.new()
-	type.stats = _registry.ship_stats(side["model"])
-	var spacing: float = type.stats.get_hit_radius() * BATTLE_SPACING_FACTOR + 40.0
+	var entries: Array = side["ships"] if side.has("ships") else [{"model": side["model"], "count": side.get("count", 1)}]
 	var along := facing.rotated(PI / 2.0)
-	for index in count:
-		var offset := (index - (count - 1) / 2.0) * spacing
-		ships.append(spawn_ship(type, side.get("faction", &""), centre + along * offset, facing.angle()))
+	for rank in entries.size():
+		var entry: Dictionary = entries[rank]
+		var count: int = entry.get("count", 1)
+		var type := ShipType.new()
+		type.stats = _registry.ship_stats(entry["model"])
+		var spacing: float = type.stats.get_hit_radius() * BATTLE_SPACING_FACTOR + 40.0
+		var rank_centre := centre - facing * BATTLE_RANK_SPACING * rank
+		for index in count:
+			var offset := (index - (count - 1) / 2.0) * spacing
+			ships.append(spawn_ship(type, side.get("faction", &""), rank_centre + along * offset, facing.angle(), BATTLE_EXITS))
 	return ships
+
+
+## Spawns battle preset number `index` (see BATTLE_PRESETS).
+func spawn_battle_preset(index: int) -> Dictionary:
+	var preset: Dictionary = BATTLE_PRESETS[index]
+	return spawn_battle(preset["a"], preset["b"])
 
 
 ## Puts one armed NPC of `type` and `faction_id` at `position`, facing `heading`
 ## (radians). It drifts around where it started until something takes it over.
-func spawn_ship(type: ShipType, faction_id: StringName, position: Vector2, heading: float) -> NpcShip:
+## `exit_bearings` are the ways out of the system it knows (none: it cannot leave, so
+## a ship that runs just keeps running).
+func spawn_ship(type: ShipType, faction_id: StringName, position: Vector2, heading: float,
+		exit_bearings: Array[Vector2] = []) -> NpcShip:
 	var ship: NpcShip = NPC_SCENE.instantiate()
 	var no_places: Array[InhabitedNode] = []
 	var faction := _registry.faction(faction_id)
 	ship.setup(type, TRAFFIC_CONFIG, no_places, faction.display_name if faction != null else "", null, _main.get_player_ship())
 	ship.combat_id = TrafficManager.new_combat_id()
 	ship.faction_id = faction_id
-	ship.configure_jumping(_system.global_position, _system.jump_radius, [])
+	ship.configure_jumping(_system.global_position, _system.jump_radius, exit_bearings)
 	ship.begin_wandering(position, BATTLE_DRIFT_RADIUS)
 	_system.get_ships_root().add_child(ship)
 	ship.global_position = position

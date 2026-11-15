@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="wd"]
 [ext_resource type="Resource" path="res://resources/weapons/heavy_blaster.tres" id="w_heavy_blaster"]
 [ext_resource type="Resource" path="res://resources/weapons/pulse_cannon.tres" id="w_pulse_cannon"]
+[ext_resource type="Resource" path="res://resources/weapons/point_defence.tres" id="w_point_defence"]
 [ext_resource type="Resource" path="res://resources/ship_classes/capital_ship.tres" id="cls"]
 
 [sub_resource type="Resource" id="mount_0"]
@@ -51,6 +52,27 @@ size = 1
 offset = Vector2(-50, 30)
 arc_degrees = 150.0
 
+[sub_resource type="Resource" id="mount_6"]
+script = ExtResource("wm")
+type = 1
+size = 0
+offset = Vector2(20, -55)
+arc_degrees = 170.0
+
+[sub_resource type="Resource" id="mount_7"]
+script = ExtResource("wm")
+type = 1
+size = 0
+offset = Vector2(20, 55)
+arc_degrees = 170.0
+
+[sub_resource type="Resource" id="mount_8"]
+script = ExtResource("wm")
+type = 1
+size = 0
+offset = Vector2(-80, 0)
+arc_degrees = 170.0
+
 [resource]
 script = ExtResource("1")
 id = &"hegemony_capital_ship"
@@ -61,6 +83,7 @@ faction = ExtResource("faction_2")
 price = 3000000
 texture = ExtResource("2")
 display_width = 441
+hit_radius = 160.0
 thrust = 140.0
 turn_rate = 0.9
 max_speed = 330.0
@@ -71,5 +94,5 @@ armour = 900.0
 hull = 1500.0
 energy_capacity = 500.0
 energy_regen = 60.0
-weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1"), SubResource("mount_2"), SubResource("mount_3"), SubResource("mount_4"), SubResource("mount_5")])
-default_loadout = Array[ExtResource("wd")]([ExtResource("w_heavy_blaster"), ExtResource("w_heavy_blaster"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon")])
+weapon_mounts = Array[ExtResource("wm")]([SubResource("mount_0"), SubResource("mount_1"), SubResource("mount_2"), SubResource("mount_3"), SubResource("mount_4"), SubResource("mount_5"), SubResource("mount_6"), SubResource("mount_7"), SubResource("mount_8")])
+default_loadout = Array[ExtResource("wd")]([ExtResource("w_heavy_blaster"), ExtResource("w_heavy_blaster"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_pulse_cannon"), ExtResource("w_point_defence"), ExtResource("w_point_defence"), ExtResource("w_point_defence")])

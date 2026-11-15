@@ -50,14 +50,24 @@ func set_flight_enabled(enabled: bool) -> void:
 	flight_enabled = enabled
 	if not enabled:
 		velocity = Vector2.ZERO
+	_update_play_state()
 
 
 func begin_warp() -> void:
 	warping = true
+	_update_play_state()
 
 
 func end_warp() -> void:
 	warping = false
+	_update_play_state()
+
+
+## Docked and jumping ships are out of the fight: nothing can hit them and NPC
+## pilots do not see them.
+func _update_play_state() -> void:
+	if combatant != null:
+		combatant.set_out_of_play(not flight_enabled or warping)
 
 
 func _physics_process(delta: float) -> void:

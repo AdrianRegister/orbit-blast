@@ -41,10 +41,12 @@ func _doctrine(id: StringName) -> CombatDoctrine:
 func _shooter(id: StringName) -> ShooterInfo:
 	var model := _model(id)
 	var info := ShooterInfo.new()
-	info.dps = CombatRating.damage_per_second(model.default_loadout)
-	info.light_dps = CombatRating.damage_per_second(model.default_loadout.filter(
-			func(weapon) -> bool: return weapon != null and weapon.mount_size < WeaponMount.Size.MEDIUM))
-	for weapon: WeaponDefinition in model.default_loadout:
+	# (point defence is left out of the guns, as in ShooterInfo.from_combatant)
+	var guns := model.default_loadout.filter(func(weapon) -> bool: return weapon != null and not weapon.point_defence)
+	info.dps = CombatRating.damage_per_second(guns)
+	info.light_dps = CombatRating.damage_per_second(guns.filter(
+			func(weapon) -> bool: return weapon.mount_size < WeaponMount.Size.MEDIUM))
+	for weapon: WeaponDefinition in guns:
 		if weapon != null:
 			info.weapon_range = maxf(info.weapon_range, weapon.range)
 	info.staying_power = CombatRating.staying_power(model)
@@ -62,7 +64,7 @@ func _target(id: StringName, shooter: ShooterInfo, distance: float = 500.0) -> T
 	info.tier = model.ship_class.tier
 	info.nimble = model.ship_class.is_evasive()
 	info.rating = CombatRating.of(model)
-	var weapons: Array = model.default_loadout
+	var weapons: Array = model.default_loadout.filter(func(weapon) -> bool: return weapon != null and not weapon.point_defence)
 	if shooter.nimble:
 		weapons = weapons.filter(func(weapon) -> bool: return weapon != null and weapon.mount_size < WeaponMount.Size.MEDIUM)
 	info.threat_dps = CombatRating.damage_per_second(weapons)

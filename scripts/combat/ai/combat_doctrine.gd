@@ -6,8 +6,20 @@ extends Resource
 ## that names it (gunboats and frigates fly the same one). Ships of a class never
 ## need code of their own: a new class, or a new ship of an old one, needs only data.
 ##
-## TargetScorer reads the target-choice numbers below. (Later steps add how the
-## ship flies: preferred range, evasion, retreat.) All numbers are first guesses.
+## TargetScorer reads the target-choice numbers; ShipPilot reads how the ship flies
+## (preferred range, dodging, when to run). All numbers are first guesses.
+
+## How a ship fights: DOGFIGHT (fast and close, goes for its target's tail),
+## SKIRMISH (circles its target at a middle range) or STANDOFF (holds position at
+## long range and lets its guns do the work).
+enum Style { DOGFIGHT, SKIRMISH, STANDOFF }
+
+## Where a ship stands in a battle line. ANCHOR ships (cruisers, capital ships) hold
+## the place they take up and only shoot what is in reach of it; SCREEN ships
+## (fighters, frigates) fight around the nearest anchor and do not stray far from it;
+## FREE ships go where their target goes. A ship with no friends nearby is FREE
+## whatever its doctrine says, so duels are unchanged (see ShipPilot).
+enum LineRole { FREE, ANCHOR, SCREEN }
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -40,6 +52,28 @@ extends Resource
 @export_range(0.0, 2.0) var hysteresis: float = 0.25
 
 
+@export_group("Flying")
+@export var style: Style = Style.SKIRMISH
+## How close it fights, as a fraction of its effective weapon range (the average of
+## its weapons' ranges, weighted by their damage).
+@export_range(0.1, 1.5) var preferred_range_fraction: float = 0.7
+## How much of the way to its target's tail a dogfighter manoeuvres for (0 attacks
+## head on, 1 always goes for the tail).
+@export_range(0.0, 1.0) var rear_attack_weight: float = 0.0
+## How hard it weaves when it is under attack, as a fraction of its top speed. Fighters
+## do not sit still and eat damage; a capital ship does not weave at all.
+@export_range(0.0, 1.0) var evasion: float = 0.0
+## How fast it circles its target while it fires (skirmishers), as a fraction of
+## AiTuning.strafe_speed.
+@export_range(0.0, 1.0) var strafe: float = 0.0
+## How far off the target (degrees) a fixed gun may point and still fire.
+@export_range(0.5, 45.0) var fire_tolerance_degrees: float = 5.0
+## It runs when its hull is below this fraction (0 never runs).
+@export_range(0.0, 1.0) var retreat_hull_fraction: float = 0.2
+## Its place in a battle line (see LineRole); the numbers are in AiTuning, "Battle line".
+@export var line_role: LineRole = LineRole.FREE
+
+
 ## How far a ship with a longest weapon reach of `weapon_range` sees.
 func sensor_range(weapon_range: float) -> float:
 	return weapon_range * sensor_range_factor
@@ -59,4 +93,8 @@ func validate() -> Array[String]:
 			break
 	if protect_bonus < 1.0:
 		problems.append("protect_bonus must be at least 1")
+	if preferred_range_fraction <= 0.0:
+		problems.append("preferred_range_fraction must be above zero")
+	if evasion < 0.0 or evasion > 1.0 or strafe < 0.0 or strafe > 1.0 or retreat_hull_fraction < 0.0 or retreat_hull_fraction > 1.0 or rear_attack_weight < 0.0 or rear_attack_weight > 1.0:
+		problems.append("evasion, strafe, rear_attack_weight and retreat_hull_fraction must be between 0 and 1")
 	return problems

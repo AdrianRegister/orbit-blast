@@ -26,6 +26,7 @@ func launch(definition: WeaponDefinition, from_shooter: Combatant, at: Vector2, 
 	rotation = shot_velocity.angle()
 	_life_left = definition.get_lifetime()
 	_color = definition.projectile_color
+	scale = Vector2.ONE * definition.projectile_scale
 	queue_redraw()
 
 

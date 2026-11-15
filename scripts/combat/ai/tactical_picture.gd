@@ -14,6 +14,8 @@ extends Node
 ## recorded by the CombatManager, so they are not kept here.
 
 ## Seconds between refreshes.
+## Every picture joins this group, so ships can find the one for their system.
+const GROUP := &"tactical_picture"
 const REFRESH_INTERVAL := 0.2
 ## An armed hostile counts as a threat to a ship when it is within this multiple of
 ## its own weapon reach of it, whether or not it has chosen the ship as its target.
@@ -24,6 +26,10 @@ var _combatants: Array = []  # (untyped: ships get freed)
 ## does not count: it is not an attack).
 var _targeters: Dictionary = {}
 var _since_refresh: float = REFRESH_INTERVAL
+
+
+func _ready() -> void:
+	add_to_group(GROUP)
 
 
 func _physics_process(delta: float) -> void:
@@ -40,7 +46,7 @@ func refresh() -> void:
 	_targeters = {}
 	for node in get_tree().get_nodes_in_group(Combatant.GROUP):
 		var combatant := node as Combatant
-		if combatant == null or not combatant.is_alive():
+		if combatant == null or not combatant.is_in_play():
 			continue
 		_combatants.append(combatant)
 	for combatant: Combatant in _combatants:
@@ -75,6 +81,46 @@ func hostiles_near(ship: Combatant, radius: float) -> Array[Combatant]:
 			distances[other] = distance
 	found.sort_custom(func(a: Combatant, b: Combatant) -> bool: return distances[a] < distances[b])
 	return found
+
+
+## The armed friends of `ship` within `radius` of it: ships of its allies that have a
+## combat doctrine (never the player, never `ship` itself), nearest first.
+func friends_near(ship: Combatant, radius: float) -> Array[Combatant]:
+	var found: Array[Combatant] = []
+	var distances := {}
+	if ship.allegiance == null:
+		return found
+	for other in get_combatants():
+		if other == ship or other.is_player or not other.is_armed() or other.ship_class == null or other.ship_class.get_doctrine() == null:
+			continue
+		if other.is_hostile_to(ship) or not ship.allegiance.are_allies(ship, other):
+			continue
+		var distance := ship.global_position.distance_to(other.global_position)
+		if distance <= radius:
+			found.append(other)
+			distances[other] = distance
+	found.sort_custom(func(a: Combatant, b: Combatant) -> bool: return distances[a] < distances[b])
+	return found
+
+
+## The nearest of `friends` that can anchor a battle line now (its doctrine says so, and
+## it is not hurt enough to be running), or null.
+func nearest_anchor(friends: Array[Combatant]) -> Combatant:
+	for friend in friends:  # (nearest first)
+		var doctrine := friend.ship_class.get_doctrine()
+		var defence := friend.health.state
+		var hull := defence.hull / defence.max_hull if defence.max_hull > 0.0 else 1.0
+		if doctrine.line_role == CombatDoctrine.LineRole.ANCHOR and hull > doctrine.retreat_hull_fraction:
+			return friend
+	return null
+
+
+## The middle of `ship` and `friends`.
+func centre_of(ship: Combatant, friends: Array[Combatant]) -> Vector2:
+	var total := ship.global_position
+	for friend in friends:
+		total += friend.global_position
+	return total / (friends.size() + 1)
 
 
 ## The ships (never the player) that are targeting `target` now.

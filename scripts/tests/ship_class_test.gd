@@ -137,6 +137,9 @@ func _test_rating(registry: ContentRegistry) -> void:
 		var ours: float = rating.call(StringName("federation_" + kind))
 		var theirs: float = rating.call(StringName("hegemony_" + kind))
 		_check(absf(theirs - ours) <= ours * 0.05, "the Hegemony %s rates within 5%% of the Federation's (%.0f and %.0f)" % [kind, theirs, ours])
+		var our_radius: float = registry.ship_stats(StringName("federation_" + kind)).get_hit_radius()
+		var their_radius: float = registry.ship_stats(StringName("hegemony_" + kind)).get_hit_radius()
+		_check(absf(their_radius - our_radius) <= 1.0, "...and is as easy to hit (hitbox %.0f and %.0f px): a bulkier sprite must not make a ship easier to hit" % [their_radius, our_radius])
 	_check(rating.call(&"bulk_freighter") > rating.call(&"freighter"), "a bulk freighter rates above a freighter by its staying power")
 	_check(rating.call(&"federation_fighter") > rating.call(&"freighter"), "an armed fighter outranks an unarmed freighter")
 

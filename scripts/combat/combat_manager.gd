@@ -192,7 +192,10 @@ func _get_projectile_root() -> Node:
 
 func _on_damaged(result: DamageResult, hit: Hit, victim: Combatant) -> void:
 	var attacker := hit.attacker as Combatant
-	_hostility.record_attack(attacker, victim)
+	# A grudge is for a deliberate attack: anything the player hits, or the target an NPC
+	# was shooting at. A stray shot that happens to hit a bystander is not one.
+	if attacker != null and (attacker.is_player or attacker.get_target() == victim):
+		_hostility.record_attack(attacker, victim)
 	_spawn_effect(BurstEffect.spark(hit.position, SPARK_HULL if result.penetrated() else SPARK_SHIELD))
 	ship_attacked.emit(victim, attacker, result)
 	if attacker != null and attacker.is_player and not victim.is_player:

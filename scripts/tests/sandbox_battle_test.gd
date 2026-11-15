@@ -38,6 +38,7 @@ func _init() -> void:
 	await _test_toolbar()
 	await _test_spawn_battle()
 	await _test_battle_panel()
+	await _test_presets()
 
 	print("SANDBOX BATTLE TESTS: ", "all passed" if _failures == 0 else "%d FAILED" % _failures)
 	quit(1 if _failures > 0 else 0)
@@ -53,9 +54,13 @@ func _key(code: Key, pressed: bool = true, echo: bool = false) -> InputEventKey:
 	return event
 
 
+## Waits some frames, with every ship held still (and so its pilot: this test is about
+## what is spawned, not what the ships then do).
 func _frames(count: int = 2) -> void:
 	for i in count:
 		await process_frame
+		for ship in _system.get_ships_root().get_children():
+			ship.set_physics_process(false)
 
 
 # ----------------------------------------------------------------------- tests
@@ -161,6 +166,10 @@ func _test_spawn_battle() -> void:
 			var gap: float = a[index].global_position.distance_to(a[other].global_position)
 			apart = apart and gap >= a[index].get_hit_radius() * 2.0
 	_check(apart, "the ships of a side do not overlap")
+	var exits := true
+	for ship: NpcShip in a + b:
+		exits = exits and ship.can_flee_by_jump()
+	_check(exits, "the battle's ships know the ways out of the system, so one that retreats can jump out")
 	var player_distance := _player.global_position.distance_to((centre_a + centre_b) / 2.0)
 	_check(absf(player_distance - CombatSandbox.BATTLE_DISTANCE) < 5.0, "the battle is ahead of the player (%d px)" % roundi(player_distance))
 	var hostile := (a[0] as NpcShip).get_combatant().is_hostile_to((b[0] as NpcShip).get_combatant())
@@ -197,6 +206,77 @@ func _test_battle_panel() -> void:
 	_battle._on_clear()
 	await _frames()
 	_check(_system.get_ships_root().get_child_count() == 0 and _battle.describe() == "Nothing spawned.", "CLEAR removes them all")
+
+
+func names_of(presets: Array) -> Array:
+	return presets.map(func(preset: Dictionary) -> String: return preset["name"])
+
+
+func _test_presets() -> void:
+	var registry := ContentRegistry.new()
+	var presets: Array = CombatSandbox.BATTLE_PRESETS
+	_check(presets.size() >= 6, "the battle panel has presets (%d)" % presets.size())
+	var valid := true
+	for preset in presets:
+		for side in [preset["a"], preset["b"]]:
+			valid = valid and (side["faction"] == &"" or registry.faction(side["faction"]) != null)
+			var entries: Array = side["ships"] if side.has("ships") else [side]
+			for entry in entries:
+				valid = valid and registry.ship_stats(entry["model"]) != null and entry["count"] >= 1
+	_check(valid, "every preset names real ships and factions")
+	var capitals := names_of(presets).filter(func(name: String) -> bool: return name.contains("capital"))
+	_check(not capitals.is_empty(), "there is a capital ship v capital ship preset")
+	var names := presets.map(func(preset: Dictionary) -> String: return preset["name"])
+	_check(names.any(func(name: String) -> bool: return name.begins_with("1v1")) and names.any(func(name: String) -> bool: return name.begins_with("2v1")), "there are 1v1 and 2v1 presets")
+	var before := _system.get_ships_root().get_child_count()
+	var sides := _sandbox.spawn_battle_preset(0)
+	await _frames()
+	_check(sides["a"].size() == 1 and sides["b"].size() == 1 and _system.get_ships_root().get_child_count() == before + 2, "the first preset (1v1) spawns two ships")
+	_sandbox.clear_battle()
+	await _frames()
+	var two_on_one := _sandbox.spawn_battle_preset(1)
+	await _frames()
+	_check(two_on_one["a"].size() == 2 and two_on_one["b"].size() == 1, "the 2v1 preset spawns two against one")
+	_sandbox.clear_battle()
+	await _frames()
+	# The mixed fleets: 1 cruiser, 2 frigates and 5 fighters against 1 cruiser, 2 frigates,
+	# 1 heavy fighter and 3 fighters, in ranks.
+	var fleets := -1
+	for index in presets.size():
+		if str(presets[index]["name"]).begins_with("Fleets"):
+			fleets = index
+	_check(fleets >= 0, "there is a preset of two mixed fleets")
+	var big := _sandbox.spawn_battle_preset(fleets)
+	await _frames()
+	var counts := {}
+	for ship: NpcShip in big["a"]:
+		counts[ship.ship_type.stats.id] = counts.get(ship.ship_type.stats.id, 0) + 1
+	_check(big["a"].size() == 8 and counts.get(&"federation_fighter", 0) == 5 and counts.get(&"federation_frigate", 0) == 2 and counts.get(&"federation_cruiser", 0) == 1, "side A is 1 cruiser, 2 frigates and 5 fighters (%s)" % [counts])
+	counts = {}
+	for ship: NpcShip in big["b"]:
+		counts[ship.ship_type.stats.id] = counts.get(ship.ship_type.stats.id, 0) + 1
+	_check(big["b"].size() == 7 and counts.get(&"hegemony_fighter", 0) == 3 and counts.get(&"hegemony_heavy_fighter", 0) == 1 and counts.get(&"hegemony_frigate", 0) == 2 and counts.get(&"hegemony_cruiser", 0) == 1, "side B is 1 cruiser, 2 frigates, 1 heavy fighter and 3 fighters (%s)" % [counts])
+	var all_federation := true
+	for ship: NpcShip in big["a"]:
+		all_federation = all_federation and ship.faction_id == &"faction_1"
+	for ship: NpcShip in big["b"]:
+		all_federation = all_federation and ship.faction_id == &"faction_2"
+	_check(all_federation, "...each side under its own faction")
+	# The big ship is at the back of its side, the fighters in front (nearer the enemy).
+	var fighter_a: NpcShip = big["a"][0]
+	var cruiser_a: NpcShip = big["a"][big["a"].size() - 1]
+	var enemy_middle: Vector2 = (big["b"][0] as NpcShip).global_position
+	_check(fighter_a.global_position.distance_to(enemy_middle) < cruiser_a.global_position.distance_to(enemy_middle), "the fighters start in front of their cruiser")
+	_sandbox.clear_battle()
+	await _frames()
+	_battle._preset.select(1)
+	_battle._on_spawn_preset()
+	await _frames()
+	_check(_battle.describe().contains("A: 2 ships, B: 1 ships"), "the panel spawns a preset from its list (%s)" % _battle.describe().replace("
+", " | "))
+	_battle._on_clear()
+	await _frames()
+	_check(_system.get_ships_root().get_child_count() == 0, "...and clears it")
 
 
 func _check(condition: bool, label: String) -> void:

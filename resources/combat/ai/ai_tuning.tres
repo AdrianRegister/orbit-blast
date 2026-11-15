@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="AiTuning" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ai/ai_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+decision_interval = 0.25
+calm_time = 3.0
+flee_alarm_range = 1800.0
+damage_alarm_seconds = 2.0
+pursuit_leash = 3000.0
+give_up_seconds = 30.0
+line_join_range = 3500.0
+screen_radius = 1600.0
+screen_soft_band = 0.5
+anchor_reach_margin = 1.1
+anchor_advance_delay = 4.0
+anchor_advance_speed = 0.3
+anchor_advance_limit = 1500.0
+brake_fraction = 0.8
+max_back_speed_fraction = 0.5
+trim_range = 220.0
+trim_thrust_fraction = 0.3
+evade_speed = 180.0
+jink_period_min = 0.5
+jink_period_max = 1.3
+strafe_speed = 140.0
+strafe_period = 3.0
+tail_cone_degrees = 70.0
+reposition_limit = 3.0
+commit_time = 2.0

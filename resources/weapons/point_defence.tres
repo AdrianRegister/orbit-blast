@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"point_defence"
+display_name = "Point Defence"
+description = "A rapid, accurate spray of featherweight bolts that tracks nearby fighters by itself. Useless against anything bigger."
+price = 20000
+max_per_ship = 4
+mount_size = 0
+fixed_capable = false
+point_defence = true
+damage = 2.0
+fire_interval = 0.25
+energy_per_shot = 0.5
+projectile_speed = 1800.0
+range = 550.0
+spread_degrees = 1.5
+projectile_color = Color(1, 0.95, 0.6, 1)
+projectile_scale = 0.5
