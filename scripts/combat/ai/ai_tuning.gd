@@ -48,16 +48,12 @@ static func shared() -> AiTuning:
 ## The edge of the screen is soft: the pull back builds up over this fraction of the
 ## radius beyond it.
 @export_range(0.1, 2.0) var screen_soft_band: float = 0.5
-## An anchor shoots what is within its longest weapon reach times this of the point it holds.
-@export_range(1.0, 2.0) var anchor_reach_margin: float = 1.1
-## An anchor that has had nothing in reach for this long (seconds), even if it is under
-## fire from ships it cannot hit, creeps up on the enemy.
-@export_range(1.0, 60.0) var anchor_advance_delay: float = 4.0
-## How fast its place moves while it creeps (a fraction of its top speed), so that the
-## screen keeps up.
-@export_range(0.05, 1.0) var anchor_advance_speed: float = 0.3
-## It creeps no further than this (pixels) from where the line first formed.
-@export_range(100.0, 10000.0) var anchor_advance_limit: float = 1500.0
+## How fast an anchor (a cruiser or capital ship with friends near) advances on its target
+## or on its fighters' fight, as a fraction of its top speed, so that its screen keeps up.
+@export_range(0.05, 1.0) var anchor_advance_speed: float = 0.5
+## An anchor with nothing to shoot goes to within this fraction of its point-defence range of
+## what its fighters are fighting, so that its point defence covers them.
+@export_range(0.1, 1.0) var support_range_fraction: float = 0.7
 
 @export_group("Flying")
 ## The velocity a pilot wants to match the target's at its fighting range: how
@@ -107,8 +103,8 @@ func validate() -> Array[String]:
 		problems.append("decision_interval must be above zero")
 	if pursuit_leash <= 0.0 or give_up_seconds <= 0.0:
 		problems.append("pursuit_leash and give_up_seconds must be above zero")
-	if anchor_advance_speed <= 0.0 or anchor_advance_limit <= 0.0:
-		problems.append("anchor_advance_speed and anchor_advance_limit must be above zero")
-	if line_join_range <= 0.0 or screen_radius <= 0.0 or anchor_reach_margin < 1.0:
-		problems.append("line_join_range and screen_radius must be above zero, anchor_reach_margin at least 1")
+	if anchor_advance_speed <= 0.0 or support_range_fraction <= 0.0:
+		problems.append("anchor_advance_speed and support_range_fraction must be above zero")
+	if line_join_range <= 0.0 or screen_radius <= 0.0:
+		problems.append("line_join_range and screen_radius must be above zero")
 	return problems

@@ -29,7 +29,9 @@ extends Node2D
 ##   ENGAGED     - in a fight (or running from one): its ShipPilot flies it. The
 ##                 state it was in before is kept and comes back when the pilot
 ##                 stands down, so it carries on with its route. Only a ship on its
-##                 own is ever engaged (see is_free_agent).
+##                 own is engaged, unless its unit's commander has ordered its pilot
+##                 to take control (see CombatOrder): then a formation member leaves
+##                 its slot to fight, and goes back to it afterwards.
 ##
 ## Jumping obeys the player's rule: a ship only starts to warp once it is at
 ## least the system's jump radius from the system centre.
@@ -206,14 +208,18 @@ func can_jump() -> bool:
 # ------------------------------------------------------------------- combat
 
 ## Whether the ship is on its own: in no formation and no fleet. Only such a ship is
-## flown by its pilot; the others wait for their commanders.
+## flown by its pilot; the others wait for their commanders, who can hand a ship to
+## its pilot with an order (see ShipPilot.controls_ship).
 func is_free_agent() -> bool:
 	return formation == null and led_formation == null and fleet == null
 
 
 ## Whether the ship is in a state it can fight from: flying about, not docked, not
-## jumping in or out, not holding a formation slot.
+## jumping in or out, not holding a formation slot (unless its commander has ordered
+## its pilot to take control of it, see CombatOrder).
 func can_fight() -> bool:
+	if state == State.IN_FORMATION:
+		return _pilot != null and _pilot.controls_ship()
 	return state == State.TRAVELLING or state == State.APPROACHING or state == State.WANDERING \
 			or state == State.DEPARTING or state == State.ENGAGED
 
@@ -275,18 +281,23 @@ func _engaged(delta: float) -> void:
 	var intent := _pilot.get_intent()
 	var tuning := _pilot.tuning
 	var stats := ship_type.stats
+	# A leader that is told to move or withdraw keeps the limits its formation puts on it
+	# (the others follow it); a ship in a fight flies with everything it has.
+	var limited := _pilot.keeps_formation_limits()
+	var thrust: float = effective_thrust() if limited else stats.thrust
+	var top_speed: float = effective_max_speed() if limited else stats.max_speed
 	var correction := intent.velocity - velocity
 	if correction.length() <= tuning.trim_range:
-		velocity += FormationSteering.trim_delta(correction, tuning.trim_thrust_fraction * stats.thrust, delta)
+		velocity += FormationSteering.trim_delta(correction, tuning.trim_thrust_fraction * thrust, delta)
 		var face := intent.aim
 		if is_nan(face):
 			face = velocity.angle() if velocity.length() > 1.0 else get_heading()
-		_turn_toward(face, delta, true)
+		_turn_toward(face, delta, not limited)
 	else:
-		_turn_toward(correction.angle(), delta, true)
+		_turn_toward(correction.angle(), delta, not limited)
 		if absf(angle_difference(get_heading(), correction.angle())) < THRUST_ANGLE:
-			velocity += Vector2.from_angle(get_heading()) * stats.thrust * delta
-	velocity = velocity.limit_length(stats.max_speed)
+			velocity += Vector2.from_angle(get_heading()) * thrust * delta
+	velocity = velocity.limit_length(top_speed)
 	global_position += velocity * delta
 
 

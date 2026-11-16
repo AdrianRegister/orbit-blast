@@ -14,6 +14,8 @@ var _custom_row: HBoxContainer
 var _recipe: OptionButton
 var _recipes: Array[FormationRecipe] = []
 var _faction: OptionButton
+var _profile: OptionButton
+var _profiles: Array[TacticalProfile] = []
 var _factions: Array[Faction] = []
 var _plan_info: Label
 var _ships: Array[ShipStats] = []
@@ -26,6 +28,7 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	_shapes = registry.formation_shapes()
 	_recipes = registry.formation_recipes()
 	_factions = registry.factions()
+	_profiles = registry.tactical_profiles()
 	layer = 5
 	var panel := PanelContainer.new()
 	panel.theme = load("res://resources/ui/hud_theme.tres")
@@ -78,6 +81,11 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	for faction in _factions:
 		_faction.add_item(faction.display_name)
 	column.add_child(_faction)
+	_profile = OptionButton.new()
+	_profile.add_item("Profile: the recipe's own")
+	for profile in _profiles:
+		_profile.add_item("Profile: %s" % profile.display_name)
+	column.add_child(_profile)
 	column.add_child(_button("SPAWN COMPOSED UNIT (drawn shape)", _on_spawn_composed))
 	_plan_info = _label("")
 	_plan_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -94,6 +102,7 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	column.add_child(_button("KILL A MEMBER", _on_kill_member))
 	column.add_child(_button("CLEAR ALL FORMATIONS", _on_clear))
 	_on_group_selected(0)
+	DevPanel.disable_focus(self)
 
 
 func _process(_delta: float) -> void:
@@ -144,7 +153,8 @@ func _on_spawn_composed() -> void:
 	if _recipes.is_empty():
 		return
 	var faction_id: StringName = _factions[_faction.selected].id if not _factions.is_empty() else &""
-	_sandbox.spawn_composed(_recipes[_recipe.selected], null, faction_id)
+	var profile: TacticalProfile = _profiles[_profile.selected - 1] if _profile.selected > 0 else null
+	_sandbox.spawn_composed(_recipes[_recipe.selected], null, faction_id, profile)
 	if _sandbox.last_plan != null:
 		_plan_info.text = _sandbox.last_plan.describe()
 

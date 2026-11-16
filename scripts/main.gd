@@ -54,6 +54,12 @@ var _last_landed: StringName = &""
 var _content: ContentRegistry
 ## True from the player's ship being destroyed until the escape pod has landed.
 var _pod_in_progress: bool = false
+## The view's zoom levels, from the default outward: normal, 25% zoomed out, 50% zoomed out.
+## The mouse wheel steps through them (wheel up zooms in a level, wheel down zooms out).
+const ZOOM_LEVELS: Array[float] = [1.0, 0.75, 0.5]
+## How fast the camera eases to the chosen zoom (higher is quicker).
+const ZOOM_EASE := 12.0
+var _zoom_level: int = 0
 var _autosave_before_pod: bool = false
 
 @onready var _ship: PlayerShip = $PlayerShip
@@ -546,6 +552,16 @@ func _find_location_target(location_id: StringName) -> Targetable:
 ## Esc opens the pause menu when nothing else has used the key (the trading and
 ## mission screens and the event popup consume it first).
 func _unhandled_input(event: InputEvent) -> void:
+	var wheel := event as InputEventMouseButton
+	if wheel != null and wheel.pressed and not _any_screen_open():
+		if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_in()
+			get_viewport().set_input_as_handled()
+			return
+		if wheel.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_out()
+			get_viewport().set_input_as_handled()
+			return
 	if _pod_in_progress:
 		return  # the ship is being destroyed: no jumping, maps, or pause menu (and so no saving)
 	if event.is_action_pressed("jump"):
@@ -569,10 +585,30 @@ func _unhandled_input(event: InputEvent) -> void:
 func _can_open_map() -> bool:
 	if _ship.warping or sandbox_mode:  # (the sandbox is not on the galaxy map)
 		return false
+	return not _any_screen_open()
+
+
+## Whether a full screen (a menu, the market, a map ...) is on top of the view.
+func _any_screen_open() -> bool:
 	for screen: CanvasLayer in [_pause, _trading, _missions, _shipyard, _outfitters, _name_prompt, _popup, _map, _factions_screen]:
 		if screen.visible:
-			return false
-	return true
+			return true
+	return false
+
+
+## Zooms the view in one level (towards normal). Does nothing at normal zoom.
+func zoom_in() -> void:
+	_zoom_level = maxi(_zoom_level - 1, 0)
+
+
+## Zooms the view out one level (to 75%, then 50%). Does nothing at the furthest level.
+func zoom_out() -> void:
+	_zoom_level = mini(_zoom_level + 1, ZOOM_LEVELS.size() - 1)
+
+
+## 0 for normal zoom, 1 for medium (25% out), 2 for far (50% out).
+func get_zoom_level() -> int:
+	return _zoom_level
 
 
 ## The Factions screen opens from the top bar button or F, in flight and when
@@ -771,15 +807,19 @@ func _on_undocked(_target: Targetable) -> void:
 	_settlement.close()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_update_navigation()
 	if not _ship.warping and is_instance_valid(_system):
 		_travel.update_scouting(_system, _ship.global_position)
 	_camera.global_position = _ship.global_position
 	# The HUD covers the right edge of the window. Shift the view right by half
 	# the panel width so the ship sits in the middle of the remaining play area.
+	var target_zoom: float = ZOOM_LEVELS[_zoom_level]
+	var eased: float = lerpf(_camera.zoom.x, target_zoom, 1.0 - exp(-ZOOM_EASE * delta))
+	_camera.zoom = Vector2.ONE * (target_zoom if absf(eased - target_zoom) < 0.002 else eased)
+	# (The offset is in world units, so it grows as the view zooms out.)
 	var window_width: float = get_viewport().get_visible_rect().size.x
-	_camera.offset.x = window_width * _hud.get_panel_width_fraction() * 0.5
+	_camera.offset.x = window_width * _hud.get_panel_width_fraction() * 0.5 / _camera.zoom.x
 
 
 ## Rows added to (or replacing) what the target panel shows for a location: the

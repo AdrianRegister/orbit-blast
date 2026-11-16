@@ -20,7 +20,7 @@ static func spawn_formation(system: StarSystem, player: Node2D, config: TrafficC
 		kind: Formation.Kind, shape: FormationShape, ship_types: Array[ShipType],
 		at: Vector2, heading: float, faction_id: StringName = &"",
 		wander_radius: float = 700.0, tuning: FormationTuning = null,
-		patrol: Array[Vector2] = []) -> Formation:
+		patrol: Array[Vector2] = [], profile: TacticalProfile = null) -> Formation:
 	var ships: Array[NpcShip] = []
 	for type in ship_types:
 		ships.append(_make_ship(type, system, player, config, faction_id))
@@ -36,7 +36,7 @@ static func spawn_formation(system: StarSystem, player: Node2D, config: TrafficC
 	for ship in ships:
 		system.get_ships_root().add_child(ship)
 	system.get_formations_root().add_child(formation)
-	formation.setup(kind, shape, ships, lead, system, player, tuning, faction_id)
+	formation.setup(kind, shape, ships, lead, system, player, tuning, faction_id, profile)
 	formation.place_at(at, heading)
 	return formation
 
@@ -49,12 +49,13 @@ static func spawn_formation(system: StarSystem, player: Node2D, config: TrafficC
 ## outermost formation. Null if the plan cannot be built.
 static func spawn_plan(system: StarSystem, player: Node2D, config: TrafficConfig, plan: FormationPlan,
 		at: Vector2, heading: float, faction_id: StringName = &"", wander_radius: float = 700.0,
-		tuning: FormationTuning = null, patrol: Array[Vector2] = [], shape: FormationShape = null) -> Node:
+		tuning: FormationTuning = null, patrol: Array[Vector2] = [], shape: FormationShape = null,
+		profile: TacticalProfile = null) -> Node:
 	if plan == null or plan.recipe == null:
 		return null
 	if plan.recipe.unit == FormationRecipe.Unit.FLEET:
-		return _spawn_fleet(system, player, config, plan, at, heading, faction_id, wander_radius, tuning, patrol)
-	var built := _build(plan, system, player, config, faction_id, shape)
+		return _spawn_fleet(system, player, config, plan, at, heading, faction_id, wander_radius, tuning, patrol, profile)
+	var built := _build(plan, system, player, config, faction_id, shape, profile)
 	if built.is_empty():
 		return null
 	_start_route(built["lead"], system, wander_radius, patrol)
@@ -110,7 +111,7 @@ static func _start_route(lead: NpcShip, system: StarSystem, wander_radius: float
 ## ships its formation holds, a sub-unit's leader included), "lead", "subs" (the
 ## same for each sub-unit)}. Empty if the plan has no ships of its own to lead it.
 static func _build(plan: FormationPlan, system: StarSystem, player: Node2D, config: TrafficConfig,
-		faction_id: StringName, shape: FormationShape = null) -> Dictionary:
+		faction_id: StringName, shape: FormationShape = null, profile: TacticalProfile = null) -> Dictionary:
 	var ships: Array[NpcShip] = []
 	for type in plan.ships:
 		ships.append(_make_ship(type, system, player, config, faction_id))
@@ -124,7 +125,7 @@ static func _build(plan: FormationPlan, system: StarSystem, player: Node2D, conf
 	members.append_array(ships)
 	var subs: Array[Dictionary] = []
 	for child in plan.children:
-		var inner := _build(child, system, player, config, faction_id)
+		var inner := _build(child, system, player, config, faction_id, null, profile)
 		if inner.is_empty():
 			continue
 		subs.append(inner)
@@ -133,7 +134,8 @@ static func _build(plan: FormationPlan, system: StarSystem, player: Node2D, conf
 		if ship != lead:
 			ship.join_formation(formation)
 	return {"formation": formation, "kind": kind, "shape": shape if shape != null else plan.shape,
-			"ships": ships, "members": members, "lead": lead, "subs": subs}
+			"ships": ships, "members": members, "lead": lead, "subs": subs,
+			"profile": profile if profile != null else plan.recipe.tactical_profile}
 
 
 ## Puts a built unit in the tree, its sub-units first (a battle group sets up with
@@ -146,7 +148,7 @@ static func _enter(built: Dictionary, system: StarSystem, player: Node2D, tuning
 		_enter(inner, system, player, tuning, faction_id)
 	var formation: Formation = built["formation"]
 	system.get_formations_root().add_child(formation)
-	formation.setup(built["kind"], built["shape"], built["members"], built["lead"], system, player, tuning, faction_id)
+	formation.setup(built["kind"], built["shape"], built["members"], built["lead"], system, player, tuning, faction_id, built["profile"])
 
 
 ## Snaps a built unit into its shape with the leader at `at`, then each sub-unit into
@@ -159,7 +161,7 @@ static func _place(built: Dictionary, at: Vector2, heading: float) -> void:
 
 static func _spawn_fleet(system: StarSystem, player: Node2D, config: TrafficConfig, plan: FormationPlan,
 		at: Vector2, heading: float, faction_id: StringName, wander_radius: float,
-		tuning: FormationTuning, patrol: Array[Vector2]) -> WarFleet:
+		tuning: FormationTuning, patrol: Array[Vector2], profile: TacticalProfile = null) -> WarFleet:
 	var tune := tuning if tuning != null else FormationTuning.shared()
 	var capitals: Array[NpcShip] = []
 	for type in plan.ships:
@@ -169,7 +171,7 @@ static func _spawn_fleet(system: StarSystem, player: Node2D, config: TrafficConf
 	var flagship := choose_lead(Formation.Kind.SQUADRON, capitals)
 	var groups: Array[Dictionary] = []
 	for child in plan.children:
-		var built := _build(child, system, player, config, faction_id)
+		var built := _build(child, system, player, config, faction_id, null, profile)
 		if not built.is_empty():
 			groups.append(built)
 
@@ -202,7 +204,8 @@ static func _spawn_fleet(system: StarSystem, player: Node2D, config: TrafficConf
 	var fleet := WarFleet.new()
 	fleet.name = "WarFleet"
 	system.get_formations_root().add_child(fleet)
-	fleet.setup(system, player, flagship, others, formations, maxf(tune.fleet_cohesion_radius, radius + biggest + tune.fleet_unit_gap), tune)
+	fleet.setup(system, player, flagship, others, formations, maxf(tune.fleet_cohesion_radius, radius + biggest + tune.fleet_unit_gap), tune,
+			profile if profile != null else plan.recipe.tactical_profile)
 
 	flagship.global_position = at
 	flagship.set_heading(heading)

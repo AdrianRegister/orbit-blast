@@ -79,6 +79,30 @@ func get_stats_text() -> String:
 	return text
 
 
+## What mount the weapon needs, for people: "Small or larger", "Medium or larger, turret only",
+## "Capital". (A weapon fits a mount of its own size or larger; the capital mount is the largest.)
+func get_mount_text() -> String:
+	var text := WeaponMount.size_name(mount_size)
+	if mount_size < WeaponMount.Size.CAPITAL:
+		text += " or larger"
+	if fixed_capable and not turret_capable:
+		text += ", fixed only"
+	elif turret_capable and not fixed_capable:
+		text += ", turret only"
+	return text
+
+
+## Why this weapon does not fit `mount`, or "" if it does.
+func get_misfit_reason(mount: WeaponMount) -> String:
+	if mount == null:
+		return "No mount"
+	if mount.size < mount_size:
+		return "Mount too small"
+	if not fits(mount):
+		return "Needs a %s mount" % ("turret" if turret_capable else "fixed")
+	return ""
+
+
 ## Whether this weapon can be fitted to `mount`.
 func fits(mount: WeaponMount) -> bool:
 	if mount == null:

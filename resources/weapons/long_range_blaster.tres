@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/weapon_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"long_range_blaster"
+display_name = "Long-Range Blaster"
+description = "A siege weapon only a capital ship can carry. Its shots reach far beyond any other gun, hit hard and slip through the best shields; it cycles slowly and drinks energy."
+price = 400000
+max_per_ship = 1
+mount_size = 3
+damage = 120.0
+fire_interval = 2.5
+energy_per_shot = 45.0
+projectile_speed = 1600.0
+range = 1800.0
+spread_degrees = 0.5
+shield_bypass = 0.15
+projectile_color = Color(1, 0.55, 0.2, 1)
+projectile_scale = 1.4

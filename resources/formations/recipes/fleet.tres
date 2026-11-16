@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="FormationRecipe" format=3]
 
+[ext_resource type="Resource" path="res://resources/combat/ai/profiles/military_patrol.tres" id="profile"]
 [ext_resource type="Script" path="res://scripts/fleet/formation_recipe.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/fleet/recipe_group.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="3"]
@@ -25,6 +26,7 @@ max_count = 3
 
 [resource]
 script = ExtResource("1")
+tactical_profile = ExtResource("profile")
 id = &"fleet"
 display_name = "Fleet"
 description = "2 to 3 battle groups with 1 to 2 capital ships. The strongest capital ship is the flagship. A fleet has no shape: its parts keep to a leash around the flagship."

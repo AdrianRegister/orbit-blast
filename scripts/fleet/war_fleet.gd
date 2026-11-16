@@ -16,8 +16,8 @@ extends Node
 ## it stays together by itself; only its leader is on the leash.
 ##
 ## The fleet lives under the star system's `Formations` node and runs before the
-## formations. Like a Formation it only moves ships: deciding what the fleet does
-## (engage, hold, withdraw when the flagship falls) comes with the NPC combat AI.
+## formations. It only moves ships: what the fleet does about enemies (engage, hold,
+## withdraw) is decided by its FleetCommander (`commander`, made in setup).
 
 ## The flagship was lost and `new_flagship` (the next strongest capital ship) took over.
 signal flagship_changed(old_flagship, new_flagship)
@@ -30,6 +30,8 @@ var flagship: NpcShip
 var tuning: FormationTuning
 ## How far a part may stray from the flagship before it is recalled (pixels).
 var cohesion_radius: float = 0.0
+## Decides what the fleet does about enemies (made in setup).
+var commander: FleetCommander
 
 ## Every ship on the leash: the second capital ship and each battle group's leader.
 ## (Untyped on purpose: ships get freed.)
@@ -51,7 +53,8 @@ func _init() -> void:
 ## `capitals` are the capital ships other than the flagship, `battle_groups` the
 ## fleet's battle group formations (already set up). The ships must be in the tree.
 func setup(system: StarSystem, player: Node2D, flagship_ship: NpcShip, capitals: Array[NpcShip],
-		battle_groups: Array[Formation], radius: float, fleet_tuning: FormationTuning = null) -> void:
+		battle_groups: Array[Formation], radius: float, fleet_tuning: FormationTuning = null,
+		tactical_profile: TacticalProfile = null) -> void:
 	tuning = fleet_tuning if fleet_tuning != null else FormationTuning.shared()
 	cohesion_radius = radius
 	process_physics_priority = -12  # before the battle groups and squadrons
@@ -69,6 +72,10 @@ func setup(system: StarSystem, player: Node2D, flagship_ship: NpcShip, capitals:
 		group.leader_changed.connect(_on_leader_changed)
 		group.dissolved.connect(_on_group_dissolved.bind(group))
 	_limit_flagship_speed()  # (from the first frame)
+	commander = FleetCommander.new()
+	commander.profile = tactical_profile  # (null: the default profile)
+	commander.name = "Commander"
+	add_child(commander)
 
 
 # ------------------------------------------------------------------ queries

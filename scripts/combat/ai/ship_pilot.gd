@@ -4,8 +4,10 @@ extends RefCounted
 ## shoots. It is owned by the NpcShip, flies nothing itself and has no say over
 ## groups: it produces a SteeringIntent that the ship flies with its own physics, and
 ## fires through the ship's Combatant with the same weapons and rules as the player.
-## It only acts for a ship that is on its own (see NpcShip.is_free_agent); ships in
-## formations and fleets are left to their commanders (Phase 3.3, steps 4 and 5).
+## It acts for a ship that is on its own (see NpcShip.is_free_agent). A ship in a
+## formation waits for its unit's commander (UnitCommander), which gives its pilot a
+## CombatOrder: fire at will from its slot, or take control and fight, guard, move or
+## withdraw. (Fleets get theirs in step 5.)
 ##
 ## It thinks every AiTuning.decision_interval seconds and flies and fires every frame.
 ## What it does:
@@ -14,25 +16,34 @@ extends RefCounted
 ##   - ATTACK: picks the best target (TargetScorer), flies at it in its doctrine's
 ##     style (dogfight, skirmish or standoff, CombatSteering), weaves when it is under
 ##     attack, and fires what would hit (Combatant.fire_at_will);
-##   - BATTLE LINE: with armed friends nearby, a cruiser or capital ship (ANCHOR) holds the
-##     place where the fight reached it and only shoots what is in reach of it (creeping
-##     up on the enemy, slowly and only so far, when it has nothing to shoot), and
-##     fighters and frigates (SCREEN) fight around the nearest anchor, or the middle of
-##     their friends, and are drawn back to it (CombatDoctrine.LineRole, AiTuning "Battle
-##     line"). With no friends nearby a ship fights wherever its target goes. HOLD is a
-##     ship in a line with nothing it can shoot: it keeps its place;
+##   - BATTLE LINE: with armed friends nearby, a cruiser or capital ship (ANCHOR) picks
+##     its target from anywhere in sight (by threat, size and distance: it cannot hurt
+##     fighters, so it goes for big ships) and advances on it, at a fraction of its top
+##     speed so that its screen keeps up, until it is at its fighting range. With nothing
+##     it can hurt it SUPPORTS: if its own fighters are fighting, it flies up to within
+##     point-defence range of what they are fighting (SUPPORT), so that its point defence
+##     covers them; failing that it holds (HOLD). Fighters and frigates (SCREEN) fight
+##     around the nearest anchor, or the middle of their friends, and are drawn back to it
+##     (CombatDoctrine.LineRole, AiTuning "Battle line"). With no friends nearby a ship
+##     fights wherever its target goes;
 ##   - RETREAT: runs, still firing what it can, when its hull is below the doctrine's
 ##     limit, jumping out of the system if there is a way out;
 ##   - FLEE: the same for a ship with no doctrine (a freighter): it never fights;
 ##   - when it has seen no enemy for AiTuning.calm_time it stands down, and the ship
-##     goes back to what it was doing.
+##     goes back to what it was doing;
+##   - under an order: ENGAGE is ATTACK with the commander's target preferred, GUARD is
+##     ATTACK tethered to the ship it protects (it takes no target further from it than
+##     the order's radius), MOVE flies to a point, and WITHDRAW runs for the exit, both at
+##     the formation's limits.
 
-enum Mode { IDLE, ATTACK, RETREAT, FLEE, HOLD }
+enum Mode { IDLE, ATTACK, RETREAT, FLEE, HOLD, MOVE, SUPPORT }
 
 ## How hard a ship with no doctrine weaves while it runs (a fraction of its top speed).
 const FLEE_WEAVE := 0.25
 
 var mode: Mode = Mode.IDLE
+## What the unit's commander has told this pilot to do (null: nothing, or it is a free agent).
+var order: CombatOrder
 ## What the pilot wants the ship to do this frame (valid while mode is not IDLE).
 var intent := SteeringIntent.new()
 var tuning: AiTuning
@@ -61,17 +72,9 @@ var _engage_origin: Vector2 = Vector2.ZERO
 var _ignored: Dictionary = {}
 ## The role in the battle line as of the last decision (FREE: no friends nearby).
 var _role: CombatDoctrine.LineRole = CombatDoctrine.LineRole.FREE
-## An anchor's fixed place, once it has taken one up (it never moves while it holds it).
-var _anchored: bool = false
-var _anchor_point: Vector2 = Vector2.ZERO
-## Seconds an anchored ship has had nothing to shoot.
-var _idle_anchored_for: float = 0.0
-## An anchor with nothing in reach is creeping up on the enemy: its place moves toward
-## the target, slowly, until the target is in reach or the place is `anchor_advance_limit`
-## from where the line first formed (`_line_origin`).
-var _creeping: bool = false
-var _creep_spent: bool = false
-var _line_origin: Vector2 = Vector2.ZERO
+## Where an anchor with nothing to shoot goes to cover its fighters (see _find_support).
+var _has_support: bool = false
+var _support_point: Vector2 = Vector2.ZERO
 ## What a screen ship stays near (its anchor, or the middle of its friends), if it has one.
 var _has_tether: bool = false
 var _tether_point: Vector2 = Vector2.ZERO
@@ -93,13 +96,37 @@ func is_active() -> bool:
 	return mode != Mode.IDLE
 
 
+## Takes an order from the commander (null cancels it). One that does not take control
+## of the ship hands it back to its slot at once.
+func set_order(new_order: CombatOrder) -> void:
+	var was_controlling := controls_ship()
+	order = new_order
+	if was_controlling and not controls_ship() and mode != Mode.IDLE:
+		_stand_down()
+	if order == null:
+		_combatant.set_target(null)
+
+
+## Whether an order has put the pilot in charge of flying the ship.
+func controls_ship() -> bool:
+	return order != null and order.takes_control()
+
+
+## Whether the ship keeps its formation's speed and turn limits (see NpcShip._engaged).
+func keeps_formation_limits() -> bool:
+	return order != null and order.keeps_formation_limits()
+
+
 func get_intent() -> SteeringIntent:
 	return intent
 
 
 ## Called by the ship at the start of every physics frame.
 func tick(delta: float) -> void:
-	if not _ship.is_free_agent() or not _ship.can_fight():
+	if order != null and order.kind == CombatOrder.Kind.FIRE_AT_WILL:
+		_tick_fire_at_will(delta)
+		return
+	if not (_ship.is_free_agent() or controls_ship()) or not _ship.can_fight():
 		if mode != Mode.IDLE:
 			_stand_down()
 		return
@@ -117,12 +144,15 @@ func tick(delta: float) -> void:
 			_stand_down()
 			return
 	_update_timers(delta)
-	_creep(delta)
 	match mode:
 		Mode.ATTACK:
 			_steer_attack()
 		Mode.HOLD:
 			_steer_hold()
+		Mode.MOVE:
+			_steer_move()
+		Mode.SUPPORT:
+			_steer_support()
 		_:
 			_steer_flee()
 	if doctrine != null and _combatant.get_target() != null:
@@ -130,6 +160,34 @@ func tick(delta: float) -> void:
 			_since_shot = 0.0
 		else:
 			_since_shot += delta
+
+
+## A ship that keeps its place in a formation shoots what comes in reach, without
+## flying: it picks the nearest hostile ship its weapons reach and fires what is aimed.
+func _tick_fire_at_will(delta: float) -> void:
+	if doctrine == null:
+		return
+	_think_left -= delta
+	if _think_left <= 0.0:
+		_think_left = tuning.decision_interval
+		_combatant.set_target(_nearest_in_reach())
+	if _combatant.get_target() != null:
+		_combatant.fire_at_will(doctrine.fire_tolerance_degrees)
+
+
+## The nearest hostile ship within reach of the ship's weapons, or null. `hostiles` (nearest
+## first) saves a second look when the caller has the list.
+func _nearest_in_reach(hostiles: Array[Combatant] = []) -> Combatant:
+	var reach := _combatant.weapons.get_longest_range()
+	if hostiles.is_empty():
+		var picture := _picture()
+		if picture == null:
+			return null
+		hostiles = picture.hostiles_near(_combatant, reach)
+	for other in hostiles:
+		if _combatant.global_position.distance_to(other.global_position) <= reach:
+			return other
+	return null
 
 
 # ----------------------------------------------------------------- deciding
@@ -140,10 +198,13 @@ func _decide() -> void:
 		return
 	var sensor := _sensor_range()
 	var hostiles := picture.hostiles_near(_combatant, sensor)
+	if order != null and (order.kind == CombatOrder.Kind.MOVE or order.kind == CombatOrder.Kind.WITHDRAW):
+		_decide_ordered_move(hostiles)
+		return
 	if doctrine == null:
 		_decide_unarmed(hostiles)
 		return
-	if hostiles.is_empty():
+	if hostiles.is_empty() and _commanded_target() == null:
 		_combatant.set_target(null)
 		_threats = []
 		_calm_for += tuning.decision_interval
@@ -154,20 +215,30 @@ func _decide() -> void:
 	_threats = _armed_in(hostiles)
 	_update_line(picture)
 	var target: Combatant = _choose_target(picture, hostiles, sensor)
-	_update_anchor(target)
-	if _role == CombatDoctrine.LineRole.FREE and mode == Mode.ATTACK and target != null and _ship.global_position.distance_to(_engage_origin) > tuning.pursuit_leash:
+	if order == null and _role == CombatDoctrine.LineRole.FREE and mode == Mode.ATTACK and target != null and _ship.global_position.distance_to(_engage_origin) > tuning.pursuit_leash:
 		_ignored[target] = _clock + tuning.give_up_seconds  # (it will not be caught: let it go)
 		_stand_down()
 		return
 	_combatant.set_target(target)
-	if mode == Mode.RETREAT or _hull_fraction() < doctrine.retreat_hull_fraction:
+	if not _fights_to_the_death() and (mode == Mode.RETREAT or _hull_fraction() < doctrine.retreat_hull_fraction):
 		_set_mode(Mode.RETREAT)  # (it runs until it is safe)
 	elif target != null:
 		_set_mode(Mode.ATTACK)
+	elif _role == CombatDoctrine.LineRole.ANCHOR and _find_support(picture):
+		_set_mode(Mode.SUPPORT)  # (nothing it can hurt, but its fighters are fighting: it goes to cover them)
 	elif _role != CombatDoctrine.LineRole.FREE:
 		_set_mode(Mode.HOLD)  # (in a line, it keeps its place rather than wander off)
 	elif mode == Mode.ATTACK:
 		_stand_down()  # nothing it can hurt is left in sight
+
+
+## An order to move or to withdraw: the pilot goes where it was told (or runs), shooting
+## what is in reach on the way. The commander decides when it stops.
+func _decide_ordered_move(hostiles: Array[Combatant]) -> void:
+	_calm_for = 0.0
+	_threats = _armed_in(hostiles)
+	_combatant.set_target(_nearest_in_reach(hostiles) if doctrine != null else null)
+	_set_mode(Mode.MOVE if order.kind == CombatOrder.Kind.MOVE else Mode.RETREAT)
 
 
 ## A ship that never fights runs from armed enemies close by.
@@ -190,11 +261,37 @@ func _decide_unarmed(hostiles: Array[Combatant]) -> void:
 func _choose_target(picture: TacticalPicture, hostiles: Array[Combatant], sensor: float) -> Combatant:
 	var me := ShooterInfo.from_combatant(_combatant)
 	var candidates: Array[TargetInfo] = []
+	var commanded := _commanded_target()
 	for other in hostiles:
-		if _is_ignored(other) or not _in_reach_of_line(other):
-			continue
-		candidates.append(TargetInfo.from_combatant(other, _combatant, me, picture.count_targeters(other)))
+		if _is_ignored(other) or (other != commanded and not _in_reach_of_line(other)):
+			continue  # (the commander's choice counts wherever it is)
+		candidates.append(_describe(other, picture, me))
+	if commanded != null and not hostiles.has(commanded):
+		# (the commander's choice counts, though this ship cannot see so far itself)
+		candidates.append(_describe(commanded, picture, me))
+		sensor = maxf(sensor, _combatant.global_position.distance_to(commanded.global_position))
 	return TargetScorer.choose(me, doctrine, candidates, sensor, _combatant.get_target()) as Combatant
+
+
+## A ship its commander has ordered to fight or guard does not run when it is hurt: the
+## unit stands or withdraws as one (a leader that jumped out would take the whole unit with
+## it), and a ship that is lost is replaced by promotion.
+func _fights_to_the_death() -> bool:
+	return order != null and (order.kind == CombatOrder.Kind.ENGAGE or order.kind == CombatOrder.Kind.GUARD)
+
+
+## The target the commander named, if it is still there.
+func _commanded_target() -> Combatant:
+	if order != null and is_instance_valid(order.target) and order.target.is_alive():
+		return order.target
+	return null
+
+
+func _describe(other: Combatant, picture: TacticalPicture, me: ShooterInfo) -> TargetInfo:
+	var info := TargetInfo.from_combatant(other, _combatant, me, picture.count_targeters(other))
+	if order != null:
+		info.is_focus = order.target == other
+	return info
 
 
 ## Works out the ship's place in a battle line: its doctrine's role if it has armed
@@ -203,76 +300,25 @@ func _update_line(picture: TacticalPicture) -> void:
 	var friends := picture.friends_near(_combatant, tuning.line_join_range)
 	_role = doctrine.line_role if not friends.is_empty() else CombatDoctrine.LineRole.FREE
 	_has_tether = false
+	if order != null and order.kind == CombatOrder.Kind.GUARD and is_instance_valid(order.protectee):
+		_role = CombatDoctrine.LineRole.SCREEN  # (an escort screens the ship it guards, wherever it is)
+		_tether_point = order.protectee.global_position
+		_has_tether = true
+		return
+	if order != null and order.kind == CombatOrder.Kind.ENGAGE and _role == CombatDoctrine.LineRole.SCREEN:
+		_role = CombatDoctrine.LineRole.FREE  # (the commander's order replaces the battle line: it owns the leash)
 	if _role == CombatDoctrine.LineRole.SCREEN:
 		var anchor := picture.nearest_anchor(friends)
 		_tether_point = anchor.global_position if anchor != null else picture.centre_of(_combatant, friends)
 		_has_tether = true
-	elif _role != CombatDoctrine.LineRole.ANCHOR:
-		_anchored = false
-		_creeping = false
 
 
-## Whether the pilot may shoot `other` from where its line stands: an anchored ship
-## only what is in reach of its place, a screen ship only what is within the screen
-## radius of what it stays near.
+## Whether the pilot may pick `other` from where its line stands: a screen ship only what
+## is within the screen radius of what it stays near. An anchor may pick anything in sight.
 func _in_reach_of_line(other: Combatant) -> bool:
-	if _role == CombatDoctrine.LineRole.ANCHOR and _anchored and not _creeping:
-		return _anchor_point.distance_to(other.global_position) <= _anchor_reach()
 	if _role == CombatDoctrine.LineRole.SCREEN and _has_tether:
-		return _tether_point.distance_to(other.global_position) <= tuning.screen_radius
+		return _tether_point.distance_to(other.global_position) <= _tether_radius()
 	return true
-
-
-## An anchor takes up its place when something it can shoot is in reach, or when it is
-## attacked (it does not leave to hunt before the line has formed). Once placed, if it has
-## had nothing to shoot for `anchor_advance_delay`, even under fire from ships it cannot
-## hit, it creeps up on the best target it can hurt (see _creep) and takes up a new place
-## when that is in reach, or stops at the advance limit.
-func _update_anchor(target: Combatant) -> void:
-	if _role != CombatDoctrine.LineRole.ANCHOR:
-		return
-	var in_reach := target != null and _ship.global_position.distance_to(target.global_position) <= _anchor_reach()
-	if not _anchored:
-		if in_reach or _is_under_attack():
-			_anchored = true
-			_anchor_point = _ship.global_position
-			_line_origin = _anchor_point
-			_idle_anchored_for = 0.0
-			_creeping = false
-			_creep_spent = false
-		return
-	if _creeping:
-		if in_reach:
-			_creeping = false  # (in range: the line forms here)
-			_anchor_point = _ship.global_position
-			_idle_anchored_for = 0.0
-		return
-	if in_reach:
-		_idle_anchored_for = 0.0
-	elif not _creep_spent:
-		_idle_anchored_for += tuning.decision_interval
-		if _idle_anchored_for >= tuning.anchor_advance_delay:
-			_creeping = true
-
-
-## Moves a creeping anchor's place toward its target at `anchor_advance_speed` of its top
-## speed (the ship follows it, so the screen can keep up), and stops at the limit.
-func _creep(delta: float) -> void:
-	if not _creeping:
-		return
-	var target := _combatant.get_target()
-	if target == null:
-		return
-	if _anchor_point.distance_to(_line_origin) >= tuning.anchor_advance_limit:
-		_creeping = false
-		_creep_spent = true  # (it holds at the limit)
-		return
-	var step := _ship.ship_type.stats.max_speed * tuning.anchor_advance_speed * delta
-	_anchor_point = _anchor_point.move_toward(target.global_position, step)
-
-
-func _anchor_reach() -> float:
-	return _combatant.weapons.get_longest_range() * tuning.anchor_reach_margin
 
 
 ## Changes mode, remembering where a fight began when the pilot takes over.
@@ -294,9 +340,7 @@ func _is_ignored(other: Combatant) -> bool:
 
 func _stand_down() -> void:
 	mode = Mode.IDLE
-	_anchored = false
-	_creeping = false
-	_creep_spent = false
+	_has_support = false
 	_role = CombatDoctrine.LineRole.FREE
 	_has_tether = false
 	_threats = []
@@ -351,31 +395,26 @@ func _steer_attack() -> void:
 			wanted += CombatSteering.strafe_velocity(position, target_pos, doctrine.strafe * tuning.strafe_speed, _strafe_side)
 		_:
 			wanted = CombatSteering.close_velocity(position, target_pos, target_velocity, preferred, top, brake, back)
-	if _role == CombatDoctrine.LineRole.ANCHOR and _anchored:
-		wanted = CombatSteering.close_velocity(position, _anchor_point, Vector2.ZERO, 0.0, top, brake, back)  # (it holds its place: the target comes to it)
+	if _role == CombatDoctrine.LineRole.ANCHOR:
+		wanted = _cap_advance(wanted, target_pos - position, top)  # (it closes slowly, so its screen keeps up)
 	elif _has_tether:
-		wanted = CombatSteering.tether_velocity(position, wanted, _tether_point, tuning.screen_radius, tuning.screen_soft_band, top)
+		wanted = CombatSteering.tether_velocity(position, wanted, _tether_point, _tether_radius(), tuning.screen_soft_band, top)
 	if _is_under_attack():
 		wanted += CombatSteering.evade_velocity(position, _nearest_threat_position(target_pos), doctrine.evasion, tuning.evade_speed, _jink_side)
 	intent = SteeringIntent.new(wanted.limit_length(top), (lead - position).angle())
 	_show_status("Engaging %s" % target.display_name)
 
 
-## Keeps the ship's place in the line with nothing to shoot: an anchor at its place, a
-## screen ship within half its radius of what it stays near, nose toward the enemy.
+## Keeps the ship's place in the line with nothing to shoot or cover: an anchor where it is,
+## a screen ship within half its radius of what it stays near, nose toward the enemy.
 func _steer_hold() -> void:
 	var stats := _ship.ship_type.stats
 	var position := _ship.global_position
 	var point := position
 	var hold := 0.0
-	if _role == CombatDoctrine.LineRole.ANCHOR:
-		if not _anchored:
-			_anchored = true
-			_anchor_point = position
-		point = _anchor_point
-	elif _has_tether:
+	if _has_tether:
 		point = _tether_point
-		hold = tuning.screen_radius * 0.5
+		hold = _tether_radius() * 0.5
 	var wanted := CombatSteering.close_velocity(position, point, Vector2.ZERO, hold, stats.max_speed, stats.thrust * tuning.brake_fraction, stats.max_speed * tuning.max_back_speed_fraction)
 	var aim := _combatant.get_heading()
 	var threats := _threat_positions()  # (it skips the ones destroyed since the last decision)
@@ -385,10 +424,68 @@ func _steer_hold() -> void:
 	_show_status("Holding the line")
 
 
+## An anchor with nothing it can hurt, whose fighters are engaged, flies to within point-
+## defence range of what they are fighting (`AiTuning.support_range_fraction` of it), at the
+## anchors' advancing speed, nose toward it, so that its point defence covers them.
+func _steer_support() -> void:
+	var stats := _ship.ship_type.stats
+	var position := _ship.global_position
+	var top := stats.max_speed
+	var hold := _combatant.weapons.get_point_defence_range() * tuning.support_range_fraction
+	var wanted := CombatSteering.close_velocity(position, _support_point, Vector2.ZERO, hold, top,
+			stats.thrust * tuning.brake_fraction, top * tuning.max_back_speed_fraction)
+	wanted = _cap_advance(wanted, _support_point - position, top)
+	intent = SteeringIntent.new(wanted.limit_length(top), (_support_point - position).angle())
+	_show_status("Supporting the fighters")
+
+
+## Finds where an anchor should go to cover its fighters: the target of the nearest friendly
+## fighter that is fighting. False if it has no point defence, or no fighter of its own is
+## fighting. (Sets _support_point.)
+func _find_support(picture: TacticalPicture) -> bool:
+	_has_support = false
+	if not _combatant.weapons.has_point_defence():
+		return false
+	var best := INF
+	for friend in picture.friends_near(_combatant, tuning.line_join_range):
+		if not friend.evasive:
+			continue  # (fighters are what point defence protects)
+		var theirs := friend.get_target()
+		if theirs == null or not is_instance_valid(theirs) or not theirs.is_alive():
+			continue
+		var distance := _combatant.global_position.distance_to(theirs.global_position)
+		if distance < best:
+			best = distance
+			_support_point = theirs.global_position
+			_has_support = true
+	return _has_support
+
+
+## An anchor does not rush: when `wanted` heads toward `toward` it is held to
+## `AiTuning.anchor_advance_speed` of the ship's top speed.
+func _cap_advance(wanted: Vector2, toward: Vector2, top: float) -> Vector2:
+	var cap := top * tuning.anchor_advance_speed
+	if wanted.dot(toward) > 0.0 and wanted.length() > cap:
+		return wanted.normalized() * cap
+	return wanted
+
+
+## Flies to the point the commander named (a leader closing on the enemy).
+func _steer_move() -> void:
+	var stats := _ship.ship_type.stats
+	var top := _ship.effective_max_speed()
+	var wanted := CombatSteering.close_velocity(_ship.global_position, order.point, Vector2.ZERO, 0.0, top,
+			stats.thrust * tuning.brake_fraction, top * tuning.max_back_speed_fraction)
+	intent = SteeringIntent.new(wanted.limit_length(top), NAN)
+	_show_status("Closing on the enemy")
+
+
 func _steer_flee() -> void:
-	var top := _ship.ship_type.stats.max_speed
+	var top := _ship.effective_max_speed() if keeps_formation_limits() else _ship.ship_type.stats.max_speed
 	var position := _ship.global_position
 	var threats := _threat_positions()
+	if order != null and order.kind == CombatOrder.Kind.WITHDRAW:
+		threats.append(order.point)  # (the commander can see the enemy from further off than the pilot can)
 	var exit := Vector2.ZERO
 	if _ship.can_flee_by_jump():
 		exit = CombatSteering.best_exit(position, threats, _ship.get_exit_bearings())
@@ -397,13 +494,21 @@ func _steer_flee() -> void:
 			return
 	var wanted := CombatSteering.flee_velocity(position, threats, exit, top)
 	var evasion := doctrine.evasion if doctrine != null else FLEE_WEAVE
-	if wanted.length() > 0.0 and not threats.is_empty():
+	if wanted.length() > 0.0 and not threats.is_empty() and not keeps_formation_limits():  # (a leader does not weave: its unit follows it)
 		wanted += CombatSteering.evade_velocity(position, threats[0], evasion, tuning.evade_speed, _jink_side)
 	intent = SteeringIntent.new(wanted.limit_length(top), NAN)
 	_show_status("Retreating" if mode == Mode.RETREAT else "Fleeing")
 
 
 # ------------------------------------------------------------------ helpers
+
+## How far a screen ship may stray from what it stays near: a guard's order says, else
+## the shared screen radius.
+func _tether_radius() -> float:
+	if order != null and order.kind == CombatOrder.Kind.GUARD and order.radius > 0.0:
+		return order.radius
+	return tuning.screen_radius
+
 
 func _picture() -> TacticalPicture:
 	return _ship.get_tree().get_first_node_in_group(TacticalPicture.GROUP) as TacticalPicture

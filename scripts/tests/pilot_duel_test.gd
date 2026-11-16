@@ -5,14 +5,14 @@ extends SceneTree
 ## up (Engine.time_scale), so it takes a minute or two. Run with:
 ##   Godot --headless --path . --script res://scripts/tests/pilot_duel_test.gd </dev/null
 ## Pass scenario names after `--` to run only some: pilots, fire_rules, neutral, war,
-## pirate, two_on_one, big_ships, fighters_v_cruiser, retreat, chase, formation, battle_line, point_defence, player.
+## pirate, two_on_one, big_ships, fighters_v_cruiser, retreat, chase, formation, battle_line, standoff, support, point_defence, player.
 ##
 ## (Ships get destroyed and freed during these fights, so conditions that wait on
 ## them read them from a dictionary `box`, never capture them: a lambda that has
 ## captured a freed object cannot be called.)
 
 const SPEED := 5.0
-const ALL := ["pilots", "fire_rules", "neutral", "war", "pirate", "two_on_one", "big_ships", "fighters_v_cruiser", "retreat", "chase", "formation", "battle_line", "point_defence", "player"]
+const ALL := ["pilots", "fire_rules", "neutral", "war", "pirate", "two_on_one", "big_ships", "fighters_v_cruiser", "retreat", "chase", "formation", "battle_line", "standoff", "support", "point_defence", "player"]
 
 var _failures: int = 0
 var _main: Main
@@ -72,6 +72,10 @@ func _init() -> void:
 				await _test_formation_members()
 			"battle_line":
 				await _test_battle_line()
+			"standoff":
+				await _test_standoff()
+			"support":
+				await _test_support()
 			"point_defence":
 				await _test_point_defence()
 			"player":
@@ -395,8 +399,8 @@ func _test_chase() -> void:
 
 
 func _test_formation_members() -> void:
-	# Until the squadron commander exists (step 4) members of a formation hold their slots
-	# and do not fight on their own.
+	# Members of a formation do not fight on their own: with no enemy about they hold their
+	# slots (the squadron commander orders them to fight when there is one: squadron_ai_test).
 	var shape: FormationShape = _registry.formation_shape(&"wedge")
 	var squadron := _sandbox.spawn_formation(shape, [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"], Formation.Kind.SQUADRON)
 	await _wait(4.0)
@@ -462,8 +466,8 @@ func _pack_v_cruiser(count: int) -> Dictionary:
 
 
 func _test_battle_line() -> void:
-	# Two fleets fight. Cruisers anchor the lines, and fighters and frigates fight around
-	# them: nobody wanders off across the system, and the cruisers do not leave their places.
+	# Two fleets fight. Cruisers lead the lines and advance on the enemy's big ships, and fighters
+	# and frigates fight around them: nobody wanders off across the system.
 	var fleet_a := {"faction": &"faction_1", "ships": [
 			{"model": &"federation_fighter", "count": 4}, {"model": &"federation_frigate", "count": 2},
 			{"model": &"federation_cruiser", "count": 1}]}
@@ -482,7 +486,7 @@ func _test_battle_line() -> void:
 				starts[ship] = ship.global_position
 	var tuning := AiTuning.shared()
 	var worst_stray := 0.0
-	var worst_cruiser_move := 0.0
+	var cruiser_fired := false
 	var fought := false
 	var elapsed := 0.0
 	while elapsed < 120.0:
@@ -506,12 +510,61 @@ func _test_battle_line() -> void:
 			fought = fought or ship.get_combatant().weapons.shots_fired > 0
 			worst_stray = maxf(worst_stray, ship.global_position.distance_to(middle))
 		for cruiser in cruisers:
-			if not _gone(cruiser) and cruiser.get_pilot().mode != ShipPilot.Mode.RETREAT:
-				worst_cruiser_move = maxf(worst_cruiser_move, cruiser.global_position.distance_to(starts[cruiser]))
-	print("  (battle line: worst stray %d px from the middle, cruiser moved at most %d px)" % [worst_stray, worst_cruiser_move])
+			if not _gone(cruiser):
+				cruiser_fired = cruiser_fired or cruiser.get_combatant().weapons.shots_fired > 0
+	print("  (battle line: worst stray %d px from the middle)" % worst_stray)
 	_check(fought, "(setup) the fleets fight")
 	_check(worst_stray < tuning.screen_radius * 2.0, "no ship strays far from the middle of the battle (%d px)" % worst_stray)
-	_check(worst_cruiser_move < 2500.0, "the cruisers hold their lines instead of chasing across the system (%d px)" % worst_cruiser_move)
+	_check(cruiser_fired, "the cruisers close on the enemy until they are in range, and fire")
+	await _clear()
+
+
+func _test_standoff() -> void:
+	# Two lines start out of weapon range of each other, with fighters between the cruisers.
+	# Nobody stares: the cruisers pick each other as targets from far off and advance.
+	var box := {"cruisers": []}
+	box["cruisers"].append(_ship(&"federation_cruiser", &"faction_1", Vector2(-1150.0, 0.0), 0.0, CombatSandbox.BATTLE_EXITS))
+	box["cruisers"].append(_ship(&"hegemony_cruiser", &"faction_2", Vector2(1150.0, 0.0), PI, CombatSandbox.BATTLE_EXITS))
+	for y in [-200.0, 200.0]:
+		_ship(&"federation_fighter", &"faction_1", Vector2(-600.0, y), 0.0, CombatSandbox.BATTLE_EXITS)
+		_ship(&"hegemony_fighter", &"faction_2", Vector2(600.0, y), PI, CombatSandbox.BATTLE_EXITS)
+	var start_gap: float = box["cruisers"][0].global_position.distance_to(box["cruisers"][1].global_position)
+	box["closest"] = start_gap
+	var fired := await _wait_until(func() -> bool:
+		var cruisers: Array = box["cruisers"]
+		if _gone(cruisers[0]) or _gone(cruisers[1]):
+			return true
+		box["closest"] = minf(box["closest"], cruisers[0].global_position.distance_to(cruisers[1].global_position))
+		return cruisers[0].get_combatant().weapons.shots_fired > 0 and cruisers[1].get_combatant().weapons.shots_fired > 0, 90.0, 0.5)
+	_check(start_gap > 2000.0, "(setup) the cruisers start well out of each other's weapon range (%d px)" % start_gap)
+	_check(fired, "both cruisers advanced through the fight and opened fire on each other (closest %d px)" % box["closest"])
+	await _clear()
+
+
+func _test_support() -> void:
+	# A cruiser with nothing it can hurt (only enemy fighters) flies up to cover its own
+	# fighters: within point-defence range of what they are fighting.
+	var cruiser := _ship(&"federation_cruiser", &"faction_1", Vector2(-2200.0, 0.0), 0.0, CombatSandbox.BATTLE_EXITS)
+	var box := {"cruiser": cruiser, "enemies": [], "saw_support": false, "closest": INF}
+	for offset in [Vector2(-1800.0, -150.0), Vector2(-1800.0, 150.0)]:
+		_ship(&"federation_fighter", &"faction_1", offset, 0.0, CombatSandbox.BATTLE_EXITS)
+	for offset in [Vector2(0.0, -250.0), Vector2(0.0, -80.0), Vector2(0.0, 80.0), Vector2(0.0, 250.0)]:
+		box["enemies"].append(_ship(&"hegemony_fighter", &"faction_2", offset, PI, CombatSandbox.BATTLE_EXITS))
+	var pd_range: float = cruiser.get_combatant().weapons.get_point_defence_range()
+	var start_gap := cruiser.global_position.distance_to(_centre)
+	await _wait_until(func() -> bool:
+		var ship = box["cruiser"]
+		if _gone(ship):
+			return true
+		box["saw_support"] = box["saw_support"] or ship.get_pilot().mode == ShipPilot.Mode.SUPPORT
+		for enemy in box["enemies"]:
+			if not _gone(enemy):
+				box["closest"] = minf(box["closest"], ship.global_position.distance_to(enemy.global_position))
+		return _alive_count(box["enemies"]) == 0, 90.0, 0.5)
+	_check(box["saw_support"], "a cruiser with only fighters to look at goes into SUPPORT when its own fighters are fighting")
+	_check(box["closest"] < start_gap * 0.5, "...and moves up behind them (from %d px to %d px of the enemy)" % [start_gap, box["closest"]])
+	_check(not _gone(cruiser) and cruiser.get_combatant().weapons.point_defence_shots > 0, "...and its point defence fires on the enemy fighters (%d shots)" % cruiser.get_combatant().weapons.point_defence_shots)
+	_check(pd_range > 0.0, "(setup) the cruiser has point defence")
 	await _clear()
 
 

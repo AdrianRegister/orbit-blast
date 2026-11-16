@@ -33,6 +33,9 @@ enum Unit { SQUADRON, BATTLE_GROUP, FLEET, CONVOY }
 @export var shapes: Array[FormationShape] = []
 ## A convoy is civilian: no military faction escorts it, whatever the system.
 @export var civilian: bool = false
+## How a unit of this recipe behaves in a fight (see TacticalProfile). Null: the default
+## profile. The spawner can override it (a pirate squadron is a squadron with the pirate profile).
+@export var tactical_profile: TacticalProfile
 
 
 ## The Formation kind this recipe builds (not valid for a fleet).

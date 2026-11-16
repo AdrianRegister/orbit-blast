@@ -11,7 +11,10 @@ const ERROR_COLOR := Color(1.0, 0.45, 0.4)
 const CATEGORY_NAMES := ["CARGO", "ENGINE", "MANOEUVRE"]
 const WEAPON_TYPE_NAME := "WEAPON"
 
-enum Column { UPGRADE, TYPE, PRICE, STATUS }
+enum Column { UPGRADE, TYPE, MOUNT, PRICE, STATUS }
+const DIM_COLOR := Color(0.65, 0.68, 0.75)
+const FREE_COLOR := Color(0.55, 0.9, 0.6)
+const BUSY_COLOR := Color(0.95, 0.8, 0.4)
 
 var _ships: ShipManager
 var _economy: EconomyManager
@@ -24,6 +27,8 @@ var _selected: Resource
 @onready var _credits_row: InfoRow = %CreditsRow
 @onready var _ship_row: InfoRow = %ShipRow
 @onready var _table: Tree = %Table
+@onready var _mounts_title: Label = %MountsTitle
+@onready var _mounts_grid: GridContainer = %MountsGrid
 @onready var _name_label: Label = %NameLabel
 @onready var _description_label: Label = %DescriptionLabel
 @onready var _price_label: Label = %PriceLabel
@@ -37,11 +42,16 @@ var _items: Dictionary = {}  # String key -> TreeItem
 
 func _ready() -> void:
 	_table.columns = Column.size()
-	var titles := ["ITEM", "TYPE", "PRICE", "STATUS"]
+	var titles := ["ITEM", "TYPE", "NEEDS MOUNT", "PRICE", "STATUS"]
 	for column in Column.size():
 		_table.set_column_title(column, titles[column])
 		_table.set_column_expand(column, column == Column.UPGRADE or column == Column.STATUS)
-		_table.set_column_custom_minimum_width(column, 100 if column == Column.TYPE or column == Column.PRICE else 220)
+		var width := 220
+		if column == Column.TYPE or column == Column.PRICE:
+			width = 100
+		elif column == Column.MOUNT:
+			width = 190
+		_table.set_column_custom_minimum_width(column, width)
 	_table.set_column_title_alignment(Column.PRICE, HORIZONTAL_ALIGNMENT_RIGHT)
 	_table.item_selected.connect(_on_item_selected)
 	_back_button.pressed.connect(close)
@@ -85,10 +95,10 @@ func _build_table() -> void:
 	_selected = null
 	var root := _table.create_item()
 	for upgrade in _location.outfitter_upgrades:
-		var item := _add_row(root, upgrade, upgrade.display_name, CATEGORY_NAMES[upgrade.category], upgrade.price)
+		var item := _add_row(root, upgrade, upgrade.display_name, CATEGORY_NAMES[upgrade.category], "-", upgrade.price)
 		_items[_key(upgrade)] = item
 	for weapon in _location.outfitter_weapons:
-		var item := _add_row(root, weapon, weapon.display_name, WEAPON_TYPE_NAME, weapon.price)
+		var item := _add_row(root, weapon, weapon.display_name, WEAPON_TYPE_NAME, weapon.get_mount_text(), weapon.price)
 		_items[_key(weapon)] = item
 	var first := root.get_first_child()
 	if first != null:
@@ -96,11 +106,12 @@ func _build_table() -> void:
 		_selected = first.get_metadata(Column.UPGRADE)
 
 
-func _add_row(root: TreeItem, thing: Resource, item_name: String, type_name: String, price: int) -> TreeItem:
+func _add_row(root: TreeItem, thing: Resource, item_name: String, type_name: String, mount_text: String, price: int) -> TreeItem:
 	var item := _table.create_item(root)
 	item.set_text(Column.UPGRADE, item_name)
 	item.set_metadata(Column.UPGRADE, thing)
 	item.set_text(Column.TYPE, type_name)
+	item.set_text(Column.MOUNT, mount_text)
 	item.set_text(Column.PRICE, "%s CR" % NumberFormat.with_commas(price))
 	item.set_text_alignment(Column.PRICE, HORIZONTAL_ALIGNMENT_RIGHT)
 	return item
@@ -143,6 +154,7 @@ func _refresh() -> void:
 		item.set_text(Column.STATUS, status)
 		item.set_custom_color(Column.STATUS, Color.WHITE if quote.ok else Color(0.65, 0.68, 0.75))
 	_sell_button.visible = _selected is WeaponDefinition
+	_refresh_mounts(active)
 	if _selected == null:
 		_install_button.disabled = true
 		return
@@ -150,6 +162,51 @@ func _refresh() -> void:
 		_refresh_weapon(active, _selected as WeaponDefinition)
 	else:
 		_refresh_upgrade(active, _selected as UpgradeDefinition)
+
+
+## The active ship's mounts, one row each: its number, size, type and what is fitted. With a
+## weapon selected, a last column says whether that weapon would go there (a free mount that
+## fits), fits but is taken, or why it cannot.
+func _refresh_mounts(active: OwnedShip) -> void:
+	for child in _mounts_grid.get_children():
+		_mounts_grid.remove_child(child)
+		child.queue_free()
+	var weapon := _selected as WeaponDefinition
+	var mounts := active.model.weapon_mounts
+	_mounts_title.text = "%s: MOUNTS (%d OF %d IN USE)" % [active.model.display_name.to_upper(), active.mounts_used(), mounts.size()]
+	if mounts.is_empty():
+		_mounts_grid.columns = 1
+		_add_mount_cell("This ship has no weapon mounts.", DIM_COLOR)
+		return
+	_mounts_grid.columns = 5 if weapon != null else 4
+	var headers := ["#", "SIZE", "TYPE", "FITTED"]
+	if weapon != null:
+		headers.append("%s HERE?" % weapon.display_name.to_upper())
+	for header in headers:
+		_add_mount_cell(header, DIM_COLOR)
+	for index in mounts.size():
+		var mount: WeaponMount = mounts[index]
+		var fitted: WeaponDefinition = active.weapons[index] if index < active.weapons.size() else null
+		_add_mount_cell(str(index + 1), Color.WHITE)
+		_add_mount_cell(WeaponMount.size_name(mount.size), Color.WHITE)
+		_add_mount_cell(WeaponMount.type_name(mount.type), Color.WHITE)
+		_add_mount_cell(fitted.display_name if fitted != null else "empty", Color.WHITE if fitted != null else DIM_COLOR)
+		if weapon != null:
+			var reason := weapon.get_misfit_reason(mount)
+			if not reason.is_empty():
+				_add_mount_cell(reason, DIM_COLOR)
+			elif fitted == null:
+				_add_mount_cell("Yes: free", FREE_COLOR)
+			else:
+				_add_mount_cell("Fits, in use", BUSY_COLOR)
+
+
+func _add_mount_cell(text: String, colour: Color) -> void:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_color_override("font_color", colour)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mounts_grid.add_child(label)
 
 
 func _refresh_upgrade(active: OwnedShip, upgrade: UpgradeDefinition) -> void:
@@ -168,8 +225,8 @@ func _refresh_weapon(active: OwnedShip, weapon: WeaponDefinition) -> void:
 	var quote := _ships.quote_weapon(weapon)
 	_install_button.text = "INSTALL WEAPON"
 	_name_label.text = weapon.display_name.to_upper()
-	_description_label.text = "%s\n\n%s\n\nMounts used: %d of %d" % [
-			weapon.description, weapon.get_stats_text(), active.mounts_used(), active.model.weapon_mounts.size()]
+	_description_label.text = "%s\n\n%s\n\nNeeds a mount: %s\nMounts used: %d of %d" % [
+			weapon.description, weapon.get_stats_text(), weapon.get_mount_text(), active.mounts_used(), active.model.weapon_mounts.size()]
 	_price_label.text = "PRICE %s CR" % NumberFormat.with_commas(weapon.price)
 	_specs.show_specs(active.get_specs(), null)
 	_install_button.disabled = not quote.ok

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="TacticalProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ai/tactical_profile.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/screen.tres" id="2"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/line.tres" id="3"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/wedge.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"pirate"
+display_name = "Pirate"
+think_interval = 1.0
+sight_radius = 4500.0
+engage_radius = 2500.0
+calm_seconds = 6.0
+proactive = true
+max_odds = 1.0
+pursuit_leash = 6000.0
+give_up_seconds = 30.0
+target_bias_cargo = 3.0
+withdraw_losses = 0.4
+flagship_withdraw_hull = 0.0
+guard_radius = 900.0
+min_attackers = 2
+screen_squadrons = 1
+strike_bias = 1.0
+fleet_sight_radius = 6000.0
+default_objective = 0
+shape_against_light = ExtResource("2")
+shape_against_heavy = ExtResource("3")
+shape_otherwise = ExtResource("4")
+shape_majority = 0.5

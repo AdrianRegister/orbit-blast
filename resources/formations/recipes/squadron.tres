@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="FormationRecipe" format=3]
 
+[ext_resource type="Resource" path="res://resources/combat/ai/profiles/military_patrol.tres" id="profile"]
 [ext_resource type="Script" path="res://scripts/fleet/formation_recipe.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/fleet/recipe_group.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="3"]
@@ -35,6 +36,7 @@ faction_rule = 0
 
 [resource]
 script = ExtResource("1")
+tactical_profile = ExtResource("profile")
 id = &"squadron"
 display_name = "Squadron"
 description = "3 to 6 ships: fighters and heavy fighters in a 2:1 ratio, with at most one gunboat, corvette or frigate among them."

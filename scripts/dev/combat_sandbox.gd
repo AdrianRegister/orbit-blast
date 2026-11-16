@@ -75,7 +75,12 @@ const BATTLE_DRIFT_RADIUS := 300.0
 const BATTLE_EXITS: Array[Vector2] = [Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT, Vector2.UP]
 ## Battles the battle panel can spawn in one go: a name and the two sides. A side is
 ## {"faction", "model", "count"} for one kind of ship, or {"faction", "ships": [{"model",
-## "count"}, ...]} for a mixed force, listed from the front rank to the back.
+## "count"}, ...]} for a mixed force, listed from the front rank to the back, or {"faction",
+## "formation": {"shape": shape id, "ships": [model ids], "kind": Formation.Kind (a squadron
+## if left out)} for one unit under its commander (either kind of unit side may add "profile":
+## a tactical profile id, to override the one its recipe or the default gives), or {"faction", "plan": {"recipe", "ships",
+## "shape", "children": [plan, ...]}, "separation": pixels} for a whole battle group or fleet
+## (a unit that big needs the sides further apart than the default).
 const BATTLE_PRESETS := [
 	{"name": "1v1: fighters", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 1},
 			"b": {"faction": &"faction_2", "model": &"hegemony_fighter", "count": 1}},
@@ -98,6 +103,33 @@ const BATTLE_PRESETS := [
 					{"model": &"hegemony_frigate", "count": 2}, {"model": &"hegemony_cruiser", "count": 1}]}},
 	{"name": "Pirate v freighter", "a": {"faction": &"faction_3", "model": &"interceptor", "count": 1},
 			"b": {"faction": &"", "model": &"freighter", "count": 1}},
+	{"name": "Squadrons: heavy fighter + 3 fighters each",
+			"a": {"faction": &"faction_1", "formation": {"shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter", &"federation_fighter"]}},
+			"b": {"faction": &"faction_2", "formation": {"shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter", &"hegemony_fighter"]}}},
+	{"name": "Squadron of 4 fighters v a Hegemony cruiser",
+			"a": {"faction": &"faction_1", "formation": {"shape": &"screen", "ships": [&"federation_fighter", &"federation_fighter", &"federation_fighter", &"federation_fighter"]}},
+			"b": {"faction": &"faction_2", "model": &"hegemony_cruiser", "count": 1}},
+	{"name": "Battle groups: cruiser, frigate, 2 squadrons each",
+			"a": {"faction": &"faction_1", "separation": 3500.0, "plan": {"recipe": &"battle_group", "shape": &"screen", "ships": [&"federation_cruiser", &"federation_frigate"], "children": [
+					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]},
+					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]}]}},
+			"b": {"faction": &"faction_2", "separation": 3500.0, "plan": {"recipe": &"battle_group", "shape": &"screen", "ships": [&"hegemony_cruiser", &"hegemony_frigate"], "children": [
+					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]},
+					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]}]}}},
+	{"name": "Capital fleets: 2 capital ships and 2 battle groups each",
+			"a": {"faction": &"faction_1", "separation": 9000.0, "plan": {"recipe": &"fleet", "ships": [&"federation_capital_ship", &"federation_capital_ship"], "children": [
+					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"federation_cruiser", &"federation_frigate"], "children": [
+							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]}]},
+					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"federation_cruiser", &"federation_frigate"], "children": [
+							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]}]}]}},
+			"b": {"faction": &"faction_2", "separation": 9000.0, "plan": {"recipe": &"fleet", "ships": [&"hegemony_capital_ship", &"hegemony_capital_ship"], "children": [
+					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"hegemony_cruiser", &"hegemony_frigate"], "children": [
+							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]}]},
+					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"hegemony_cruiser", &"hegemony_frigate"], "children": [
+							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]}]}]}}},
+	{"name": "Convoy (2 freighters, 2 fighters) v 3 pirate fighters",
+			"a": {"faction": &"faction_1", "formation": {"shape": &"convoy_diamond", "kind": Formation.Kind.CONVOY, "ships": [&"freighter", &"freighter", &"federation_fighter", &"federation_fighter"]}},
+			"b": {"faction": &"faction_3", "model": &"federation_fighter", "count": 3}},
 ]
 
 var _main: Main
@@ -109,6 +141,8 @@ var _battle_panel: BattlePanel
 var _toolbar: DevToolbar
 ## The ships the battle builder has spawned.
 var _battle_ships: Array = []
+## The formations the battle builder made (their ships are in _battle_ships too).
+var _battle_formations: Array = []
 ## What the last composed unit was made of (for the panel to show).
 var last_plan: FormationPlan
 
@@ -184,23 +218,29 @@ func is_flying() -> bool:
 
 ## Spawns a formation of the named ship models ahead of the player, in `shape`. Its
 ## leader drifts around the centre of the system.
-func spawn_formation(shape: FormationShape, ship_ids: Array, kind: Formation.Kind) -> Formation:
+func spawn_formation(shape: FormationShape, ship_ids: Array, kind: Formation.Kind, faction: StringName = &"",
+		at: Variant = null, heading: float = NAN, profile: TacticalProfile = null) -> Formation:
 	var types: Array[ShipType] = []
 	for id in ship_ids:
 		var type := ShipType.new()
 		type.stats = _registry.ship_stats(id)
 		types.append(type)
 	var player := _main.get_player_ship()
-	var at := player.global_position + Vector2.from_angle(player.rotation) * FORMATION_SPAWN_DISTANCE
+	if at == null:
+		at = player.global_position + Vector2.from_angle(player.rotation) * FORMATION_SPAWN_DISTANCE
+	if is_nan(heading):
+		heading = player.rotation
 	return FleetSpawner.spawn_formation(_system, player, TRAFFIC_CONFIG, kind, shape, types, at,
-			player.rotation, &"", FORMATION_WANDER_RADIUS)
+			heading, faction, FORMATION_WANDER_RADIUS, null, [], profile)
 
 
 ## Composes a unit from `recipe` (who goes in is drawn at random within the recipe's
 ## rules) and spawns it ahead of the player: a Formation for a squadron, battle
 ## group or convoy, a WarFleet for a fleet. `shape` replaces the drawn shape and
-## `faction` (default COMPOSED_FACTION) says whose ships they are.
-func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null, faction: StringName = &"") -> Node:
+## `faction` (default COMPOSED_FACTION) says whose ships they are, and `profile` (null: the
+## recipe's own) how the unit fights (a pirate squadron is a squadron with the pirate profile).
+func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null, faction: StringName = &"",
+		profile: TacticalProfile = null) -> Node:
 	if faction == &"":
 		faction = COMPOSED_FACTION
 	var plan := FleetComposer.compose(recipe, faction, FleetComposer.all_ship_types())
@@ -212,7 +252,7 @@ func spawn_composed(recipe: FormationRecipe, shape: FormationShape = null, facti
 	var distance: float = COMPOSED_DISTANCE.get(recipe.unit, FORMATION_SPAWN_DISTANCE)
 	var at := player.global_position + Vector2.from_angle(player.rotation) * distance
 	return FleetSpawner.spawn_plan(_system, player, TRAFFIC_CONFIG, plan, at, player.rotation,
-			faction, FORMATION_WANDER_RADIUS, null, [], shape)
+			faction, FORMATION_WANDER_RADIUS, null, [], shape, profile)
 
 
 ## The formation of the ship the player has targeted (as a member or leader).
@@ -258,9 +298,10 @@ func spawn_battle(side_a: Dictionary, side_b: Dictionary) -> Dictionary:
 	var forward := Vector2.from_angle(player.rotation)
 	var across := forward.rotated(PI / 2.0)
 	var middle := player.global_position + forward * BATTLE_DISTANCE
+	var separation := maxf(BATTLE_SEPARATION, maxf(side_a.get("separation", 0.0), side_b.get("separation", 0.0)))
 	return {
-		"a": _spawn_side(side_a, middle - across * BATTLE_SEPARATION / 2.0, across),
-		"b": _spawn_side(side_b, middle + across * BATTLE_SEPARATION / 2.0, -across),
+		"a": _spawn_side(side_a, middle - across * separation / 2.0, across),
+		"b": _spawn_side(side_b, middle + across * separation / 2.0, -across),
 	}
 
 
@@ -268,6 +309,10 @@ func spawn_battle(side_a: Dictionary, side_b: Dictionary) -> Dictionary:
 ## of battle) through `centre`, the ranks one behind another, the first at the front.
 func _spawn_side(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
 	var ships: Array[NpcShip] = []
+	if side.has("plan"):
+		return _spawn_side_plan(side, centre, facing)
+	if side.has("formation"):
+		return _spawn_side_formation(side, centre, facing)
 	var entries: Array = side["ships"] if side.has("ships") else [{"model": side["model"], "count": side.get("count", 1)}]
 	var along := facing.rotated(PI / 2.0)
 	for rank in entries.size():
@@ -281,6 +326,48 @@ func _spawn_side(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[Np
 			var offset := (index - (count - 1) / 2.0) * spacing
 			ships.append(spawn_ship(type, side.get("faction", &""), rank_centre + along * offset, facing.angle(), BATTLE_EXITS))
 	return ships
+
+
+## A side that is one unit: a formation, with its commander, facing `facing`.
+func _spawn_side_formation(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
+	var unit: Dictionary = side["formation"]
+	var kind: Formation.Kind = unit.get("kind", Formation.Kind.SQUADRON)
+	var formation := spawn_formation(_registry.formation_shape(unit["shape"]), unit["ships"], kind, side.get("faction", &""), centre, facing.angle(),
+			_registry.tactical_profile(side.get("profile", &"")))
+	_battle_formations.append(formation)
+	var ships := formation.get_all_ships()
+	for ship in ships:
+		ship.configure_jumping(_system.global_position, _system.jump_radius, BATTLE_EXITS)
+		_battle_ships.append(ship)
+	return ships
+
+
+## A side that is a whole battle group or fleet, built from a hand-written plan.
+func _spawn_side_plan(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
+	var player := _main.get_player_ship()
+	var none: Array[Vector2] = []
+	var unit := FleetSpawner.spawn_plan(_system, player, TRAFFIC_CONFIG, _plan_from(side["plan"]), centre, facing.angle(),
+			side.get("faction", &""), FORMATION_WANDER_RADIUS, null, none, null, _registry.tactical_profile(side.get("profile", &"")))
+	_battle_formations.append(unit)
+	var ships: Array[NpcShip] = unit.get_all_ships()
+	for ship in ships:
+		ship.configure_jumping(_system.global_position, _system.jump_radius, BATTLE_EXITS)
+		_battle_ships.append(ship)
+	return ships
+
+
+func _plan_from(data: Dictionary) -> FormationPlan:
+	var plan := FormationPlan.new()
+	plan.recipe = _registry.formation_recipe(data["recipe"])
+	for id in data["ships"]:
+		var type := ShipType.new()
+		type.stats = _registry.ship_stats(id)
+		plan.ships.append(type)
+	if data.has("shape"):
+		plan.shape = _registry.formation_shape(data["shape"])
+	for child in data.get("children", []):
+		plan.children.append(_plan_from(child))
+	return plan
 
 
 ## Spawns battle preset number `index` (see BATTLE_PRESETS).
@@ -316,6 +403,10 @@ func clear_battle() -> void:
 		if is_instance_valid(ship):
 			ship.queue_free()
 	_battle_ships.clear()
+	for formation in _battle_formations:
+		if is_instance_valid(formation):
+			formation.queue_free()
+	_battle_formations.clear()
 
 
 func get_player_combatant() -> Combatant:

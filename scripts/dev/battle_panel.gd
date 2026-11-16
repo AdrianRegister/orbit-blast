@@ -24,8 +24,8 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	open = false  # the formations panel is the one open at the start
 	var panel := PanelContainer.new()
 	panel.theme = load("res://resources/ui/hud_theme.tres")
-	panel.position = Vector2(412, 100)  # (to the right of the formations panel)
-	panel.custom_minimum_size = Vector2(300, 0)
+	panel.position = Vector2(12, 100)  # (the same place as the formations panel: only one is open)
+	panel.custom_minimum_size = Vector2(330, 0)
 	add_child(panel)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
@@ -37,6 +37,8 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 
 	column.add_child(_label("DEV: BATTLE", true))
 	_preset = OptionButton.new()
+	_preset.fit_to_longest_item = false  # (long preset names must not stretch the panel)
+	_preset.clip_text = true
 	for preset in CombatSandbox.BATTLE_PRESETS:
 		_preset.add_item(preset["name"])
 	column.add_child(_preset)
@@ -72,6 +74,7 @@ func setup(sandbox: CombatSandbox, registry: ContentRegistry) -> void:
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.custom_minimum_size = Vector2(280, 80)
 	column.add_child(_info)
+	DevPanel.disable_focus(self)
 	visible = false
 
 

@@ -100,17 +100,27 @@ func _test_toolbar() -> void:
 	_toolbar._unhandled_input(_key(KEY_F3))
 	await _frames()
 	_check(_battle.open and _battle.visible and _toolbar.get_button(1).button_pressed, "F3 opens the battle panel")
-	_check(_formations.visible, "...and the two panels can be open together")
+	_check(not _formations.open and not _formations.visible and not _toolbar.get_button(0).button_pressed, "...and it replaces the formations panel")
 	_toolbar._unhandled_input(_key(KEY_G))
 	await _frames()
-	_check(_battle.open and _formations.open, "other keys do nothing")
+	_check(_battle.open and not _formations.open, "other keys do nothing")
+	_toolbar._unhandled_input(_key(KEY_F2))
+	await _frames()
+	_check(_formations.open and not _battle.open and not _toolbar.get_button(1).button_pressed, "F2 replaces the battle panel in turn")
+	_toolbar._unhandled_input(_key(KEY_F3))
+	await _frames()
 
 	paused = true
 	await _frames()
 	_check(not _battle.visible and not _formations.visible and not _toolbar.visible, "everything hides while the game is paused")
 	paused = false
 	await _frames()
-	_check(_battle.visible and _formations.visible and _toolbar.visible, "...and comes back")
+	_check(_battle.visible and not _formations.visible and _toolbar.visible, "...and comes back")
+	_check(_toolbar.get_button(0).focus_mode == Control.FOCUS_NONE and _toolbar.get_button(1).focus_mode == Control.FOCUS_NONE, "toolbar buttons never hold the keyboard focus, so Space cannot press them")
+	var buttons_unfocusable := true
+	for node in _battle.find_children("*", "BaseButton", true, false) + _formations.find_children("*", "BaseButton", true, false):
+		buttons_unfocusable = buttons_unfocusable and (node as Control).focus_mode == Control.FOCUS_NONE
+	_check(buttons_unfocusable, "no button in a panel can hold the keyboard focus")
 	_toolbar.toggle_panel(1)
 	await _frames()
 	_check(not _battle.open, "the battle panel is closed again")
@@ -220,6 +230,14 @@ func _test_presets() -> void:
 	for preset in presets:
 		for side in [preset["a"], preset["b"]]:
 			valid = valid and (side["faction"] == &"" or registry.faction(side["faction"]) != null)
+			if side.has("plan"):
+				valid = valid and registry.formation_recipe(side["plan"]["recipe"]) != null
+				continue
+			if side.has("formation"):
+				valid = valid and registry.formation_shape(side["formation"]["shape"]) != null
+				for model in side["formation"]["ships"]:
+					valid = valid and registry.ship_stats(model) != null
+				continue
 			var entries: Array = side["ships"] if side.has("ships") else [side]
 			for entry in entries:
 				valid = valid and registry.ship_stats(entry["model"]) != null and entry["count"] >= 1
@@ -233,6 +251,42 @@ func _test_presets() -> void:
 	await _frames()
 	_check(sides["a"].size() == 1 and sides["b"].size() == 1 and _system.get_ships_root().get_child_count() == before + 2, "the first preset (1v1) spawns two ships")
 	_sandbox.clear_battle()
+
+	# --- A preset whose sides are squadrons under their commanders.
+	var squads := 0
+	for index in CombatSandbox.BATTLE_PRESETS.size():
+		if CombatSandbox.BATTLE_PRESETS[index]["name"].begins_with("Squadrons"):
+			squads = index
+	await _frames(3)  # (the first preset's ships are freed)
+	before = _system.get_ships_root().get_child_count()
+	var units := _sandbox.spawn_battle_preset(squads)
+	await _frames()
+	_check(units["a"].size() == 4 and units["b"].size() == 4 and _system.get_ships_root().get_child_count() == before + 8, "the squadron preset spawns two squadrons of four (%d, %d, root %d from %d)" % [units["a"].size(), units["b"].size(), _system.get_ships_root().get_child_count(), before])
+	var unit: Formation = units["a"][0].led_formation if units["a"][0].led_formation != null else units["a"][0].formation
+	_check(unit != null and unit.commander != null, "...each in a formation with a commander")
+	var formations_before := _system.get_formations_root().get_child_count()
+	_sandbox.clear_battle()
+	await _frames(3)
+	_check(_system.get_formations_root().get_child_count() < formations_before, "clearing the battle removes the formations too")
+
+	# --- Presets with a whole battle group, and a whole fleet, on each side.
+	for index in CombatSandbox.BATTLE_PRESETS.size():
+		var preset_name: String = CombatSandbox.BATTLE_PRESETS[index]["name"]
+		if preset_name.begins_with("Battle groups") or preset_name.begins_with("Capital fleets"):
+			var big_sides := _sandbox.spawn_battle_preset(index)
+			await _frames(3)
+			var key := "Battle groups" if preset_name.begins_with("Battle groups") else "Capital fleets"
+			var a_ships: Array = big_sides["a"]
+			var fleet_ok := true
+			if key == "Capital fleets":
+				fleet_ok = a_ships[0].fleet != null and a_ships[0].fleet.commander != null
+			else:
+				fleet_ok = a_ships[0].formation != null or a_ships[0].led_formation != null
+			_check(big_sides["a"].size() >= 8 and big_sides["b"].size() >= 8 and fleet_ok, "the %s preset spawns two big units under their commanders (%d and %d ships)" % [key.to_lower(), big_sides["a"].size(), big_sides["b"].size()])
+			var apart: float = (big_sides["a"][0] as NpcShip).global_position.distance_to((big_sides["b"][0] as NpcShip).global_position)
+			_check(apart > 2000.0, "...far enough apart not to overlap (%d px)" % apart)
+			_sandbox.clear_battle()
+			await _frames(3)
 	await _frames()
 	var two_on_one := _sandbox.spawn_battle_preset(1)
 	await _frames()

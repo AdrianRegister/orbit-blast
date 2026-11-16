@@ -35,12 +35,19 @@ extends Node
 
 enum Kind { SQUADRON, BATTLE_GROUP, CONVOY }
 
+## What the formation's commander has it doing (see UnitCommander). The formation
+## only keeps the value: the commander changes it and the formation reads it, to
+## hold on to ships that break formation to fight.
+enum State { FOLLOWING, HOLDING, INTERCEPTING, ATTACKING, DEFENDING, WITHDRAWING }
+
 ## A ship left the formation (it was destroyed, released, or released itself).
 ## `reason` is one of the REASON_ constants.
 signal member_lost(ship, reason: StringName)
 ## The leader was lost and `new_lead` took over.
 signal leader_changed(old_lead, new_lead)
 signal shape_changed(new_shape: FormationShape)
+## The commander changed the state.
+signal state_changed(new_state: State)
 ## The formation has broken up (too few ships, or its leader jumped out).
 signal dissolved
 ## The limits this formation puts on its leader (or its footprint) have changed:
@@ -62,6 +69,9 @@ var faction_id: StringName = &""
 ## The ship every slot is measured from, and the one that follows the route.
 var lead: NpcShip
 var tuning: FormationTuning
+var state: State = State.FOLLOWING
+## Decides what the formation does about enemies (made in setup).
+var commander: UnitCommander
 ## The formation this one's leader is a member of (a squadron's battle group).
 var parent: Formation
 ## The fleet this formation is a battle group of, or null.
@@ -117,7 +127,8 @@ static func kind_name(of_kind: Kind) -> StringName:
 ## this node before it entered the tree. `system` and `player` give it what
 ## avoidance needs to know about; `faction` is who the formation belongs to.
 func setup(formation_kind: Kind, formation_shape: FormationShape, ships: Array[NpcShip], lead_ship: NpcShip,
-		system: StarSystem, player: Node2D, formation_tuning: FormationTuning = null, faction: StringName = &"") -> void:
+		system: StarSystem, player: Node2D, formation_tuning: FormationTuning = null, faction: StringName = &"",
+		tactical_profile: TacticalProfile = null) -> void:
 	kind = formation_kind
 	shape = formation_shape
 	faction_id = faction
@@ -145,6 +156,10 @@ func setup(formation_kind: Kind, formation_shape: FormationShape, ships: Array[N
 	_rebuild()
 	_frame_origin = lead.global_position
 	_frame_heading = lead.get_heading()
+	commander = UnitCommander.new()
+	commander.profile = tactical_profile  # (null: the default profile)
+	commander.name = "Commander"
+	add_child(commander)
 
 
 ## Snaps the whole formation into its shape with the leader at `origin` facing
@@ -332,6 +347,20 @@ func get_cruise_turn_cap() -> float:
 
 # ---------------------------------------------------------------- changes
 
+## Records what the commander has the formation doing.
+func set_state(new_state: State) -> void:
+	if new_state == state:
+		return
+	state = new_state
+	_off_station.clear()  # (the clock on straying from the slots starts again)
+	state_changed.emit(state)
+
+
+## Whether the ships are fighting or guarding: ones that are wounded or off their slots
+## are not given up on.
+func is_in_action() -> bool:
+	return state == State.ATTACKING or state == State.DEFENDING
+
 ## Changes the shape. The members fly to their new slots with the normal ship
 ## physics, so the formation re-forms smoothly.
 func set_shape(new_shape: FormationShape) -> void:
@@ -435,8 +464,14 @@ func _leave_with_leader() -> void:
 
 
 ## Members that are heavily damaged, or have fallen too far behind for too long,
-## are released to carry on alone.
+## are released to carry on alone. Not while the formation is fighting or guarding: a
+## wounded member stays and fights on (it is released afterwards if it is still badly
+## damaged), and ships off their slots in the fight are not given up on.
 func _check_members(delta: float) -> void:
+	if is_in_action():
+		_off_station.clear()
+		if not is_slaved():
+			return
 	for ship in get_members():
 		var combatant: Combatant = ship.get_combatant()
 		if combatant != null:
@@ -616,6 +651,8 @@ func _promote_leader(old_lead) -> void:
 	var chosen_rating := -INF
 	var cargo_only := kind == Kind.CONVOY and _has_cargo_ship()
 	for ship in _ships:
+		if not is_instance_valid(ship) or ship.is_queued_for_deletion():
+			continue  # (freed in the same frame, as when a whole unit is wiped out)
 		if ship.led_formation != null and ship.led_formation != self:
 			continue  # one ship cannot lead two formations
 		var model: ShipStats = ship.ship_type.stats

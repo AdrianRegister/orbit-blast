@@ -2,7 +2,7 @@
 
 How ships are organised into squadrons, battle groups, fleets and convoys, and how formation shapes work. Built in steps; this document grows with each. Read it, [combat.md](combat.md) and [wars_system.md](../wars_system.md) before changing anything here.
 
-**Built so far:** ship classes and the combat rating (step 1), formation shapes and slot assignment (step 2), the runtime formation and its movement (step 3), composition rules, nesting and fleets (step 4), the emergent tactical effects and combat integration (step 5). Zone damage and speed modifiers are not planned for now. Not built yet: traffic integration (step 6), the rest of the sandbox panel and polish (step 7). The formation states (following, holding, intercepting, attacking, defending, withdrawing) and the player's formation selector are deliberately left for Phase 3.3.
+**Built so far:** ship classes and the combat rating (step 1), formation shapes and slot assignment (step 2), the runtime formation and its movement (step 3), composition rules, nesting and fleets (step 4), the emergent tactical effects and combat integration (step 5). Zone damage and speed modifiers are not planned for now. Not built yet: traffic integration (step 6), the rest of the sandbox panel and polish (step 7). The formation states (following, holding, intercepting, attacking, defending, withdrawing) are now in `Formation.State`, kept on the formation and changed by its `UnitCommander` (Phase 3.3 step 4, see [combat_ai.md](combat_ai.md) section 7); while ATTACKING or DEFENDING a formation does not give up on ships that are off their slots. The player's formation selector is still to come.
 
 ---
 
@@ -94,7 +94,7 @@ A big formation therefore turns slowly and a tight one turns sharply, whatever s
 |---|---|
 | A member is **destroyed** | Removed (`member_lost`, reason `destroyed`); the slots are rebuilt for the new size and ranks close up (equal ships keep their order) |
 | The **leader is destroyed** | The strongest remaining ship (for a convoy, the strongest remaining freighter) takes over and **continues the old leader's journey** (`NpcShip.take_over_route_from`: destination, visits, exit, wander or patrol); `leader_changed` is emitted |
-| A member drops below `disabled_hull_fraction` of its hull | Released (`disabled`): it leaves the formation and carries on alone (there is no engine damage yet, so "disabled" means heavily damaged) |
+| A member drops below `disabled_hull_fraction` of its hull | Released (`disabled`): it leaves the formation and carries on alone, except while the unit is attacking or defending (see combat_ai.md section 7), when it stays and fights (there is no engine damage yet, so "disabled" means heavily damaged) |
 | A member stays beyond `lost_distance` for `lost_time` | Released (`separated`) |
 | Fewer ships than the shape's `min_members` remain | The formation **dissolves**: everyone carries on alone, `dissolved` is emitted |
 | A member **falls behind** | It catches up (above); it is only released if it stays lost |
@@ -176,7 +176,7 @@ A `WarFleet` has a **flagship** (the strongest capital ship), optionally a secon
 - A part farther from the flagship than the **cohesion radius** (`fleet_cohesion_radius` in the tuning, widened if the fleet is laid out wider) is **recalled**: `NpcShip.recall_target` makes it leave its route, steer for a point `fleet_station_fraction` of the radius from the flagship and match its velocity. Once it is back within `fleet_release_fraction` of the radius it carries on with its route.
 - The flagship's speed is limited to 90% of the slowest part's, so no part is left behind for good.
 - Each battle group is an ordinary `Formation` (squadrons nested) holding its own shape; only its leader is on the leash.
-- If the flagship is lost, the next strongest capital ship becomes the flagship (`flagship_changed`) and takes over the old one's route; with no capital ship left the fleet dissolves (`dissolved`) and its parts carry on alone. What the fleet does about a lost flagship in a fight (withdraw, disengage) is Phase 3.3.
+- If the flagship is lost, the next strongest capital ship becomes the flagship (`flagship_changed`) and takes over the old one's route; with no capital ship left the fleet dissolves (`dissolved`) and its parts carry on alone. What the fleet does in a fight (engage, hold, withdraw; it fights on when the flagship is lost) is its `FleetCommander`, see [combat_ai.md](combat_ai.md) section 8.
 
 A spawned fleet is laid out in an arc behind the flagship, far enough apart that no battle group overlaps another. Routes shared by the whole fleet (all heading for the same planet) come with traffic integration in step 6.
 

@@ -1,7 +1,8 @@
 class_name DevToolbar
 extends CanvasLayer
 ## DEVELOPMENT ONLY. A row of buttons at the top left of the combat sandbox that
-## open and close its panels, each also on a key (F2, F3). Stays on screen when a
+## open and close its panels, each also on a key (F2, F3). The panels share one place on
+## the left, so opening one closes the other. Stays on screen when a
 ## panel is closed, so it can be opened again.
 
 var _sandbox: CombatSandbox
@@ -32,9 +33,20 @@ func setup(sandbox: CombatSandbox, panels: Array[Dictionary]) -> void:
 		button.custom_minimum_size = Vector2(0, 30)
 		var index := _entries.size()
 		button.toggled.connect(func(pressed: bool) -> void: _entries[index]["panel"].set_open(pressed))
-		panel.toggled.connect(func(is_open: bool) -> void: button.set_pressed_no_signal(is_open))
+		button.focus_mode = Control.FOCUS_NONE  # (so Space cannot press it again after a click)
+		panel.toggled.connect(func(is_open: bool) -> void: _on_panel_toggled(index, is_open))
 		row.add_child(button)
 		_entries.append({"panel": panel, "key": info["key"], "button": button})
+
+
+## The panels share one place on the screen, so opening one closes the others.
+func _on_panel_toggled(index: int, is_open: bool) -> void:
+	_entries[index]["button"].set_pressed_no_signal(is_open)
+	if not is_open:
+		return
+	for other in _entries.size():
+		if other != index:
+			_entries[other]["panel"].set_open(false)
 
 
 func _process(_delta: float) -> void:

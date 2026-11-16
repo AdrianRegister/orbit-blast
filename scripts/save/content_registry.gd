@@ -17,6 +17,7 @@ const WEAPON_DIR := "res://resources/weapons/"
 const SHIP_CLASS_DIR := "res://resources/ship_classes/"
 const FORMATION_SHAPE_DIR := "res://resources/formations/shapes/"
 const FORMATION_RECIPE_DIR := "res://resources/formations/recipes/"
+const TACTICAL_PROFILE_DIR := "res://resources/combat/ai/profiles/"
 const SYSTEM_CLASS_DIR := "res://resources/system_classes/"
 const GALAXY_PATH := "res://resources/universe/galaxy.tres"
 
@@ -32,6 +33,7 @@ var _weapons: Dictionary = {}  # StringName -> WeaponDefinition
 var _ship_classes: Dictionary = {}  # StringName -> ShipClass
 var _formation_shapes: Dictionary = {}  # StringName -> FormationShape
 var _formation_recipes: Dictionary = {}  # StringName -> FormationRecipe
+var _tactical_profiles: Dictionary = {}  # StringName -> TacticalProfile
 var _system_classes: Dictionary = {}  # StringName -> SystemClass
 var _galaxy: Galaxy
 
@@ -47,6 +49,7 @@ func _init(galaxy: Galaxy = null) -> void:
 	_index(SHIP_CLASS_DIR, _ship_classes, "ship class", "id")
 	_index(FORMATION_SHAPE_DIR, _formation_shapes, "formation shape", "id")
 	_index(FORMATION_RECIPE_DIR, _formation_recipes, "formation recipe", "id")
+	_index(TACTICAL_PROFILE_DIR, _tactical_profiles, "tactical profile", "id")
 	_index(SYSTEM_CLASS_DIR, _system_classes, "system class", "id")
 	_galaxy = galaxy if galaxy != null else load(GALAXY_PATH) as Galaxy
 	if _galaxy == null:
@@ -133,6 +136,18 @@ func formation_shapes() -> Array[FormationShape]:
 	var result: Array[FormationShape] = []
 	result.assign(_formation_shapes.values())
 	result.sort_custom(func(a: FormationShape, b: FormationShape) -> bool: return str(a.id) < str(b.id))
+	return result
+
+
+func tactical_profile(id: StringName) -> TacticalProfile:
+	return _tactical_profiles.get(id)
+
+
+## Every tactical profile, sorted by id.
+func tactical_profiles() -> Array[TacticalProfile]:
+	var result: Array[TacticalProfile] = []
+	result.assign(_tactical_profiles.values())
+	result.sort_custom(func(a: TacticalProfile, b: TacticalProfile) -> bool: return str(a.id) < str(b.id))
 	return result
 
 

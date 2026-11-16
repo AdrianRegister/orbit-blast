@@ -9,6 +9,7 @@ func _init() -> void:
 	_test_weapon_files()
 	_test_ship_files()
 	_test_fits()
+	_test_long_range()
 	_test_intercept()
 	_test_specs()
 
@@ -65,6 +66,38 @@ func _test_fits() -> void:
 	fixed_only.turret_capable = false
 	_check(not fixed_only.fits(medium_turret), "a fixed-only weapon refuses a turret mount")
 	_check(not light.fits(null), "no mount, no fit")
+
+
+## The long-range blaster: a capital-ship weapon on a capital-only mount.
+func _test_long_range() -> void:
+	var gun: WeaponDefinition = load("res://resources/weapons/long_range_blaster.tres")
+	_check(gun.validate().is_empty() and gun.mount_size == WeaponMount.Size.CAPITAL and gun.max_per_ship == 1, "the long-range blaster is valid, needs a capital mount and one fits a ship")
+	var longest := 0.0
+	for other: WeaponDefinition in _load_all("res://resources/weapons/"):
+		if other != null and other.id != gun.id:
+			longest = maxf(longest, other.range)
+	_check(gun.range > longest * 1.5, "it outranges every other weapon by a wide margin (%d against %d)" % [gun.range, longest])
+	_check(gun.damage / gun.fire_interval > 0.0 and gun.damage > 60.0, "it hits harder than a heavy blaster")
+	for size in [WeaponMount.Size.SMALL, WeaponMount.Size.MEDIUM, WeaponMount.Size.LARGE, WeaponMount.Size.CAPITAL]:
+		var mount := WeaponMount.new()
+		mount.type = WeaponMount.Type.TURRET
+		mount.size = size
+		_check(gun.fits(mount) == (size == WeaponMount.Size.CAPITAL), "it fits a mount of size %d only if that is the capital mount" % size)
+	var capital_ships := 0
+	for model: ShipStats in _load_all("res://resources/ships/"):
+		var capital_mounts := 0
+		var carries_it := 0
+		for index in model.weapon_mounts.size():
+			if model.weapon_mounts[index].size == WeaponMount.Size.CAPITAL:
+				capital_mounts += 1
+				carries_it += 1 if index < model.default_loadout.size() and model.default_loadout[index] == gun else 0
+		var is_capital: bool = model.ship_class != null and model.ship_class.id == &"capital_ship"
+		if is_capital:
+			capital_ships += 1
+			_check(capital_mounts == 1 and carries_it == 1, "%s has one capital mount and carries the long-range blaster in it" % model.id)
+		else:
+			_check(capital_mounts == 0, "%s has no capital mount" % model.id)
+	_check(capital_ships == 2, "both capital ships (Federation and Hegemony) are covered (%d)" % capital_ships)
 
 
 func _test_intercept() -> void:
