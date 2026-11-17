@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="FormationRecipe" format=3]
+
+[ext_resource type="Resource" path="res://resources/combat/ai/profiles/military_patrol.tres" id="profile"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_recipe.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/fleet/recipe_group.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/resources/ship_class.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/fleet/formation_shape.gd" id="4"]
+[ext_resource type="Resource" path="res://resources/ship_classes/fighter.tres" id="fighter"]
+[ext_resource type="Resource" path="res://resources/ship_classes/heavy_fighter.tres" id="heavy_fighter"]
+[ext_resource type="Resource" path="res://resources/ship_classes/gunboat.tres" id="gunboat"]
+[ext_resource type="Resource" path="res://resources/ship_classes/frigate.tres" id="frigate"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/wedge.tres" id="wedge"]
+[ext_resource type="Resource" path="res://resources/formations/shapes/line.tres" id="line"]
+
+[sub_resource type="Resource" id="core"]
+script = ExtResource("2")
+label = "fighters"
+classes = Array[ExtResource("3")]([ExtResource("fighter"), ExtResource("heavy_fighter")])
+weights = Array[float]([2.0, 1.0])
+min_count = 2
+max_count = 4
+category = 2
+faction_rule = 0
+
+[sub_resource type="Resource" id="support"]
+script = ExtResource("2")
+label = "gunboats and frigates"
+classes = Array[ExtResource("3")]([ExtResource("gunboat"), ExtResource("frigate")])
+weights = Array[float]([1.0, 1.0])
+min_count = 1
+max_count = 2
+category = 2
+faction_rule = 0
+
+[resource]
+script = ExtResource("1")
+tactical_profile = ExtResource("profile")
+id = &"patrol_military"
+display_name = "Military Patrol"
+description = "The patrol of a military system: 2 to 4 fighters and heavy fighters (2:1) with 1 or 2 gunboats or frigates."
+unit = 0
+groups = Array[ExtResource("2")]([SubResource("core"), SubResource("support")])
+min_ships = 3
+max_ships = 6
+shapes = Array[ExtResource("4")]([ExtResource("wedge"), ExtResource("line")])

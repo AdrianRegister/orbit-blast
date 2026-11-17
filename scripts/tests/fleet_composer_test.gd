@@ -66,7 +66,9 @@ func _without(ids: Array) -> Array[ShipType]:
 
 func _test_recipe_files() -> void:
 	var recipes := _registry.formation_recipes()
-	_check(recipes.size() == 4, "four recipes exist (%d)" % recipes.size())
+	_check(recipes.size() >= 6, "the recipes exist: the four unit kinds and the two patrols (%d)" % recipes.size())
+	for id in [&"patrol", &"patrol_military"]:
+		_check(_registry.formation_recipe(id) != null and _registry.formation_recipe(id).unit == FormationRecipe.Unit.SQUADRON, "the %s recipe is a squadron" % id)
 	for id in [&"squadron", &"battle_group", &"fleet", &"convoy"]:
 		var recipe := _registry.formation_recipe(id)
 		_check(recipe != null, "the '%s' recipe can be looked up" % id)

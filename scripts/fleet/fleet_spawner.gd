@@ -46,11 +46,13 @@ static func spawn_formation(system: StarSystem, player: Node2D, config: TrafficC
 ## as a WarFleet. `at` is where the (flagship or) leader appears. Its leader flies
 ## around the system centre, or around `patrol` if given; a fleet's parts each fly
 ## their own and keep to the leash. `shape` replaces the plan's shape for the
-## outermost formation. Null if the plan cannot be built.
+## outermost formation. `route` (Callable(NpcShip)), if valid, gives the leader its journey
+## instead of the wandering or patrol loop (traffic uses it to give a convoy places to visit).
+## Null if the plan cannot be built.
 static func spawn_plan(system: StarSystem, player: Node2D, config: TrafficConfig, plan: FormationPlan,
 		at: Vector2, heading: float, faction_id: StringName = &"", wander_radius: float = 700.0,
 		tuning: FormationTuning = null, patrol: Array[Vector2] = [], shape: FormationShape = null,
-		profile: TacticalProfile = null) -> Node:
+		profile: TacticalProfile = null, route: Callable = Callable()) -> Node:
 	if plan == null or plan.recipe == null:
 		return null
 	if plan.recipe.unit == FormationRecipe.Unit.FLEET:
@@ -58,7 +60,10 @@ static func spawn_plan(system: StarSystem, player: Node2D, config: TrafficConfig
 	var built := _build(plan, system, player, config, faction_id, shape, profile)
 	if built.is_empty():
 		return null
-	_start_route(built["lead"], system, wander_radius, patrol)
+	if route.is_valid():
+		route.call(built["lead"])
+	else:
+		_start_route(built["lead"], system, wander_radius, patrol)
 	_enter(built, system, player, tuning, faction_id)
 	_place(built, at, heading)
 	return built["formation"]

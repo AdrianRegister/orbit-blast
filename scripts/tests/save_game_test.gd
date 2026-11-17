@@ -80,7 +80,9 @@ func _init() -> void:
 	# --- NPCs are regenerated, not duplicated.
 	var npcs := _npc_nodes()
 	# The initial fill is half the cap (5); placing each ship can fail a few times, so allow fewer.
-	_check(npcs.size() > 0 and npcs.size() <= 5, "fresh traffic of the usual size (%d)" % npcs.size())
+	# (Sol's military patrol, up to 4 ships, comes on top of that.)
+	_check(_ambient_count() > 0 and _ambient_count() <= 5 and _patrol_count() <= 4, "fresh traffic of the usual size (%d, and %d in the patrol)" % [_ambient_count(), _patrol_count()])
+	_check(npcs.size() > 0, "(there are NPC ships)")
 	var none_survived := true
 	for npc in old_npcs:
 		if is_instance_valid(npc):
@@ -88,7 +90,7 @@ func _init() -> void:
 	_check(none_survived, "the old NPC ships are gone")
 	for i in 3:
 		_main.load_game()
-	_check(_npc_nodes().size() > 0 and _npc_nodes().size() <= 5, "loading again and again does not add NPCs (%d)" % _npc_nodes().size())
+	_check(_ambient_count() > 0 and _ambient_count() <= 5 and _patrol_count() <= 4, "loading again and again does not add NPCs (%d, and %d in the patrol)" % [_ambient_count(), _patrol_count()])
 	_check(_document_text() == saved_text, "loading repeatedly changes nothing")
 	_check(_player.cargo.get_used() == 65 and _contracts.get_active().size() == 1, "...nor duplicates cargo or contracts")
 
@@ -259,6 +261,19 @@ func _write_doc_with(change: Callable) -> void:
 
 func _npc_nodes() -> Array[Node]:
 	return _main.get_system().get_ships_root().get_children()
+
+
+## The ships of the ambient traffic, not a patrol's.
+func _ambient_count() -> int:
+	var count := 0
+	for ship in _npc_nodes():
+		if not ship.has_meta(TrafficManager.PATROL_META):
+			count += 1
+	return count
+
+
+func _patrol_count() -> int:
+	return _npc_nodes().size() - _ambient_count()
 
 
 func _dock(place: String) -> void:

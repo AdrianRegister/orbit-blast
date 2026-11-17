@@ -23,6 +23,26 @@ extends Resource
 ## How far beyond its docking range a ship appears when it leaves a location.
 @export var departure_clearance: float = 40.0
 
+@export_group("Military patrols")
+## What a patrol is made of when its system's class names no recipe of its own.
+@export var patrol_recipe: FormationRecipe
+## Seconds before a patrol that was destroyed is replaced.
+@export var patrol_respawn_delay: float = 90.0
+## A patrol flies a loop of `patrol_loop_points` points on a circle this fraction of the
+## system's jump radius from its centre.
+@export_range(0.1, 1.0) var patrol_loop_radius_fraction: float = 0.6
+@export_range(3, 12) var patrol_loop_points: int = 6
+## Whether the ships of patrols count against `max_ships`. (Patrols are placed whatever the
+## count; when they count, the ambient traffic makes room for them instead.)
+@export var patrols_count_toward_cap: bool = true
+
+@export_group("Convoys")
+## The convoys that sometimes arrive as ambient traffic (cargo ships with their escorts).
+@export var convoy_recipe: FormationRecipe
+## How likely a convoy is to arrive compared with all the single ships together: the weight of
+## the ship types adds up to the other side of the scale (0.5 against, say, 30 is one in sixty).
+@export_range(0.0, 100.0) var convoy_spawn_weight: float = 0.5
+
 @export_group("Behaviour")
 ## Seconds an NPC stays docked, as (min, max).
 @export var dock_time_range: Vector2 = Vector2(5.0, 15.0)

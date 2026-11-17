@@ -42,6 +42,13 @@ extends Resource
 ## StarSystem.ABSOLUTE_MAX_OBJECTS.
 @export var max_objects: int = 3
 
+@export_group("Patrols")
+## How many military patrols the faction that controls a system of this class keeps flying
+## in it (see TrafficManager). 0: none.
+@export_range(0, 4) var patrol_count: int = 1
+## The recipe those patrols are made from. Null: the traffic config's own (patrol.tres).
+@export var patrol_recipe: FormationRecipe
+
 @export_group("Generation hints")
 ## Used by the galaxy generator when it builds a system of this class: how many
 ## settlements and, of those, how many stations; a multiplier on the population
@@ -102,6 +109,8 @@ func validate() -> Array[String]:
 		problems.append("class '%s' has a negative min_links" % id)
 	if max_objects < 1 or max_objects > StarSystem.ABSOLUTE_MAX_OBJECTS:
 		problems.append("class '%s' max_objects must be 1 to %d" % [id, StarSystem.ABSOLUTE_MAX_OBJECTS])
+	if patrol_count < 0:
+		problems.append("class '%s' has a negative patrol_count" % id)
 	if military_value_multiplier < 0.0:
 		problems.append("class '%s' has a negative military_value_multiplier" % id)
 	if settlements_min < 0 or settlements_max < settlements_min:

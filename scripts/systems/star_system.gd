@@ -35,6 +35,12 @@ var _owner_lookup: Callable = func(data: InhabitedData) -> String: return data.g
 ## their faction from it.
 var _owner_id_lookup: Callable = func(data: InhabitedData) -> StringName: return data.faction.id if data.faction != null else &""
 
+## Callable(StringName system id) -> Dictionary: the military patrols this system should have,
+## {"faction": id, "faction_name": String, "count": int, "recipe": FormationRecipe or null}, or {}
+## for none (nobody controls it, or it is not a place with traffic). Main sets it from the
+## TerritoryManager and the system's class; without one there are no patrols.
+var _patrol_lookup: Callable
+
 ## Callable(InhabitedData) -> Array of [caption, value] rows added to what the HUD
 ## shows for a location (see Targetable.extra_rows_lookup). Main sets it.
 var _extra_rows_lookup: Callable
@@ -120,6 +126,18 @@ func get_formations_root() -> Node:
 ## system, so nothing in flight survives a jump.
 func get_projectiles_root() -> Node2D:
 	return _projectiles
+
+
+## Gives the system a way to ask what patrols it should have (see above).
+func set_patrol_lookup(lookup: Callable) -> void:
+	_patrol_lookup = lookup
+
+
+## The patrols this system should have now: see `_patrol_lookup`. Empty for none.
+func get_patrol_orders() -> Dictionary:
+	if not _patrol_lookup.is_valid() or system_id == &"":
+		return {}
+	return _patrol_lookup.call(system_id)
 
 
 ## Tells the traffic which directions lead to other systems (unit vectors, from

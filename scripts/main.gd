@@ -133,6 +133,7 @@ func _ready() -> void:
 	_combat.player_destroyed.connect(_on_player_destroyed)
 	_system.set_owner_lookup(_territory.owner_name_of)
 	_system.set_owner_id_lookup(_territory.owner_id_of)
+	_system.set_patrol_lookup(_patrols_for)
 	_system.set_extra_rows_lookup(_extra_target_rows)
 	_ships.set_territory(_territory)
 	_map.setup(galaxy, _travel, get_jump_check, _contracts.get_objective_systems, _territory)
@@ -429,6 +430,22 @@ func _get_docked_location() -> InhabitedData:
 	return target.details as InhabitedData if target != null else null
 
 
+## The military patrols a system should have (see StarSystem.get_patrol_orders): the faction
+## that controls it keeps its class's number of patrols there, of its class's recipe. A system
+## nobody controls, or that two factions share, has none.
+func _patrols_for(system_id: StringName) -> Dictionary:
+	var control := _territory.get_control(system_id)
+	if control.status != SystemControl.Status.CONTROLLED or control.controller == null:
+		return {}
+	var system_class := galaxy.get_system_class(system_id)
+	return {
+		"faction": control.controller.id,
+		"faction_name": control.controller.display_name,
+		"count": system_class.patrol_count if system_class != null else 1,
+		"recipe": system_class.patrol_recipe if system_class != null else null,
+	}
+
+
 ## (Re)starts the loaded system's NPC traffic. Ships arrive from and leave
 ## towards the directions of the system's links on the galaxy map.
 func _begin_traffic(restart: bool) -> void:
@@ -529,6 +546,7 @@ func _swap_system(scene: PackedScene) -> void:
 	_system = scene.instantiate()
 	_system.set_owner_lookup(_territory.owner_name_of)
 	_system.set_owner_id_lookup(_territory.owner_id_of)
+	_system.set_patrol_lookup(_patrols_for)
 	_system.set_extra_rows_lookup(_extra_target_rows)
 	add_child(_system)
 	move_child(_system, 0)  # keep it drawn behind the ship

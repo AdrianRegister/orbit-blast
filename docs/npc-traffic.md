@@ -197,12 +197,43 @@ The movement, brackets and look of the ships are best checked by running the gam
 
 | Not done yet | Where it plugs in |
 |---|---|
-| Military / civilian population split | `ShipType.category` plus per-category caps in `TrafficConfig` and `TrafficManager` |
+| Military / civilian population split | `ShipType.category` plus per-category caps in `TrafficConfig` and `TrafficManager`. Patrols (section 10a) are the first military traffic with their own rules |
+| Pirate raiders as traffic | The `pirate` tactical profile exists; nothing places pirate units in a system yet |
+| Tactical profiles for single ships | Single traffic ships have no profile: they fight or flee by their own `ShipPilot`; only formations have commanders |
 | NPC combat, reactions to the player | NPC ships already carry a `Combatant` with their model's weapons and can be destroyed (see [combat.md](combat.md)); since Phase 3.3 a ship on its own fights, runs and jumps out in the `ENGAGED` state, flown by its `ShipPilot` (see [combat_ai.md](combat_ai.md)); the state it was in before comes back when the pilot stands down |
 | NPC trading | `NpcShip` docking hook (`_dock()`) and the `EconomyManager` markets |
 | Real factions | Replace the copied `faction_name` string |
 | Jumping between systems | Swap the `StarSystem` node in `Main` and call `start_traffic()` on the new one; the old NPCs are freed with the old system |
 | Collision avoidance, pathfinding | Replace the straight-line steering in `NpcShip._fly()` |
+
+## 10a. Military patrols and convoys (Phase 3.3, step 7)
+
+Besides single ships, `TrafficManager` places two kinds of unit (see [formations.md](formations.md) and [combat_ai.md](combat_ai.md)).
+
+**Military patrols.** A system that one faction controls keeps that faction's patrols flying round it.
+
+- **Who and how many** comes from `StarSystem.get_patrol_orders()`, which asks a lookup that `Main` provides (`Main._patrols_for`): the controlling faction (`TerritoryManager.get_control`; a contested or unclaimed system has none) and its system class: `SystemClass.patrol_count` and `patrol_recipe`. **One patrol in an ordinary system** (`patrol_count` 1, no recipe: `TrafficConfig.patrol_recipe`, `patrol.tres`, 2 to 4 fighters and heavy fighters in a 2:1 ratio), **two in a military centre or military output** (`patrol_military.tres`: the same, with 1 or 2 gunboats or frigates). Nothing in code names a class: a new class sets its own count and recipe. With no lookup (the combat sandbox, most tests) there are no patrols.
+- **What they are.** A squadron composed from the recipe for the controlling faction (so the Hegemony's would be Hegemony ships), under the `military_patrol` tactical profile. The leader flies a **loop** of `patrol_loop_points` (6) points on a circle `patrol_loop_radius_fraction` (0.6) of the jump radius from the middle of the system, in a random direction (`begin_patrol`); patrols never dock or leave. Their ships show the faction's name and carry the `traffic_patrol` meta.
+- **When.** They are put out when the traffic starts, whatever the room (the ordinary traffic makes room: `patrols_count_toward_cap` is on by default, so their ships count against `max_ships`; turn it off and they do not). A destroyed or dissolved patrol is replaced after `patrol_respawn_delay` (90 s). A faction with no ships for the recipe gets no patrol, and the manager tries again after the delay.
+- A patrol is an ordinary military unit: it attacks what its faction is at war with, pirates, and a player the faction hates (reputation Hostile, see [combat_ai.md](combat_ai.md) section 2).
+
+**Convoys.** Now and then a cargo convoy arrives (jumping in at the edge of the system) or is already in flight when the system loads, instead of a single ship.
+
+- **How likely**: `TrafficConfig.convoy_spawn_weight` (0.5) is weighed against the total `spawn_weight` of all the ship types, so it is that share of all spawns; `convoy_recipe` (`convoy.tres`, civilian: freighters with interceptor and light frigate escorts) says what it is made of. Convoys need a place to go (a system with no location has none) and only come from arrivals and in-flight placement, not undocking.
+- **Where it goes.** Its leader has a traffic route like any other ship (`FleetSpawner.spawn_plan`'s `route` callback calls `NpcShip.setup`): it visits places, docks, and leaves by a link, and the whole convoy goes with it (members hold their slots; a leader jumping in or out takes its formation along). Its ships belong to the faction that owns the place they head for and show its name. The convoy fights under the `convoy_escort` profile (escorts guard the freighters).
+- **Cap.** A convoy is made only if all its ships fit under `max_ships`; otherwise a single ship comes instead.
+- **Docking.** The leader of a formation stops steering round the ships about it within `NpcShip.DOCK_AVOID_RELEASE` (1.6) docking ranges of its destination: the avoidance push (its own members, other ships) used to keep it from ever slowing down enough to dock.
+
+| Field (`TrafficConfig`) | Meaning | Default |
+|---|---|---|
+| `patrol_recipe` | What a patrol is made of when the system's class names no recipe | `patrol.tres` |
+| `patrol_respawn_delay` | Seconds before a lost patrol is replaced | 90 |
+| `patrol_loop_radius_fraction`, `patrol_loop_points` | The patrol loop | 0.6, 6 |
+| `patrols_count_toward_cap` | Whether patrol ships count against `max_ships` | true |
+| `convoy_recipe` | What a convoy is made of | `convoy.tres` |
+| `convoy_spawn_weight` | Chance of a convoy against all single ships together | 0.5 |
+
+Test: `military_traffic_test.gd` (recipes and class data; a patrol's makeup, faction, profile and loop and its cap counting; two patrols with a gunboat or frigate each in a military system; none where nobody controls; a convoy placed in flight, docking, and leaving with all its ships; the cap never exceeded; a destroyed patrol replaced; a patrol hostile to a player the faction hates).
 
 ## 11. Saving
 

@@ -51,6 +51,8 @@ const WANDER_ATTEMPTS := 12
 ## distance of the system centre.
 const WANDER_FALLBACK_RADIUS := 700.0
 
+## A formation's leader ignores avoidance within this many docking ranges of its destination.
+const DOCK_AVOID_RELEASE := 1.6
 ## Docking needs the ship slower than this (pixels per second).
 const DOCK_SPEED := 10.0
 ## Speed a ship arrives at when it jumps in, and how fast it slows down (px/s, px/s^2).
@@ -152,6 +154,14 @@ func setup(type: ShipType, config: TrafficConfig, destinations: Array[InhabitedN
 	destination = first_destination
 	_player = player
 	_visits_left = randi_range(config.visits_range.x, config.visits_range.y)
+
+
+## Changes the faction name shown for this ship (a ship made by a spawner that did not know it).
+func set_faction_label(label: String) -> void:
+	faction_name = label
+	if details != null:
+		details.faction_name = label
+		_targetable.info_changed.emit()
 
 
 ## Tells the ship where the system's centre is, how far out it may jump, and
@@ -606,7 +616,11 @@ func _fly(delta: float) -> void:
 	if desired_speed < top_speed and state == State.TRAVELLING:
 		_set_state(State.APPROACHING)
 
-	var error: Vector2 = to_destination.normalized() * desired_speed + _avoidance() - velocity
+	# Close to the place it is docking at, the leader of a formation stops steering round the
+	# ships about it (its own members among them): that push would keep it from ever slowing
+	# down enough to dock.
+	var avoidance: Vector2 = _avoidance() if distance > dock_range * DOCK_AVOID_RELEASE else Vector2.ZERO
+	var error: Vector2 = to_destination.normalized() * desired_speed + avoidance - velocity
 	var needs_thrust: bool = error.length() > STEER_DEADZONE
 	if needs_thrust:
 		_turn_toward(error.angle(), delta)

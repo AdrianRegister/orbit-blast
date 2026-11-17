@@ -2,7 +2,7 @@
 
 How NPC ships decide who to fight and how to fight them. Built in steps; this document grows with each. Read it, [combat.md](combat.md), [formations.md](formations.md) and [wars_system.md](../wars_system.md) before changing anything here.
 
-**Built so far:** hostility and awareness (step 2): who is hostile to whom, what a ship can see, how it ranks targets, the doctrines that tune that, and the sandbox's toolbar and battle builder; and what the player is told about it (the navicomputer's colours and **V**, section 11); pilots (step 3, section 6): ships that fight, run and jump out; squadron and convoy commanders (step 4, section 7): a formation that meets an enemy closes on it, breaks to fight with its targets shared out, re-forms afterwards, and withdraws when it is losing; battle group roles and fleet command (step 5, section 8); and the named tactical profiles (step 6, section 9). Not built yet: patrols and convoys as traffic (7), the full battle builder and balancing harness (8), the player's formation selector (9). The plan is in `C:\Users\Adrian\.claude\plans\` and the order of work in the roadmap (`phase_3_roadmap.md`).
+**Built so far:** hostility and awareness (step 2): who is hostile to whom, what a ship can see, how it ranks targets, the doctrines that tune that, and the sandbox's toolbar and battle builder; and what the player is told about it (the navicomputer's colours and **V**, section 11); pilots (step 3, section 6): ships that fight, run and jump out; squadron and convoy commanders (step 4, section 7): a formation that meets an enemy closes on it, breaks to fight with its targets shared out, re-forms afterwards, and withdraws when it is losing; battle group roles and fleet command (step 5, section 8); and the named tactical profiles (step 6, section 9). patrols and convoys as ambient traffic (step 7, [npc-traffic.md](npc-traffic.md) section 10a). Not built yet: the full battle builder and balancing harness (8), the player's formation selector (9). The plan is in `C:\Users\Adrian\.claude\plans\` and the order of work in the roadmap (`phase_3_roadmap.md`).
 
 ## 1. Architecture
 
@@ -249,7 +249,7 @@ A `TacticalProfile` (`scripts/combat/ai/tactical_profile.gd`, `resources/combat/
 | `mercenary` | no | 1.5 | 60% | 2,500 px | Retaliates only |
 | `default` | yes | any | 80% | none | A unit given nothing else (and the tests) |
 
-Ships under a commander still fight to the death (their doctrine's `retreat_hull_fraction` is ignored under an `ENGAGE` or `GUARD` order): units withdraw as units, by these numbers. Loose traffic ships have no profile yet (step 7).
+Ships under a commander still fight to the death (their doctrine's `retreat_hull_fraction` is ignored under an `ENGAGE` or `GUARD` order): units withdraw as units, by these numbers. Loose traffic ships have no profile: they fight or flee by their own `ShipPilot`. Patrols and convoys that fly as ambient traffic ([npc-traffic.md](npc-traffic.md) section 10a) use `military_patrol` and `convoy_escort` through their recipes.
 
 ## 10. Factions
 

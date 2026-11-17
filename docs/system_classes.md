@@ -48,6 +48,7 @@ A **class** says what a system *is*: critical, economic centre, military centre,
 | `centre_of_power` | systems of this class (or a subtype) can be a centre of power; `can_be_centre()` |
 | `min_links`, `requires_inhabited` | what a system must have to be of the class. Economic centres need 4 links; military centres are exempt (they are chokepoints) |
 | `military_value_multiplier` | scales the military value of the system's locations |
+| `patrol_count`, `patrol_recipe` | how many military patrols the faction controlling a system of this class keeps flying there, and of which formation recipe (null: the traffic config's own). Ordinary classes have one; military centres and military outputs have two, with gunboats or frigates (see [npc-traffic.md](npc-traffic.md) section 10a) |
 | `max_objects` | most planets, moons and stations the system may hold (3 for ordinary systems, 6 at most) |
 | generation hints | settlement and station counts, `population_scale`, `station_profile` for the generator |
 

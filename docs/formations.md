@@ -2,7 +2,7 @@
 
 How ships are organised into squadrons, battle groups, fleets and convoys, and how formation shapes work. Built in steps; this document grows with each. Read it, [combat.md](combat.md) and [wars_system.md](../wars_system.md) before changing anything here.
 
-**Built so far:** ship classes and the combat rating (step 1), formation shapes and slot assignment (step 2), the runtime formation and its movement (step 3), composition rules, nesting and fleets (step 4), the emergent tactical effects and combat integration (step 5). Zone damage and speed modifiers are not planned for now. Not built yet: traffic integration (step 6), the rest of the sandbox panel and polish (step 7). The formation states (following, holding, intercepting, attacking, defending, withdrawing) are now in `Formation.State`, kept on the formation and changed by its `UnitCommander` (Phase 3.3 step 4, see [combat_ai.md](combat_ai.md) section 7); while ATTACKING or DEFENDING a formation does not give up on ships that are off their slots. The player's formation selector is still to come.
+**Built so far:** ship classes and the combat rating (step 1), formation shapes and slot assignment (step 2), the runtime formation and its movement (step 3), composition rules, nesting and fleets (step 4), the emergent tactical effects and combat integration (step 5). Zone damage and speed modifiers are not planned for now. Traffic integration (patrols and convoys as ambient traffic) was built in Phase 3.3 step 7: see [npc-traffic.md](npc-traffic.md) section 10a. Not built yet: the rest of the sandbox panel and polish (step 7). The formation states (following, holding, intercepting, attacking, defending, withdrawing) are now in `Formation.State`, kept on the formation and changed by its `UnitCommander` (Phase 3.3 step 4, see [combat_ai.md](combat_ai.md) section 7); while ATTACKING or DEFENDING a formation does not give up on ships that are off their slots. The player's formation selector is still to come.
 
 ---
 
@@ -178,7 +178,7 @@ A `WarFleet` has a **flagship** (the strongest capital ship), optionally a secon
 - Each battle group is an ordinary `Formation` (squadrons nested) holding its own shape; only its leader is on the leash.
 - If the flagship is lost, the next strongest capital ship becomes the flagship (`flagship_changed`) and takes over the old one's route; with no capital ship left the fleet dissolves (`dissolved`) and its parts carry on alone. What the fleet does in a fight (engage, hold, withdraw; it fights on when the flagship is lost) is its `FleetCommander`, see [combat_ai.md](combat_ai.md) section 8.
 
-A spawned fleet is laid out in an arc behind the flagship, far enough apart that no battle group overlaps another. Routes shared by the whole fleet (all heading for the same planet) come with traffic integration in step 6.
+A spawned fleet is laid out in an arc behind the flagship, far enough apart that no battle group overlaps another. Routes shared by the whole fleet (all heading for the same planet) are not built: fleets are not part of ambient traffic yet (patrols and convoys are: [npc-traffic.md](npc-traffic.md) section 10a).
 
 ### Spawning a plan
 

@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="SystemClass" format=3]
 
+[ext_resource type="Resource" path="res://resources/formations/recipes/patrol_military.tres" id="patrol"]
 [ext_resource type="Script" path="res://scripts/galaxy/system_class.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/system_classes/critical.tres" id="parent"]
 [ext_resource type="Resource" path="res://resources/economy/profiles/military.tres" id="profile"]
@@ -18,3 +19,5 @@ stations_min = 2
 stations_max = 3
 population_scale = 1.0
 station_profile = ExtResource("profile")
+patrol_count = 2
+patrol_recipe = ExtResource("patrol")
