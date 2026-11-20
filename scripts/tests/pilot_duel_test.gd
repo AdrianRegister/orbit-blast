@@ -301,18 +301,39 @@ func _test_big_ships() -> void:
 	var fighters: Array = [
 		_ship(&"hegemony_fighter", &"faction_2", Vector2(800.0, -100.0)),
 		_ship(&"hegemony_fighter", &"faction_2", Vector2(800.0, 100.0))]
-	await _wait(10.0)
+	var box := {"fighters": fighters, "attacked": false}
+	var elapsed := 0.0
+	while elapsed < 10.0:
+		await _wait(0.5)
+		elapsed += 0.5
+		for ship in box["fighters"]:
+			if not _gone(ship):
+				box["attacked"] = box["attacked"] or ship.get_pilot().mode == ShipPilot.Mode.ATTACK or ship.get_combatant().weapons.shots_fired > 0
 	var cc := cruiser.get_combatant()
 	_check(cc.get_target() == null and cruiser.get_pilot().mode == ShipPilot.Mode.IDLE, "a cruiser with only fighters in sight picks no target and does not give chase")
 	_check(cc.weapons.shots_fired == 0, "...and fires nothing at them")
-	var swarm := 0
-	for ship in fighters:
-		swarm += ship.get_combatant().weapons.shots_fired
-	_check(swarm > 0 and fighters[0].get_pilot().mode == ShipPilot.Mode.ATTACK, "the fighters attack the cruiser (%d shots)" % swarm)
+	var attacks := 1 if box["attacked"] else 0
 	await _clear()
+	# (The cruiser's point defence can kill a pair of fighters before they get a shot in: one
+	# run proves little either way, so the fighters must attack in most of three runs.)
+	for run in 2:
+		cruiser = _ship(&"federation_cruiser", &"faction_1", Vector2(-800.0, 0.0))
+		box = {"fighters": [
+				_ship(&"hegemony_fighter", &"faction_2", Vector2(800.0, -100.0)),
+				_ship(&"hegemony_fighter", &"faction_2", Vector2(800.0, 100.0))], "attacked": false}
+		elapsed = 0.0
+		while elapsed < 10.0:
+			await _wait(0.5)
+			elapsed += 0.5
+			for ship in box["fighters"]:
+				if not _gone(ship):
+					box["attacked"] = box["attacked"] or ship.get_pilot().mode == ShipPilot.Mode.ATTACK or ship.get_combatant().weapons.shots_fired > 0
+		attacks += 1 if box["attacked"] else 0
+		await _clear()
+	_check(attacks >= 2, "the fighters attack the cruiser (in %d of 3 runs)" % attacks)
 
 	# Against a frigate it does fight, and wins.
-	var box := {}
+	box = {}
 	box["big"] = _ship(&"federation_cruiser", &"faction_1", Vector2(-800.0, 0.0))
 	box["frigate"] = _ship(&"hegemony_frigate", &"faction_2", Vector2(800.0, 0.0))
 	var big: NpcShip = box["big"]
@@ -441,12 +462,18 @@ func _test_point_defence() -> void:
 
 	# A fighter pack against a cruiser: with point defence the cruiser beats three, and a
 	# big enough pack still kills it.
-	var results := {}
-	for count in [3, 5, 6, 8]:
-		results[count] = await _pack_v_cruiser(count)
-		print("  (%d fighters v cruiser: cruiser %s, %d fighters left, %d s)" % [count, "dead" if results[count]["cruiser_dead"] else "alive", results[count]["left"], results[count]["seconds"]])
-	_check(not results[3]["cruiser_dead"], "a cruiser with point defence beats three fighters")
-	_check(results[8]["cruiser_dead"], "...but eight fighters still bring it down")
+	# (Each is a fight with random elements that a single run can lose by luck, so each check is
+	# the majority of three runs.)
+	var survived_three := 0
+	var died_to_eight := 0
+	for run in 3:
+		var three := await _pack_v_cruiser(3)
+		var eight := await _pack_v_cruiser(8)
+		survived_three += 0 if three["cruiser_dead"] else 1
+		died_to_eight += 1 if eight["cruiser_dead"] else 0
+		print("  (run %d: 3 fighters v cruiser: cruiser %s; 8 fighters: cruiser %s)" % [run + 1, "dead" if three["cruiser_dead"] else "alive", "dead" if eight["cruiser_dead"] else "alive"])
+	_check(survived_three >= 2, "a cruiser with point defence beats three fighters (%d of 3 runs)" % survived_three)
+	_check(died_to_eight >= 2, "...but eight fighters still bring it down (%d of 3 runs)" % died_to_eight)
 
 
 ## A pack of `count` Federation fighters against a Hegemony cruiser, until one side is

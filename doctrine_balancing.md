@@ -1,6 +1,6 @@
 # Faction doctrine balancing (proposal, for reference)
 
-Agreed during Phase 3.3 planning (2026-11-13). Nothing here is built yet, apart from what the steps below say.
+Agreed during Phase 3.3 planning (2026-11-13). All three tools below were built in Phase 3.3 step 8; how to run them is in `docs/combat_ai.md` section 13a.
 
 ## Starting point (Phase 3.3 step 1)
 
@@ -10,13 +10,13 @@ The Hegemony ships copy the numbers, mounts and loadouts of the matching Federat
 
 Use three tools together. A doctrine change is then: edit one stats file, run the report, run the matrix.
 
-### 1. A rating budget
+### 1. A rating budget (built: `scripts/tests/rating_budget_test.gd`)
 
 Matching classes across factions keep their `CombatRating.of(model)` within ±5% of each other (Federation cruiser against Hegemony cruiser, and so on). A test enforces it.
 
 Doctrines then **trade within the budget** instead of adding to it. More armour costs speed or guns; longer range costs damage per second. Balancing becomes "same budget, different shape", instead of tuning every ship against every other ship.
 
-### 2. An analytic balance report (`tools/balance_report.gd`)
+### 2. An analytic balance report (`tools/balance_report.gd`, built)
 
 Pure maths on the static data, run in seconds. For every pair of ship models it prints:
 
@@ -26,7 +26,7 @@ Pure maths on the static data, run in seconds. For every pair of ship models it 
 
 It catches a number that is out of line before anyone flies it.
 
-### 3. A simulated duel matrix (`scripts/tests/support/battle_harness.gd`, Phase 3.3 step 8)
+### 3. A simulated duel matrix (`tools/balance_matrix.gd` on `scripts/tests/support/battle_harness.gd`, built)
 
 Runs the real NPC combat AI headless, at a raised time scale, for N random seeds:
 

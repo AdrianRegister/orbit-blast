@@ -195,19 +195,27 @@ func _test_spawn_battle() -> void:
 func _test_battle_panel() -> void:
 	_check(_battle.get_side_faction(0) == &"faction_1" and _battle.get_side_faction(1) == &"faction_2", "the panel starts with the Federation against the Hegemony")
 	_check(_battle.describe() == "Nothing spawned.", "it starts with nothing spawned")
+	var first_model: StringName = _battle.get_side_units(0)[0]["model"]
+	_check(_battle.get_side_units(0).size() == 1 and _battle.get_side_units(0)[0]["count"] == 1, "each side starts with one ship of the first model")
+	_check(_battle._paused_box.button_pressed, "the battle starts paused by default")
 	_battle._on_spawn()
 	await _frames()
+	_check(_sandbox.is_battle_held() and _sandbox.get_tracker().elapsed == 0.0, "...so a spawned battle is held until START")
 	var text := _battle.describe()
 	_check(text.contains("A: 1 ships, B: 1 ships"), "it spawns one ship a side by default (%s)" % text.replace("\n", " | "))
 	_check(text.contains("A and B: HOSTILE (at war)"), "and says the sides are at war")
 	_check(text.contains("You and A: not hostile") and text.contains("You and B: not hostile"), "and that the player is nobody's enemy here")
+	_battle._on_start_pressed()
+	_check(not _sandbox.is_battle_held(), "START releases it")
 	_battle._side_faction[1].select(3)  # pirates
 	_check(_battle.get_side_faction(1) == &"faction_3", "side B can be the Pirates")
 	_battle._side_faction[0].select(0)  # no faction
 	_check(_battle.get_side_faction(0) == &"", "...and side A no faction")
-	_battle._side_count[0].value = 2
+	_battle._paused_box.button_pressed = false
+	_battle.set_side_units(0, [{"model": first_model, "count": 2}])
 	_battle._on_spawn()
 	await _frames()
+	_check(not _sandbox.is_battle_held(), "with the box off a battle goes at once")
 	text = _battle.describe()
 	_check(text.contains("A: 2 ships, B: 1 ships"), "a second battle replaces the first in the panel (%s)" % text.replace("\n", " | "))
 	_check(text.contains("A and B: HOSTILE (pirates attack everyone)"), "pirates are hostile to ships that belong to nobody")
@@ -216,6 +224,90 @@ func _test_battle_panel() -> void:
 	_battle._on_clear()
 	await _frames()
 	_check(_system.get_ships_root().get_child_count() == 0 and _battle.describe() == "Nothing spawned.", "CLEAR removes them all")
+	_battle._paused_box.button_pressed = true
+
+	# --- The unit list: ships and composed units are added and removed.
+	_battle._side_faction[0].select(1)
+	_battle._side_faction[1].select(2)
+	_battle.set_side_units(0, [])
+	_battle._kind[0].select(0)
+	_battle._fill_choice(0)
+	_battle._choice[0].select(0)
+	_battle._count[0].value = 3
+	_battle._on_add(0)
+	_battle._kind[0].select(1)
+	_battle._fill_choice(0)
+	var recipe_index := -1
+	for index in _battle._recipes.size():
+		if _battle._recipes[index].id == &"squadron":
+			recipe_index = index
+	_battle._choice[0].select(recipe_index)
+	_battle._on_add(0)
+	var units: Array = _battle.get_side_units(0)
+	_check(units.size() == 2 and units[0]["count"] == 3 and units[1] == {"recipe": &"squadron"}, "units are added: 3 ships of a model, and a composed squadron (%s)" % [units])
+	_check(_battle._side_list[0].item_count == 2 and _battle._side_list[0].get_item_text(1).begins_with("Unit:"), "...and listed")
+	_battle._side_list[0].select(0)
+	_battle._on_remove(0)
+	_check(_battle.get_side_units(0).size() == 1 and _battle.get_side_units(0)[0].has("recipe"), "...and removed")
+	_battle._side_profile[0].select(_profile_index(&"pirate") + 1)
+	_check(_battle.get_side_spec(0)["profile"] == &"pirate" and _battle.get_side_spec(0)["faction"] == &"faction_1", "a side's spec carries its faction and its profile")
+	_battle._side_profile[0].select(0)
+	_check(not _battle.get_side_spec(0).has("profile"), "...and no profile when it is left as the unit's own")
+	_battle.set_side_units(1, [{"model": first_model, "count": 1}])
+	_battle._on_spawn()
+	await _frames()
+	var tracker := _sandbox.get_tracker()
+	_check(tracker.start_count(0) >= 3 and tracker.start_count(1) == 1, "a battle with a composed unit spawns its ships (%d against %d)" % [tracker.start_count(0), tracker.start_count(1)])
+
+	# --- The readout shows the score, and the overlay can be switched on.
+	var readout: BattleReadout = _sandbox._readout
+	await _frames(8)
+	readout.refresh()  # (it redraws every 0.2 s: do not depend on how fast the frames go)
+	_check(readout.visible and readout._text.text.contains("A: ") and readout._text.text.contains("HELD"), "the readout shows the held battle (%s)" % readout._text.text.replace("\n", " | "))
+	readout._on_start_pressed()
+	await _frames(8)
+	readout.refresh()
+	_check(readout._text.text.contains("FIGHTING") and readout._start_button.text == "HOLD", "...and its button starts it")
+	_toolbar.toggle_panel(2)
+	await _frames(3)
+	_check(_sandbox.get_overlay().visible and _toolbar.get_button(2).button_pressed, "the overlay button turns the overlay on")
+	_toolbar._unhandled_input(_key(KEY_F4))
+	await _frames(2)
+	_check(not _sandbox.get_overlay().visible and not _toolbar.get_button(2).button_pressed, "...and F4 turns it off")
+	_toolbar._unhandled_input(_key(KEY_F4))
+	await _frames(8)
+	_check(_sandbox.get_overlay().visible and _battle.visible == _battle.open, "(the overlay is drawn without trouble)")
+	_toolbar._unhandled_input(_key(KEY_F4))
+	_battle._on_clear()
+	await _frames(4)
+	_check(not readout.visible, "the readout goes away when the battle is cleared")
+
+	# --- The player's side, through the panel.
+	var reputation: ReputationManager = _sandbox._main.get_node("Reputation")
+	var federation: Faction = ContentRegistry.new().faction(&"faction_1")
+	var before := reputation.get_reputation(federation)
+	_battle._side_faction[0].select(1)
+	_battle._side_faction[1].select(2)
+	_battle.set_side_units(0, [{"model": first_model, "count": 1}])
+	_battle._stance.select(1)  # with side A
+	_battle._on_spawn()
+	await _frames()
+	_check(reputation.get_reputation(federation) >= CombatSandbox.STANCE_FRIENDLY, "standing with side A makes the player Friendly with its faction")
+	_battle._stance_box.button_pressed = false
+	_check(reputation.get_reputation(federation) == before, "...and the switch turns that off")
+	_battle._stance_box.button_pressed = true
+	_battle._on_clear()
+	_battle._stance.select(0)
+	_sandbox.set_player_stance(CombatSandbox.Stance.NEUTRAL)
+	_check(reputation.get_reputation(federation) == before, "clearing leaves the reputation as it was")
+	await _frames()
+
+
+func _profile_index(id: StringName) -> int:
+	for index in _battle._profiles.size():
+		if _battle._profiles[index].id == id:
+			return index
+	return -1
 
 
 func names_of(presets: Array) -> Array:
@@ -230,6 +322,11 @@ func _test_presets() -> void:
 	for preset in presets:
 		for side in [preset["a"], preset["b"]]:
 			valid = valid and (side["faction"] == &"" or registry.faction(side["faction"]) != null)
+			if side.has("units"):
+				for entry in side["units"]:
+					valid = valid and (registry.formation_recipe(entry["recipe"]) != null if entry.has("recipe") else registry.ship_stats(entry["model"]) != null)
+				valid = valid and (not side.has("profile") or registry.tactical_profile(side["profile"]) != null)
+				continue
 			if side.has("plan"):
 				valid = valid and registry.formation_recipe(side["plan"]["recipe"]) != null
 				continue

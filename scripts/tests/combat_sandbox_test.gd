@@ -58,29 +58,20 @@ func _init() -> void:
 	_check(ships.get_active().model.id == &"light_frigate", "the player flies a Light Frigate")
 	_check(player.combatant.weapons.has_weapons(), "it is armed")
 
-	# --- One freighter drifting around the centre, not firing, with no faction.
-	var targets := _live_ships(system)
-	_check(targets.size() == 1 and targets[0].ship_type.stats.id == &"freighter", "exactly one NPC, a freighter")
-	var target: NpcShip = targets[0]
-	_check(target.state == NpcShip.State.WANDERING, "it wanders")
-	_check(target.faction_id == &"" and target.faction_name == "", "it belongs to nobody")
-	var start := target.global_position
-	var travelled := 0.0
-	var farthest := 0.0
-	var last := start
-	for i in 900:
-		await physics_frame
-		travelled += target.global_position.distance_to(last)
-		last = target.global_position
-		farthest = maxf(farthest, target.global_position.distance_to(system.global_position))
-	_check(travelled > 300.0, "it keeps moving (%d px in 15 s)" % int(travelled))
-	_check(farthest < CombatSandbox.TARGET_WANDER_RADIUS * 1.6, "it stays around the centre (farthest %d px)" % int(farthest))
-	_check(target.state == NpcShip.State.WANDERING, "it never docks or leaves")
-	var fired := system.get_projectiles_root().get_children().filter(func(n: Node) -> bool: return n is Projectile)
-	_check(fired.is_empty(), "it never fires")
-
-	# --- No reputation hit for attacking or destroying it.
+	# --- The system starts empty (ships come from the dev panels), and nothing in the sandbox
+	# charges a reputation, whoever the player shoots.
+	_check(_live_ships(system).is_empty(), "the sandbox system starts with no NPC ships")
+	var spawned := (main.get_node("Combat") as CombatManager).get_picture()
+	_check(spawned != null, "(setup) the combat picture exists")
 	var before := JSON.stringify(reputation.save_state())
+	var dummy_type := ShipType.new()
+	dummy_type.stats = registry.ship_stats(&"federation_fighter")
+	var sandbox: CombatSandbox
+	for child in main.get_children():
+		if child is CombatSandbox:
+			sandbox = child
+	var target := sandbox.spawn_ship(dummy_type, &"faction_1", system.global_position, 0.0)
+	await process_frame
 	var tc: Combatant = target.get_node("Combatant")
 	var hit := Hit.new()
 	hit.damage = 5.0
@@ -90,19 +81,11 @@ func _init() -> void:
 	killer.damage = 100000.0
 	killer.attacker = player.combatant
 	tc.take_hit(killer)
-	_check(not tc.is_alive(), "the target can be destroyed")
+	_check(not tc.is_alive(), "a ship can be destroyed")
 	_check(JSON.stringify(reputation.save_state()) == before, "destroying it changes nobody's reputation")
-
-	# --- A new one appears a few seconds later.
-	var started := Time.get_ticks_msec()
-	var replacement: NpcShip = null
-	while Time.get_ticks_msec() - started < 8000:
-		await process_frame
-		var live := _live_ships(system)
-		if live.size() == 1 and live[0] != target:
-			replacement = live[0]
-			break
-	_check(replacement != null, "a new target ship replaces the destroyed one")
+	await process_frame
+	await process_frame
+	_check(_live_ships(system).is_empty(), "nothing replaces it: the system stays empty")
 
 	# --- Trade: land and buy a Federation cruiser (faction-locked in the real game).
 	var targeting: TargetingManager = main.get_node("Targeting")

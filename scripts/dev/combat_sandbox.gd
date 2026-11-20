@@ -10,13 +10,11 @@ extends Node
 ## and weapon. The lists are filled from the content registry when the sandbox
 ## starts, so new ships, upgrades and weapons appear by themselves.
 ##
-## This node is a child of that Main. It keeps one target ship in the system: a
-## freighter that drifts around the centre, never fires back, and is replaced a
-## few seconds after it is destroyed. Nothing is saved and no reputation is ever
-## charged.
+## This node is a child of that Main. The system starts empty: ships come from the dev
+## panels (formations, battles). Nothing is saved and no reputation is ever charged.
 ##
 ## To change what the sandbox contains, edit the constants below (the player's
-## ship, money, the target ship) or the scene `scenes/dev/combat_sandbox_system.tscn`.
+## ship, money) or the scene `scenes/dev/combat_sandbox_system.tscn`.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const SYSTEM_SCENE := preload("res://scenes/dev/combat_sandbox_system.tscn")
@@ -27,16 +25,8 @@ const TRAFFIC_CONFIG := preload("res://resources/traffic/default_traffic.tres")
 ## What the player starts with.
 const PLAYER_SHIP := preload("res://resources/ships/light_frigate_stats.tres")
 const PLAYER_CREDITS := 500_000_000
-## Where the player starts (the planet is at (1500, 0), the target near the centre).
+## Where the player starts (the planet is at (1500, 0)).
 const PLAYER_START := Vector2(900.0, 500.0)
-
-## The target ship: which kind, how far from the centre it drifts, and how long
-## until a destroyed one is replaced.
-const TARGET_SHIP := preload("res://resources/ship_types/freighter.tres")
-const TARGET_WANDER_RADIUS := 700.0
-const TARGET_RESPAWN_DELAY := 3.0
-
-const TARGET_ID_PREFIX := "sandbox_target_"
 
 ## Formations the dev panel can spawn in one go: a name, the ship models, the
 ## shape to start with and the kind of group. Add a line to add a preset.
@@ -70,75 +60,43 @@ const BATTLE_SPACING_FACTOR := 3.0
 ## How far behind the rank in front each rank of a mixed force starts (pixels).
 const BATTLE_RANK_SPACING := 350.0
 const BATTLE_DRIFT_RADIUS := 300.0
+## How far behind the one before a composed unit of each kind starts, and how far apart two sides
+## carrying such units must be (a fleet is wide).
+const UNIT_DEPTH := {
+	FormationRecipe.Unit.SQUADRON: 600.0, FormationRecipe.Unit.BATTLE_GROUP: 1500.0,
+	FormationRecipe.Unit.FLEET: 3000.0, FormationRecipe.Unit.CONVOY: 900.0,
+}
+const UNIT_SEPARATION := {
+	FormationRecipe.Unit.SQUADRON: 1500.0, FormationRecipe.Unit.BATTLE_GROUP: 3500.0,
+	FormationRecipe.Unit.FLEET: 9000.0, FormationRecipe.Unit.CONVOY: 2000.0,
+}
+## The player's standing with a side's faction and the other's, when the stance uses reputation.
+const STANCE_FRIENDLY := 60
+const STANCE_HOSTILE := -80
 ## The ways out of the system the battle's ships know (the four directions), so a ship
 ## that retreats can jump out as it would in the real game.
 const BATTLE_EXITS: Array[Vector2] = [Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT, Vector2.UP]
-## Battles the battle panel can spawn in one go: a name and the two sides. A side is
-## {"faction", "model", "count"} for one kind of ship, or {"faction", "ships": [{"model",
-## "count"}, ...]} for a mixed force, listed from the front rank to the back, or {"faction",
-## "formation": {"shape": shape id, "ships": [model ids], "kind": Formation.Kind (a squadron
-## if left out)} for one unit under its commander (either kind of unit side may add "profile":
-## a tactical profile id, to override the one its recipe or the default gives), or {"faction", "plan": {"recipe", "ships",
-## "shape", "children": [plan, ...]}, "separation": pixels} for a whole battle group or fleet
-## (a unit that big needs the sides further apart than the default).
-const BATTLE_PRESETS := [
-	{"name": "1v1: fighters", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 1},
-			"b": {"faction": &"faction_2", "model": &"hegemony_fighter", "count": 1}},
-	{"name": "2v1: 2 Federation fighters, 1 Hegemony fighter", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 2},
-			"b": {"faction": &"faction_2", "model": &"hegemony_fighter", "count": 1}},
-	{"name": "1v1: frigates", "a": {"faction": &"faction_1", "model": &"federation_frigate", "count": 1},
-			"b": {"faction": &"faction_2", "model": &"hegemony_frigate", "count": 1}},
-	{"name": "1v1: cruisers", "a": {"faction": &"faction_1", "model": &"federation_cruiser", "count": 1},
-			"b": {"faction": &"faction_2", "model": &"hegemony_cruiser", "count": 1}},
-	{"name": "3 fighters v cruiser", "a": {"faction": &"faction_1", "model": &"federation_fighter", "count": 3},
-			"b": {"faction": &"faction_2", "model": &"hegemony_cruiser", "count": 1}},
-	{"name": "1v1: capital ships", "a": {"faction": &"faction_1", "model": &"federation_capital_ship", "count": 1},
-			"b": {"faction": &"faction_2", "model": &"hegemony_capital_ship", "count": 1}},
-	{"name": "Fleets: cruiser, 2 frigates, 5 fighters v cruiser, 2 frigates, heavy fighter, 3 fighters",
-			"a": {"faction": &"faction_1", "ships": [
-					{"model": &"federation_fighter", "count": 5}, {"model": &"federation_frigate", "count": 2},
-					{"model": &"federation_cruiser", "count": 1}]},
-			"b": {"faction": &"faction_2", "ships": [
-					{"model": &"hegemony_fighter", "count": 3}, {"model": &"hegemony_heavy_fighter", "count": 1},
-					{"model": &"hegemony_frigate", "count": 2}, {"model": &"hegemony_cruiser", "count": 1}]}},
-	{"name": "Pirate v freighter", "a": {"faction": &"faction_3", "model": &"interceptor", "count": 1},
-			"b": {"faction": &"", "model": &"freighter", "count": 1}},
-	{"name": "Squadrons: heavy fighter + 3 fighters each",
-			"a": {"faction": &"faction_1", "formation": {"shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter", &"federation_fighter"]}},
-			"b": {"faction": &"faction_2", "formation": {"shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter", &"hegemony_fighter"]}}},
-	{"name": "Squadron of 4 fighters v a Hegemony cruiser",
-			"a": {"faction": &"faction_1", "formation": {"shape": &"screen", "ships": [&"federation_fighter", &"federation_fighter", &"federation_fighter", &"federation_fighter"]}},
-			"b": {"faction": &"faction_2", "model": &"hegemony_cruiser", "count": 1}},
-	{"name": "Battle groups: cruiser, frigate, 2 squadrons each",
-			"a": {"faction": &"faction_1", "separation": 3500.0, "plan": {"recipe": &"battle_group", "shape": &"screen", "ships": [&"federation_cruiser", &"federation_frigate"], "children": [
-					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]},
-					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]}]}},
-			"b": {"faction": &"faction_2", "separation": 3500.0, "plan": {"recipe": &"battle_group", "shape": &"screen", "ships": [&"hegemony_cruiser", &"hegemony_frigate"], "children": [
-					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]},
-					{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]}]}}},
-	{"name": "Capital fleets: 2 capital ships and 2 battle groups each",
-			"a": {"faction": &"faction_1", "separation": 9000.0, "plan": {"recipe": &"fleet", "ships": [&"federation_capital_ship", &"federation_capital_ship"], "children": [
-					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"federation_cruiser", &"federation_frigate"], "children": [
-							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]}]},
-					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"federation_cruiser", &"federation_frigate"], "children": [
-							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"federation_heavy_fighter", &"federation_fighter", &"federation_fighter"]}]}]}},
-			"b": {"faction": &"faction_2", "separation": 9000.0, "plan": {"recipe": &"fleet", "ships": [&"hegemony_capital_ship", &"hegemony_capital_ship"], "children": [
-					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"hegemony_cruiser", &"hegemony_frigate"], "children": [
-							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]}]},
-					{"recipe": &"battle_group", "shape": &"screen", "ships": [&"hegemony_cruiser", &"hegemony_frigate"], "children": [
-							{"recipe": &"squadron", "shape": &"wedge", "ships": [&"hegemony_heavy_fighter", &"hegemony_fighter", &"hegemony_fighter"]}]}]}}},
-	{"name": "Convoy (2 freighters, 2 fighters) v 3 pirate fighters",
-			"a": {"faction": &"faction_1", "formation": {"shape": &"convoy_diamond", "kind": Formation.Kind.CONVOY, "ships": [&"freighter", &"freighter", &"federation_fighter", &"federation_fighter"]}},
-			"b": {"faction": &"faction_3", "model": &"federation_fighter", "count": 3}},
-]
+## Battles the battle panel can spawn in one go (the table is in battle_presets.gd).
+const BATTLE_PRESETS := BattlePresets.PRESETS
 
 var _main: Main
 var _system: StarSystem
-var _targets_spawned: int = 0
 var _registry: ContentRegistry
 var _panel: SandboxPanel
 var _battle_panel: BattlePanel
 var _toolbar: DevToolbar
+var _tracker: BattleTracker
+var _readout: BattleReadout
+var _overlay: BattleOverlay
+## Who the player stands with in a battle (see set_player_stance).
+enum Stance { NEUTRAL, SIDE_A, SIDE_B }
+var _stance: Stance = Stance.NEUTRAL
+var _stance_uses_reputation: bool = true
+## The faction ids of the two sides of the battle spawned last ("" for none).
+var _battle_factions: Array[StringName] = [&"", &""]
+## The reputation values the sandbox set for the stance: faction id -> the amount it added.
+var _stance_changes: Dictionary = {}
+var _held: bool = false
 ## The ships the battle builder has spawned.
 var _battle_ships: Array = []
 ## The formations the battle builder made (their ships are in _battle_ships too).
@@ -192,8 +150,11 @@ func _ready() -> void:
 func _start() -> void:
 	_main = get_parent() as Main
 	_system = _main.get_system()
-	(_main.get_node("Combat") as CombatManager).ship_destroyed.connect(_on_ship_destroyed)
 	_registry = ContentRegistry.new()
+	_tracker = BattleTracker.new()
+	_tracker.name = "BattleTracker"
+	add_child(_tracker)
+	_tracker.listen_to(_main.get_node("Combat") as CombatManager)
 	_panel = SandboxPanel.new()
 	_main.add_child(_panel)
 	_panel.setup(self, _registry)
@@ -202,11 +163,16 @@ func _start() -> void:
 	_battle_panel.setup(self, _registry)
 	_toolbar = DevToolbar.new()
 	_main.add_child(_toolbar)
+	_readout = BattleReadout.new()
+	_main.add_child(_readout)
+	_readout.setup(self, _registry)
+	_overlay = BattleOverlay.new()
+	_overlay.setup(self, _system)
 	_toolbar.setup(self, [
 		{"name": "FORMATIONS", "key": KEY_F2, "panel": _panel},
 		{"name": "BATTLE", "key": KEY_F3, "panel": _battle_panel},
+		{"name": "OVERLAY", "key": KEY_F4, "toggle": func(on: bool) -> void: _overlay.visible = on},
 	])
-	spawn_target()
 
 
 ## Whether the player is flying (not docked): the panel only shows then.
@@ -289,26 +255,154 @@ func clear_formations() -> void:
 
 # ------------------------------------------------------------------ battles
 
-## Spawns two sides facing each other ahead of the player. A side is {"faction":
-## StringName (&"" for none), "model": ship id, "count": int}. Returns {"a": ships,
-## "b": ships}. The ships carry their faction, their default weapons and the same
-## combat rules as any other ship; until the AI is built they only drift.
-func spawn_battle(side_a: Dictionary, side_b: Dictionary) -> Dictionary:
+## Spawns two sides facing each other ahead of the player (see BattlePresets for what a side
+## can be). Returns {"a": ships, "b": ships}. The ships carry their faction, their default weapons
+## and the same combat rules as any other ship, and the AI takes over at once. `options`:
+##   "held": the battle starts frozen until start_battle() (default: no)
+##   "anchor": the point the battle is centred on (default: ahead of the player)
+## The ships are put on the BattleTracker (sides A and B), and the player's stance is applied.
+func spawn_battle(side_a: Dictionary, side_b: Dictionary, options: Dictionary = {}) -> Dictionary:
 	var player := _main.get_player_ship()
 	var forward := Vector2.from_angle(player.rotation)
 	var across := forward.rotated(PI / 2.0)
-	var middle := player.global_position + forward * BATTLE_DISTANCE
-	var separation := maxf(BATTLE_SEPARATION, maxf(side_a.get("separation", 0.0), side_b.get("separation", 0.0)))
-	return {
-		"a": _spawn_side(side_a, middle - across * separation / 2.0, across),
-		"b": _spawn_side(side_b, middle + across * separation / 2.0, -across),
-	}
+	var middle: Vector2 = options.get("anchor", player.global_position + forward * BATTLE_DISTANCE)
+	var separation := maxf(BATTLE_SEPARATION, maxf(maxf(side_a.get("separation", 0.0), side_b.get("separation", 0.0)),
+			maxf(_required_separation(side_a), _required_separation(side_b))))
+	var ships_a := _spawn_side(side_a, middle - across * separation / 2.0, across)
+	var ships_b := _spawn_side(side_b, middle + across * separation / 2.0, -across)
+	_battle_factions = [side_a.get("faction", &""), side_b.get("faction", &"")]
+	if _tracker != null:
+		_tracker.track(0, ships_a)
+		_tracker.track(1, ships_b)
+	_apply_stance()
+	hold_battle(options.get("held", false))
+	return {"a": ships_a, "b": ships_b}
+
+
+## How far apart the two sides must start for the units on side `side` (a fleet is wide).
+func _required_separation(side: Dictionary) -> float:
+	var needed := 0.0
+	for unit in side.get("units", []):
+		if unit.has("recipe"):
+			var recipe := _registry.formation_recipe(unit["recipe"])
+			needed = maxf(needed, UNIT_SEPARATION.get(recipe.unit, 0.0) if recipe != null else 0.0)
+	return needed
+
+
+# ------------------------------------------------------------ held battles and the player's side
+
+## Freezes (or releases) every ship of the battles spawned, and the units that command them.
+## While held nothing moves, thinks or fires; the battle clock stops too.
+func hold_battle(held: bool) -> void:
+	_held = held
+	var mode := Node.PROCESS_MODE_DISABLED if held else Node.PROCESS_MODE_INHERIT
+	for node in _battle_nodes():
+		node.process_mode = mode
+	if _tracker != null:
+		_tracker.running = not held
+
+
+## Releases a held battle.
+func start_battle() -> void:
+	hold_battle(false)
+
+
+func is_battle_held() -> bool:
+	return _held
+
+
+## Every node that makes a battle's ships act: the ships, their formations and fleets.
+func _battle_nodes() -> Array[Node]:
+	var nodes: Array[Node] = []
+	for ship in _battle_ships:
+		if not is_instance_valid(ship):
+			continue
+		nodes.append(ship)
+		for unit in [ship.formation, ship.led_formation, ship.fleet]:
+			if unit != null and is_instance_valid(unit) and not nodes.has(unit):
+				nodes.append(unit)
+	for unit in _battle_formations:
+		if is_instance_valid(unit) and not nodes.has(unit):
+			nodes.append(unit)
+	return nodes
+
+
+func get_tracker() -> BattleTracker:
+	return _tracker
+
+
+## The faction ids of the two sides of the battle spawned last ("" for none).
+func get_battle_factions() -> Array[StringName]:
+	return _battle_factions
+
+
+func get_overlay() -> BattleOverlay:
+	return _overlay
+
+
+## Puts the player on a side of the battle: NEUTRAL, SIDE_A or SIDE_B. With reputation switched on
+## (the default, see set_stance_uses_reputation) that sets the player's standing with the two
+## sides' factions: Friendly with their own side's, Hostile with the other's, so the battle's AI
+## treats them as an ally or an enemy by the real rules. Nothing the player does is ever charged.
+func set_player_stance(stance: Stance) -> void:
+	_stance = stance
+	_apply_stance()
+
+
+func get_player_stance() -> Stance:
+	return _stance
+
+
+## Whether the stance is carried out through reputation (on) or ignored (off: the player is
+## neutral to everybody).
+func set_stance_uses_reputation(enabled: bool) -> void:
+	_stance_uses_reputation = enabled
+	_apply_stance()
+
+
+func _apply_stance() -> void:
+	_restore_reputation()
+	var combat := _main.get_node("Combat") as CombatManager
+	if not _stance_uses_reputation or _stance == Stance.NEUTRAL:
+		combat.set_standing_source(null)
+		return
+	var reputation := _main.get_node("Reputation") as ReputationManager
+	var mine: StringName = _battle_factions[0 if _stance == Stance.SIDE_A else 1]
+	var theirs: StringName = _battle_factions[1 if _stance == Stance.SIDE_A else 0]
+	if mine != &"" and mine != theirs:
+		_set_standing(reputation, mine, STANCE_FRIENDLY)
+	if theirs != &"" and theirs != mine:
+		_set_standing(reputation, theirs, STANCE_HOSTILE)
+	combat.set_standing_source(reputation)
+
+
+func _set_standing(reputation: ReputationManager, faction_id: StringName, value: int) -> void:
+	var faction := _registry.faction(faction_id)
+	if faction == null:
+		return
+	var before := reputation.get_reputation(faction)
+	reputation.change(faction, value - before, "combat sandbox stance")
+	_stance_changes[faction_id] = reputation.get_reputation(faction) - before
+
+
+## Puts back the reputation the stance changed.
+func _restore_reputation() -> void:
+	if _stance_changes.is_empty():
+		return
+	var reputation := _main.get_node("Reputation") as ReputationManager
+	for faction_id in _stance_changes:
+		var faction := _registry.faction(faction_id)
+		if faction != null:
+			reputation.change(faction, -_stance_changes[faction_id], "combat sandbox stance")
+	_stance_changes.clear()
 
 
 ## One side, all facing `facing`: each kind of ship in a rank (a column across the line
 ## of battle) through `centre`, the ranks one behind another, the first at the front.
 func _spawn_side(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
 	var ships: Array[NpcShip] = []
+	if side.has("units"):
+		return _spawn_side_units(side, centre, facing)
 	if side.has("plan"):
 		return _spawn_side_plan(side, centre, facing)
 	if side.has("formation"):
@@ -325,6 +419,46 @@ func _spawn_side(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[Np
 		for index in count:
 			var offset := (index - (count - 1) / 2.0) * spacing
 			ships.append(spawn_ship(type, side.get("faction", &""), rank_centre + along * offset, facing.angle(), BATTLE_EXITS))
+	return ships
+
+
+## A side made of a list of units, the first at the front, each behind the one before: ships
+## in a rank ({"model", "count"}) or a unit composed from a formation recipe ({"recipe", "shape"}).
+func _spawn_side_units(side: Dictionary, centre: Vector2, facing: Vector2) -> Array[NpcShip]:
+	var ships: Array[NpcShip] = []
+	var along := facing.rotated(PI / 2.0)
+	var faction: StringName = side.get("faction", &"")
+	var profile := _registry.tactical_profile(side.get("profile", &""))
+	var depth := 0.0
+	for entry: Dictionary in side["units"]:
+		var here := centre - facing * depth
+		if entry.has("recipe"):
+			var recipe := _registry.formation_recipe(entry["recipe"])
+			var plan := FleetComposer.compose(recipe, faction, FleetComposer.all_ship_types()) if recipe != null and faction != &"" else null
+			if plan == null:
+				push_warning("The %s unit cannot be built for faction '%s'." % [entry["recipe"], faction])
+				continue
+			var shape: FormationShape = _registry.formation_shape(entry["shape"]) if entry.has("shape") else null
+			var none: Array[Vector2] = []
+			var unit := FleetSpawner.spawn_plan(_system, _main.get_player_ship(), TRAFFIC_CONFIG, plan, here, facing.angle(),
+					faction, FORMATION_WANDER_RADIUS, null, none, shape, profile)
+			if unit == null:
+				continue
+			_battle_formations.append(unit)
+			for ship in unit.get_all_ships():
+				ship.configure_jumping(_system.global_position, _system.jump_radius, BATTLE_EXITS)
+				_battle_ships.append(ship)
+				ships.append(ship)
+			depth += UNIT_DEPTH.get(recipe.unit, BATTLE_RANK_SPACING)
+		else:
+			var type := ShipType.new()
+			type.stats = _registry.ship_stats(entry["model"])
+			var count: int = entry.get("count", 1)
+			var spacing: float = type.stats.get_hit_radius() * BATTLE_SPACING_FACTOR + 40.0
+			for index in count:
+				var offset := (index - (count - 1) / 2.0) * spacing
+				ships.append(spawn_ship(type, faction, here + along * offset, facing.angle(), BATTLE_EXITS))
+			depth += BATTLE_RANK_SPACING
 	return ships
 
 
@@ -371,9 +505,9 @@ func _plan_from(data: Dictionary) -> FormationPlan:
 
 
 ## Spawns battle preset number `index` (see BATTLE_PRESETS).
-func spawn_battle_preset(index: int) -> Dictionary:
+func spawn_battle_preset(index: int, options: Dictionary = {}) -> Dictionary:
 	var preset: Dictionary = BATTLE_PRESETS[index]
-	return spawn_battle(preset["a"], preset["b"])
+	return spawn_battle(preset["a"], preset["b"], options)
 
 
 ## Puts one armed NPC of `type` and `faction_id` at `position`, facing `heading`
@@ -397,8 +531,14 @@ func spawn_ship(type: ShipType, faction_id: StringName, position: Vector2, headi
 	return ship
 
 
-## Removes every ship the battle builder spawned.
+## Removes every ship the battle builder spawned, forgets the battle's score, and gives the
+## player back the reputation the stance had changed.
 func clear_battle() -> void:
+	_restore_reputation()
+	(_main.get_node("Combat") as CombatManager).set_standing_source(null)
+	if _tracker != null:
+		_tracker.clear()
+	_held = false
 	for ship in _battle_ships:
 		if is_instance_valid(ship):
 			ship.queue_free()
@@ -411,27 +551,3 @@ func clear_battle() -> void:
 
 func get_player_combatant() -> Combatant:
 	return _main.get_player_ship().combatant
-
-
-## Puts a new target ship in the system (the old one, if still alive, stays).
-func spawn_target() -> NpcShip:
-	var ship: NpcShip = NPC_SCENE.instantiate()
-	var no_places: Array[InhabitedNode] = []
-	ship.setup(TARGET_SHIP, TRAFFIC_CONFIG, no_places, "", null, _main.get_player_ship())
-	_targets_spawned += 1
-	ship.combat_id = StringName("%s%d" % [TARGET_ID_PREFIX, _targets_spawned])
-	ship.faction_id = &""  # belongs to nobody
-	ship.configure_jumping(_system.global_position, _system.jump_radius, [])
-	ship.begin_wandering(_system.global_position, TARGET_WANDER_RADIUS)
-	_system.get_ships_root().add_child(ship)
-	ship.global_position = _system.global_position \
-			+ Vector2.from_angle(randf() * TAU) * TARGET_WANDER_RADIUS * sqrt(randf())
-	return ship
-
-
-func _on_ship_destroyed(report: DestructionReport) -> void:
-	if not str(report.victim_id).begins_with(TARGET_ID_PREFIX):
-		return
-	await get_tree().create_timer(TARGET_RESPAWN_DELAY).timeout
-	if is_inside_tree() and _system != null and is_instance_valid(_system):
-		spawn_target()

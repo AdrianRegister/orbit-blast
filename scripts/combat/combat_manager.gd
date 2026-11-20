@@ -24,6 +24,10 @@ const SPARK_SHIELD := Color(0.4, 0.8, 1.0)
 const SPARK_HULL := Color(1.0, 0.65, 0.25)
 
 var _reputation: ReputationManager
+## Where the combat rules read the player's standing with a faction (to decide who is an ally and
+## who attacks the player). The same as `_reputation` in the real game; in the combat sandbox,
+## which charges nothing, it can be given separately (see set_standing_source).
+var _standing_source: ReputationManager
 ## Callable(faction_id: StringName) -> Faction (or null).
 var _faction_lookup: Callable
 var _clock: GameClock
@@ -45,12 +49,25 @@ var _registered: Dictionary = {}
 ## `faction_lookup` turns a faction id into a Faction (the content registry).
 func setup(reputation: ReputationManager, faction_lookup: Callable, clock: GameClock) -> void:
 	_reputation = reputation
+	_standing_source = reputation
 	_faction_lookup = faction_lookup
 	_clock = clock
 	# Without a reputation (the combat sandbox) the player has no allies.
-	var player_reputation := _player_reputation if reputation != null else Callable()
+	_wire_standing()
+
+
+## Makes the combat rules read the player's standing from `source` (null: the player has no
+## allies and nobody attacks them for their standing), without ever charging it for anything
+## the player does. The combat sandbox uses it to put the player on a side of a battle.
+func set_standing_source(source: ReputationManager) -> void:
+	_standing_source = source
+	_wire_standing()
+
+
+func _wire_standing() -> void:
+	var player_reputation := _player_reputation if _standing_source != null else Callable()
 	_allegiance.setup(AllegianceRules.shared(), player_reputation)
-	_hostility.setup(HostilityRules.shared(), _allegiance, faction_lookup, player_reputation, func() -> float: return _time)
+	_hostility.setup(HostilityRules.shared(), _allegiance, _faction_lookup, player_reputation, func() -> float: return _time)
 
 
 ## The player's combatant. Registered like any other ship.
@@ -181,9 +198,9 @@ func _register_ship_node(node) -> void:
 ## faction): what Allegiance asks to decide whether the player is an ally of it.
 func _player_reputation(faction_id: StringName):
 	var faction: Faction = _faction_lookup.call(faction_id) if _faction_lookup.is_valid() else null
-	if faction == null or _reputation == null:
+	if faction == null or _standing_source == null:
 		return null
-	return _reputation.get_reputation(faction)
+	return _standing_source.get_reputation(faction)
 
 
 func _get_projectile_root() -> Node:
